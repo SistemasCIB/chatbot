@@ -133,7 +133,7 @@ def rechazar_cita(cita_id):
 def exportar_excel():
     citas = Cita.query.order_by(Cita.creada_en.desc()).all()
     output = io.StringIO()
-    writer = csv.writer(output)
+    writer = csv.writer(output, delimiter=';')
     writer.writerow(['ID','Nombre','Documento','Telefono','Tipo','Orden Médica','Fecha','Hora','WhatsApp','Estado','Registrada'])
     for c in citas:
         writer.writerow([c.id, c.paciente.nombre, c.paciente.documento, c.paciente.telefono,

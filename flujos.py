@@ -721,7 +721,7 @@ def confirmar_cita(numero):
             " 🕘 Horario de atención: 9:00 AM - 12:00 PM\n\n"
             "Gracias por confiar en nosotros💙\n\n"
 
-            "¿Deseas agendar otra cita?\n\n"
+            "¿Deseas agendar otra cita?(es necesario seleccionar una opción)\n\n"
             "1️⃣ Mismo paciente\n" 
             "2️⃣ Otro paciente\n"
             "3️⃣ No, gracias"
