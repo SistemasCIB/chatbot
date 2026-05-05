@@ -614,12 +614,21 @@ def manejar_texto(numero, texto):
                 "modo_humano_inicio": datetime.utcnow()
             }
             return
+        
+        elif texto == "4":
+            enviar_menu(numero)
+            sesiones[numero] = {}
+            return
 
         else:
             enviar_texto(
                 numero,
-                "Por favor responde con:\n1, 2 o 3"
-            )
+                "Por favor responde con:\n"
+                "1️⃣ Mismo paciente\n"
+                "2️⃣ Otro paciente\n"
+                "3️⃣ No, gracias\n"
+                "4️⃣ Menú principal"
+                )
             return
 
 def manejar_archivo(numero, media_id, tipo_mime):
@@ -710,7 +719,7 @@ def confirmar_cita(numero):
             "Agendar y terminar este proceso no garantiza la cita inmediata.\n"
             "Recibirás confirmación por este medio.\n\n"
             " 🕘 Horario de atención: 9:00 AM - 12:00 PM\n\n"
-            "Gracias por confiar en nosotros💙"
+            "Gracias por confiar en nosotros💙\n\n"
 
             "¿Deseas agendar otra cita?\n\n"
             "1️⃣ Mismo paciente\n" 
