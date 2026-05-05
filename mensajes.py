@@ -654,30 +654,18 @@ def enviar_tipo_examen(numero):
     }
     enviar_request(data)    
 
-import requests
-
-TOKEN = "TU_TOKEN_DE_META"
-PHONE_ID = "TU_PHONE_NUMBER_ID"
-
 def enviar_botones_lista(numero, texto, footer, opciones):
 
-    url = f"https://graph.facebook.com/v19.0/{PHONE_ID}/messages"
-
-    headers = {
-        "Authorization": f"Bearer {TOKEN}",
-        "Content-Type": "application/json"
-    }
-
-    # WhatsApp permite máximo 10 opciones
     rows = []
     for op in opciones[:10]:
         rows.append({
             "id": op["id"],
-            "title": op["title"][:24]  # límite de caracteres
+            "title": op["title"][:24]
         })
 
     data = {
         "messaging_product": "whatsapp",
+        "recipient_type": "individual",
         "to": numero,
         "type": "interactive",
         "interactive": {
@@ -700,7 +688,4 @@ def enviar_botones_lista(numero, texto, footer, opciones):
         }
     }
 
-    response = requests.post(url, headers=headers, json=data)
-
-    if response.status_code != 200:
-        print("❌ Error enviando lista:", response.text)    
+    enviar_request(data)
