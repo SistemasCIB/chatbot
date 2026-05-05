@@ -12,7 +12,8 @@ from mensajes import (
     enviar_tipo_cobertura,
     enviar_aseguradora,
     enviar_tipo_examen,
-    mostrar_horas_disponibles
+    mostrar_horas_disponibles,
+    enviar_botones_lista
 )
 
 from config import LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL
@@ -84,7 +85,7 @@ def enviar_confirmacion_datos(numero):
         "¿Los datos son correctos?"
     )
 
-    enviar_texto(
+    enviar_botones_lista(
         numero,
         "Selecciona una opción:",
         "Verificar datos",
