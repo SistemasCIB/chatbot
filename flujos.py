@@ -61,6 +61,46 @@ def verificar_modo_humano(numero):
 # =====================================================
 # BOTONES
 # =====================================================
+def enviar_confirmacion_datos(numero):
+    sesion = sesiones[numero]
+
+    tipo_cita = sesion.get("tipo_cita", "")
+    hora_linea = f"\n📅 *Hora:* {sesion.get('hora_cita', '')}" if tipo_cita == "presencial" else ""
+    domicilio_linea = f"\n🏠 *Dirección domicilio:* {sesion.get('direccion_domicilio', '')}" if tipo_cita == "domicilio" else ""
+
+    enviar_texto(
+        numero,
+        "📋 *Resumen de tu solicitud*\n\n"
+        f"👤 *Nombre:* {sesion.get('nombre', '')}\n"
+        f"🪪 *Documento:* {sesion.get('tipo_documento', '')} {sesion.get('documento', '')}\n"
+        f"📞 *Teléfono:* {sesion.get('telefono', '')}\n"
+        f"📧 *Correo:* {sesion.get('correo', '')}\n"
+        f"🏡 *Dirección:* {sesion.get('direccion', '')}\n\n"
+        f"🔬 *Examen:* {sesion.get('tipo_examen', '')}\n"
+        f"🏥 *Tipo de cita:* {tipo_cita}\n"
+        f"📆 *Fecha:* {sesion.get('fecha_cita', '')}"
+        f"{hora_linea}"
+        f"{domicilio_linea}\n\n"
+        "¿Los datos son correctos?"
+    )
+
+    enviar_texto(
+        numero,
+        "Selecciona una opción:",
+        "Verificar datos",
+        [
+            {"id": "confirm_ok",           "title": "✅ Todo está correcto"},
+            {"id": "edit_nombre",          "title": "✏️ Cambiar nombre"},
+            {"id": "edit_documento",       "title": "✏️ Cambiar documento"},
+            {"id": "edit_telefono",        "title": "✏️ Cambiar teléfono"},
+            {"id": "edit_correo",          "title": "✏️ Cambiar correo"},
+            {"id": "edit_direccion",       "title": "✏️ Cambiar dirección"},
+            {"id": "edit_examen",          "title": "✏️ Cambiar examen"},
+            {"id": "edit_tipo_cita",       "title": "✏️ Cambiar tipo de cita"},
+            {"id": "edit_fecha",           "title": "✏️ Cambiar fecha"},
+        ]
+    )
+    sesiones[numero]["paso"] = "confirmacion"
 
 def manejar_boton(numero, opcion_id):
 
@@ -329,8 +369,16 @@ def manejar_boton(numero, opcion_id):
         hora = sesiones[numero]["horas"].get(opcion_id)
 
         sesiones[numero]["hora_cita"] = hora
-        sesiones[numero]["paso"] = "orden"
+        sesiones[numero]["paso"] = "confirmacion"
 
+        enviar_confirmacion_datos(numero)
+
+        return
+    # -----------------------------------
+    # CONFIRMACIÓN Y EDICIÓN DE DATOS
+    # -----------------------------------
+    elif opcion_id == "confirm_ok":
+        sesiones[numero]["paso"] = "orden"
         enviar_texto(
             numero,
             "📄 Ahora adjunta la orden médica.\n\n"
@@ -338,6 +386,35 @@ def manejar_boton(numero, opcion_id):
             "Un asesor la revisará para confirmar tu cita."
         )
         return
+
+    elif opcion_id.startswith("edit_"):
+        campo = opcion_id.replace("edit_", "")
+
+        mensajes = {
+            "nombre":    "Escribe tus nombres y apellidos:",
+            "documento": "Escribe tu número de documento:",
+            "telefono":  "Escribe tu número de teléfono:",
+            "correo":    "Escribe tu correo electrónico:",
+            "direccion": "Escribe tu dirección completa:",
+        }
+
+        if campo in mensajes:
+            sesiones[numero]["paso"] = f"editar_{campo}"
+            enviar_texto(numero, mensajes[campo])
+
+        elif campo == "examen":
+            sesiones[numero]["paso"] = "tipo_examen"
+            enviar_tipo_examen(numero)
+
+        elif campo == "tipo_cita":
+            sesiones[numero]["paso"] = "tipo_cita"
+            enviar_tipo_cita(numero)
+
+        elif campo == "fecha":
+            sesiones[numero]["paso"] = "fecha"
+            mostrar_fechas_disponibles(numero, sesiones)
+
+        return    
 
 # =====================================================
 # MENSAJES TEXTO
@@ -354,6 +431,17 @@ def manejar_texto(numero, texto):
 
     sesion = sesiones[numero]
     paso = sesion.get("paso")
+
+    # -----------------------------------
+    # EDICIÓN DESDE CONFIRMACIÓN
+    # -----------------------------------
+    if paso and paso.startswith("editar_"):
+        campo = paso.replace("editar_", "")
+        sesiones[numero][campo] = texto
+        sesiones[numero]["paso"] = "confirmacion"
+        enviar_texto(numero, f"✅ Dato actualizado correctamente.")
+        enviar_confirmacion_datos(numero)
+        return    
 
     # -----------------------------------
     # BUSCAR PACIENTE POR DOCUMENTO
@@ -466,13 +554,8 @@ def manejar_texto(numero, texto):
     # -----------------------------------
     elif paso == "direccion_domicilio":
         sesiones[numero]["direccion_domicilio"] = texto
-        sesiones[numero]["paso"] = "orden"
-        enviar_texto(
-            numero,
-            "📄 Ahora adjunta la orden médica.\n\n"
-            "Puedes enviarla en PDF o foto.\n"
-            "Un asesor la revisará para confirmar tu cita."
-        )
+        sesiones[numero]["paso"] = "confirmacion"
+        enviar_confirmacion_datos(numero)
         return
 
 
