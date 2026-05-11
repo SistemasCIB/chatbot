@@ -12,3 +12,4 @@ with app.app_context():
     db.session.add(admin)
     db.session.commit()
     print("Admin creado correctamente.")
+    #recordar crear admin
