@@ -13,14 +13,59 @@ HORARIO_INICIO = 7    # 7am
 HORARIO_FIN = 17      # 5pm
 
 REQUISITOS = {
-    'presencial': [
-        "Documento de identidad vigente",
-        "Orden medica (si aplica)",
-        "Llegar 15 minutos antes de la cita"
+    "general": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_directo_hongos": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_directo_cultivo": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_galactomanano": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_cryptococcus": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_serologia_inmuno": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_serologia_complemento": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_igra": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_ppd": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
+    ],
+    "examen_otro": [
+        "Requisito 1",
+        "Requisito 2",
+        "Requisito 3"
     ],
     'domicilio': [
         "Documento de identidad vigente",
         "Direccion completa y detallada",
-        "Disponibilidad entre 8am y 5pm"
+        "Disponibilidad entre 7:30am y 1:00pm"
     ]
 }

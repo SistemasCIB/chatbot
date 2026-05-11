@@ -16,7 +16,6 @@ class Paciente(db.Model):
     nombre = db.Column(db.String(100))
     telefono = db.Column(db.String(20))
     correo = db.Column(db.String(100))
-    direccion = db.Column(db.String(200))
     numero_whatsapp = db.Column(db.String(20))
     creado_en = db.Column(db.DateTime, default=datetime.utcnow)
 
