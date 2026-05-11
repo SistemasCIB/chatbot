@@ -334,7 +334,31 @@ textarea{
                      </option>
                  </select>
               </div>
+                <div> 
+                    <label>Tipo de muestra</label>
+                    <select name="tipo_muestra">
+                        <option value="">Seleccionar</option>
+                        <option value="uñas"
+                        {% if cita and cita.tipo_muestra == 'uñas' %}selected{% endif %}>
+                        Uñas
+                        </option>
 
+                        <option value="piel"
+                        {% if cita and cita.tipo_muestra == 'piel' %}selected{% endif %}>
+                        Piel
+                        </option>
+
+                        <option value="cuero cabelludo"
+                        {% if cita and cita.tipo_muestra == 'cuero cabelludo' %}selected{% endif %}>
+                        Cuero cabelludo
+                        </option>
+
+                        <option value="flujo vaginal"
+                        {% if cita and cita.tipo_muestra == 'flujo vaginal' %}selected{% endif %}>
+                        Flujo vaginal
+                        </option>
+                    </select>
+                </div>
 
                 <div>
                     <label>Estado</label>

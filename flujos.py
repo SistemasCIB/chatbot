@@ -287,10 +287,48 @@ def manejar_boton(numero, opcion_id):
             return
 
         sesiones[numero]["tipo_examen"] = examenes.get(opcion_id)
-        # FLUJO: después de examen → requisitos
+
+        # SOLO PARA HONGOS
+        if opcion_id in [
+            "examen_directo_hongos",
+            "examen_directo_cultivo"
+        ]:
+
+            sesiones[numero]["examen_id"] = opcion_id
+            sesiones[numero]["paso"] = "tipo_muestra"
+
+            enviar_botones_lista(
+                numero,
+                "🧪 ¿De qué tipo de muestra es el examen?",
+                "Selecciona una opción",
+                [
+                    {
+                        "id": "muestra_unas",
+                        "title": "Uñas"
+                    },
+                    {
+                        "id": "muestra_piel",
+                        "title": "Piel"
+                    },
+                    {
+                        "id": "muestra_cuero",
+                        "title": "Cuero cabelludo"
+                    },
+                    {
+                        "id": "muestra_flujo",
+                        "title": "Flujo vaginal"
+                    }
+                ]
+            )
+
+            return
+
+
+        # RESTO DE EXÁMENES → flujo normal
         sesiones[numero]["paso"] = "requisitos"
 
-        enviar_requisitos(numero, opcion_id)
+        enviar_requisitos(numero, opcion_id, tipo_muestra=None)
+
         return
 
     # -----------------------------------
@@ -308,6 +346,29 @@ def manejar_boton(numero, opcion_id):
             "Cuando cumplas requisitos podremos ayudarte."
         )
         enviar_menu(numero)
+        return
+        # -----------------------------------
+    # TIPO DE MUESTRA
+    # -----------------------------------
+    elif opcion_id.startswith("muestra_"):
+
+        muestras = {
+            "muestra_unas": "Uñas",
+            "muestra_piel": "Piel",
+            "muestra_cuero": "Cuero cabelludo",
+            "muestra_flujo": "Flujo vaginal"
+        }
+
+        sesiones[numero]["tipo_muestra"] = muestras.get(opcion_id)
+
+        sesiones[numero]["paso"] = "requisitos"
+
+        enviar_requisitos(
+            numero,
+            sesiones[numero]["examen_id"],
+            sesiones[numero]["tipo_muestra"]
+        )
+
         return
 
     # -----------------------------------
@@ -686,6 +747,7 @@ def confirmar_cita(numero):
             cobertura=sesion.get("cobertura", ""),
             aseguradora=sesion.get("aseguradora", ""),
             tipo_examen=sesion.get("tipo_examen", ""),
+            tipo_muestra=sesion.get("tipo_muestra", ""),
             fecha_cita=fecha_real,
             hora_cita=hora_texto if hora_texto else "Por asignar",
             numero_whatsapp=numero,

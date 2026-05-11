@@ -322,8 +322,8 @@ td:first-child {
         <a href="/asesor/nueva"     class="btn-nav btn-nueva">+ Nueva cita</a>
         <a href="/asesor/exportar"  class="btn-nav btn-exportar">Exportar CSV</a>
         <a href="/asesor/historial" class="btn-nav btn-historial">Historial</a>
+        <a href="/asesor/calendario" class="btn-nav btn-calendario">Calendario</a>
         <a href="/asesor/logout"    class="btn-nav btn-logout">Salir</a>
-        <a href="{{ url_for('asesor.calendario') }}"></a>
 
     </div>
 </header>
@@ -413,6 +413,7 @@ td:first-child {
                     <th>Cobertura</th>
                     <th>Póliza</th>
                     <th>Examen</th>
+                    <th>Tipo de muestra</th>
                     <th>Estado</th>
                     <th>Registrada</th>
                     <th>Acciones</th>
@@ -487,7 +488,7 @@ td:first-child {
                         {{ c.tipo_examen or '—' }}
                     </td>
 
-                    <!-- ESTADO -->
+                    <!-- TIPO DE MUESTRA -->
                     <td>
                         <span class="pill {{ c.estado }}">
                             {{ c.estado.capitalize() }}

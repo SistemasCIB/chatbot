@@ -186,10 +186,25 @@ Selecciona una opción 👇"""
     }
     enviar_request(data)
 
-def enviar_requisitos(numero, tipo):
-    requisitos = REQUISITOS.get(tipo, [])
+def enviar_requisitos(numero, tipo, tipo_muestra=None):
+
+    datos = REQUISITOS.get(tipo, REQUISITOS["general"])
+
+    # EXÁMENES CON TIPO DE MUESTRA
+    if isinstance(datos, dict):
+
+        requisitos = datos.get(tipo_muestra, [])
+
+    else:
+        requisitos = datos
+
     lista = "\n".join([f"- {r}" for r in requisitos])
-    horario = f"Horario de atencion: Lunes a viernes de {HORARIO_INICIO}am a {HORARIO_FIN}pm"
+
+    horario = (
+        f"Horario de atencion: "
+        f"Lunes a viernes de {HORARIO_INICIO}am a {HORARIO_FIN}pm"
+    )
+
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
@@ -197,15 +212,34 @@ def enviar_requisitos(numero, tipo):
         "type": "interactive",
         "interactive": {
             "type": "button",
-            "body": {"text": f"Para una cita {tipo} necesitas:\n\n{lista}\n\n{horario}\n\n¿Cumples con estos requisitos?"},
+            "body": {
+                "text":
+                    f"RECUERDE:\n\n"
+                    f"{lista}\n\n"
+                    f"{horario}\n\n"
+                    f"¿Cumples con estos requisitos?"
+            },
             "action": {
                 "buttons": [
-                    {"type": "reply", "reply": {"id": "cumple_si", "title": "Si, cumplo"}},   # ✅
-                    {"type": "reply", "reply": {"id": "cumple_no", "title": "No cumplo"}}     # ✅
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "cumple_si",
+                            "title": "Si, cumplo"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "cumple_no",
+                            "title": "No cumplo"
+                        }
+                    }
                 ]
             }
         }
     }
+
     enviar_request(data)
 
 def mostrar_fechas_disponibles(numero, sesiones):
