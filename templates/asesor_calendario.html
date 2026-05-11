@@ -44,46 +44,121 @@
 
     <script>
 
-    document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
 
-        var calendarEl = document.getElementById('calendar');
+            var calendarEl = document.getElementById('calendar');
 
-        var calendar = new FullCalendar.Calendar(calendarEl, {
+            var calendar = new FullCalendar.Calendar(calendarEl, {
 
-            locale: 'es',
+                locale: 'es',
 
-            initialView: 'timeGridWeek',
+                initialView: 'timeGridWeek',
 
-            slotDuration: '00:30:00',
+                slotDuration: '00:30:00',
 
-            slotMinTime: '07:30:00',
+                slotMinTime: '07:30:00',
 
-            slotMaxTime: '15:30:00',
+                slotMaxTime: '15:00:00',
 
-            allDaySlot: false,
+                allDaySlot: false,
 
-            nowIndicator: true,
+                nowIndicator: true,
 
-            height: 'auto',
+                height: 'auto',
 
-            expandRows: true,
+                expandRows: true,
 
-            events: '/asesor/eventos',
+                selectable: true,
 
-            eventClick: function(info){
+                editable: true,
 
-                alert(
-                    'Paciente: ' + info.event.title +
-                    '\nHora: ' + info.event.start.toLocaleTimeString()
-                );
+                events: '/asesor/eventos',
 
-            }
+                headerToolbar: {
+
+                    left: 'prev,next today',
+
+                    center: 'title',
+
+                    right: 'timeGridWeek,dayGridMonth'
+
+                },
+
+                // CREAR CITA
+                select: function(info){
+
+                    let nombre = prompt(
+                        "Nombre del paciente:"
+                    );
+
+                    if(!nombre){
+                        return;
+                    }
+
+                    fetch('/asesor/crear_cita_calendario', {
+
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+
+                        body: JSON.stringify({
+
+                            fecha: info.startStr,
+
+                            nombre: nombre
+
+                        })
+
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        calendar.refetchEvents();
+
+                    });
+
+                },
+
+                // MOVER CITA
+                eventDrop: function(info){
+
+                    fetch('/asesor/mover_cita', {
+
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+
+                        body: JSON.stringify({
+
+                            id: info.event.id,
+
+                            fecha: info.event.start.toISOString()
+
+                        })
+
+                    });
+
+                },
+
+                // CLICK EN CITA
+                eventClick: function(info){
+
+                    alert(
+                        'Paciente: ' +
+                        info.event.title
+                    );
+
+                }
+
+            });
+
+            calendar.render();
 
         });
-
-        calendar.render();
-
-    });
 
     </script>
 
