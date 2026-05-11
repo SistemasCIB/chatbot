@@ -490,9 +490,7 @@ td:first-child {
 
                     <!-- TIPO DE MUESTRA -->
                     <td>
-                        <span class="pill {{ c.estado }}">
-                            {{ c.estado.capitalize() }}
-                        </span>
+                       {{ c.tipo_muestra or '-' }}
                     </td>
 
                     <!-- REGISTRADA -->
