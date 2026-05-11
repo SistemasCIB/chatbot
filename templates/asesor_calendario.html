@@ -1,0 +1,91 @@
+<!-- templates/asesor_calendario.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Agenda de Citas</title>
+
+    <!-- FullCalendar -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet'>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1{
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        #calendar{
+            max-width: 1400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <h1>Agenda Semanal</h1>
+
+    <div id="calendar"></div>
+
+    <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+
+            locale: 'es',
+
+            initialView: 'timeGridWeek',
+
+            slotDuration: '00:30:00',
+
+            slotMinTime: '07:30:00',
+
+            slotMaxTime: '15:30:00',
+
+            allDaySlot: false,
+
+            nowIndicator: true,
+
+            height: 'auto',
+
+            expandRows: true,
+
+            events: '/asesor/eventos',
+
+            eventClick: function(info){
+
+                alert(
+                    'Paciente: ' + info.event.title +
+                    '\nHora: ' + info.event.start.toLocaleTimeString()
+                );
+
+            }
+
+        });
+
+        calendar.render();
+
+    });
+
+    </script>
+
+</body>
+</html>

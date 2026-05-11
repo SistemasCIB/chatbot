@@ -349,3 +349,59 @@ def liberar_chat(cita_id):
 
     return redirect(url_for('asesor.panel'))
 
+# =====================================================
+# CALENDARIO
+# =====================================================
+
+@asesor_bp.route('/asesor/calendario')
+@login_requerido
+def calendario():
+
+    return render_template('asesor_calendario.html')
+
+
+# =====================================================
+# EVENTOS CALENDARIO
+# =====================================================
+
+from flask import jsonify
+from datetime import datetime
+
+@asesor_bp.route('/asesor/eventos')
+@login_requerido
+def eventos_calendario():
+
+    citas = Cita.query.all()
+
+    eventos = []
+
+    for cita in citas:
+
+        # Color según estado
+        color = '#f39c12'   # pendiente
+
+        if cita.estado == 'confirmada':
+            color = '#27ae60'
+
+        elif cita.estado == 'cancelada':
+            color = '#e74c3c'
+
+        # Combinar fecha + hora
+        fecha_hora = datetime.combine(
+            cita.fecha_cita,
+            cita.hora_cita
+        )
+
+        eventos.append({
+
+            'id': cita.id,
+
+            'title': cita.nombre,
+
+            'start': fecha_hora.isoformat(),
+
+            'color': color
+
+        })
+
+    return jsonify(eventos)
