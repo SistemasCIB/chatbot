@@ -76,7 +76,6 @@ def enviar_confirmacion_datos(numero):
         f"🪪 *Documento:* {sesion.get('tipo_documento', '')} {sesion.get('documento', '')}\n"
         f"📞 *Teléfono:* {sesion.get('telefono', '')}\n"
         f"📧 *Correo:* {sesion.get('correo', '')}\n"
-        f"🏡 *Dirección:* {sesion.get('direccion', '')}\n\n"
         f"🔬 *Examen:* {sesion.get('tipo_examen', '')}\n"
         f"🏥 *Tipo de cita:* {tipo_cita}\n"
         f"📆 *Fecha:* {sesion.get('fecha_cita', '')}"
@@ -95,7 +94,6 @@ def enviar_confirmacion_datos(numero):
             {"id": "edit_documento",       "title": "✏️ Cambiar documento"},
             {"id": "edit_telefono",        "title": "✏️ Cambiar teléfono"},
             {"id": "edit_correo",          "title": "✏️ Cambiar correo"},
-            {"id": "edit_direccion",       "title": "✏️ Cambiar dirección"},
             {"id": "edit_examen",          "title": "✏️ Cambiar examen"},
             {"id": "edit_tipo_cita",       "title": "✏️ Cambiar tipo de cita"},
             {"id": "edit_fecha",           "title": "✏️ Cambiar fecha"},
@@ -234,7 +232,7 @@ def manejar_boton(numero, opcion_id):
         return
 
     # -----------------------------------
-    # PASO 2 - COBERTURA: después de dirección
+    # PASO 2 - COBERTURA: después de correo
     # -----------------------------------
     elif opcion_id == "cobertura_particular":
 
@@ -292,7 +290,7 @@ def manejar_boton(numero, opcion_id):
         # FLUJO: después de examen → requisitos
         sesiones[numero]["paso"] = "requisitos"
 
-        enviar_requisitos(numero, "general")
+        enviar_requisitos(numero, opcion_id)
         return
 
     # -----------------------------------
@@ -396,7 +394,6 @@ def manejar_boton(numero, opcion_id):
             "documento": "Escribe tu número de documento:",
             "telefono":  "Escribe tu número de teléfono:",
             "correo":    "Escribe tu correo electrónico:",
-            "direccion": "Escribe tu dirección completa:",
         }
 
         if campo in mensajes:
@@ -459,7 +456,6 @@ def manejar_texto(numero, texto):
             sesiones[numero]["nombre"]         = paciente.nombre
             sesiones[numero]["telefono"]       = paciente.telefono
             sesiones[numero]["correo"]         = paciente.correo
-            sesiones[numero]["direccion"]      = paciente.direccion
             sesiones[numero]["paso"]           = "cobertura"
 
             enviar_texto(
@@ -531,25 +527,13 @@ def manejar_texto(numero, texto):
     # -----------------------------------
     elif paso == "correo":
         sesiones[numero]["correo"] = texto
-        sesiones[numero]["paso"] = "direccion"
-
-        enviar_texto(
-            numero,
-            "Escribe tu dirección completa:"
-        )
-        return
-
-    # -----------------------------------
-    # DATOS PACIENTE: dirección
-    # FLUJO: después de dirección → cobertura
-    # -----------------------------------
-    elif paso == "direccion":
-        sesiones[numero]["direccion"] = texto
         sesiones[numero]["paso"] = "cobertura"
 
         enviar_tipo_cobertura(numero)
         return
-    
+
+ 
+   
     # -----------------------------------
     #DIRECION DOMICILIO
     # -----------------------------------
@@ -685,7 +669,6 @@ def confirmar_cita(numero):
                 nombre=sesion.get("nombre", ""),
                 telefono=sesion.get("telefono", ""),
                 correo=sesion.get("correo", ""),
-                direccion=sesion.get("direccion", ""),
                 numero_whatsapp=numero
             )
             db.session.add(paciente)

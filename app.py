@@ -21,12 +21,12 @@ app.register_blueprint(admin_bp)
 with app.app_context():
     db.create_all()
     # Crear asesor por defecto si no existe
-    if not Asesor.query.filter_by(usuario='admin').first():
+    if not Asesor.query.filter_by(usuario='test').first():
         asesor = Asesor(usuario='test', nombre='asesor test')
         asesor.set_password('cib2025')
         db.session.add(asesor)
         db.session.commit()
-        print("Asesor creado: admin / cib2025")
+        print("Asesor creado: test / cib2025")
 
 
 
