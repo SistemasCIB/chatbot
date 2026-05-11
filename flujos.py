@@ -787,3 +787,5 @@ def confirmar_cita(numero):
         "modo": "humano",
         "modo_humano_inicio": datetime.utcnow()
     }
+print(Cita)
+print(Cita.__table__.columns.keys())    
