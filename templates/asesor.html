@@ -5,738 +5,266 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CIB — Panel de Asesores</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
 <style>
-
 :root{
-
-    /* ══════════════════════════════
-       PALETA CIB
-    ══════════════════════════════ */
-
-    --black:#000000;
-    --navy:#223A7F;
-    --navy-deep:#182B63;
-
-    --cyan:#2EA1DB;
-    --cyan-light:#E7F5FC;
-    --cyan-mid:#B8E0F4;
-
-    --gray:#706F6F;
-    --gray-light:#F3F4F6;
-
-    --green:#8CBF45;
-    --green-dark:#6F9F32;
-    --green-soft:#EEF7E2;
-
-    --bg:#F7F9FC;
-    --surface:#FFFFFF;
-    --border:#E4EAF2;
-
-    --text:#1E293B;
-    --muted:#6B7280;
-    --subtle:#94A3B8;
-
-    --orange:#D97706;
-    --orange-soft:#FEF3E0;
-
-    --red:#DC2626;
-    --red-soft:#FDECEC;
-
-    --purple:#7C3AED;
-    --purple-soft:#F3E8FF;
-
-    --sidebar-w:230px;
-
-    --radius:14px;
-
-    --shadow:
-        0 2px 10px rgba(34,58,127,.06),
-        0 1px 3px rgba(34,58,127,.04);
-
-    --shadow-md:
-        0 8px 24px rgba(34,58,127,.12);
-
+    --navy:#223A7F; --navy-deep:#182B63;
+    --cyan:#2EA1DB; --cyan-light:#E7F5FC; --cyan-mid:#B8E0F4;
+    --gray:#706F6F; --gray-light:#F3F4F6;
+    --green:#8CBF45; --green-dark:#6F9F32; --green-soft:#EEF7E2;
+    --bg:#F7F9FC; --surface:#FFFFFF; --border:#E4EAF2;
+    --text:#1E293B; --muted:#6B7280; --subtle:#94A3B8;
+    --orange:#D97706; --orange-soft:#FEF3E0;
+    --red:#DC2626; --red-soft:#FDECEC;
+    --purple:#7C3AED; --purple-soft:#F3E8FF;
+    --sidebar-w:230px; --radius:14px;
+    --shadow:0 2px 10px rgba(34,58,127,.06),0 1px 3px rgba(34,58,127,.04);
+    --shadow-md:0 8px 24px rgba(34,58,127,.12);
 }
+*{margin:0;padding:0;box-sizing:border-box;}
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
+/* ── CLAVE: body y html fijos ── */
+html,body{height:100vh;overflow:hidden;}
 body{
     font-family:'Outfit',sans-serif;
-    background:linear-gradient(
-        180deg,
-        #F7F9FC 0%,
-        #EEF3F9 100%
-    );
+    background:linear-gradient(180deg,#F7F9FC 0%,#EEF3F9 100%);
     color:var(--text);
-    min-height:100vh;
     display:flex;
 }
 
-/* ══════════════════════════════
-   SIDEBAR
-══════════════════════════════ */
-
+/* SIDEBAR */
 .sidebar{
     width:var(--sidebar-w);
-
-    background:linear-gradient(
-        180deg,
-        var(--navy) 0%,
-        var(--navy-deep) 100%
-    );
-
-    min-height:100vh;
-
-    position:fixed;
-    left:0;
-    top:0;
-
-    display:flex;
-    flex-direction:column;
-
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep) 100%);
+    height:100vh;
+    position:fixed;left:0;top:0;
+    display:flex;flex-direction:column;
     border-right:1px solid rgba(255,255,255,.06);
+    z-index:50;overflow:hidden;
 }
-
 .sidebar-logo{
     padding:26px 22px 18px;
     border-bottom:1px solid rgba(255,255,255,.06);
-
-    display:flex;
-    align-items:center;
-    gap:12px;
+    display:flex;align-items:center;gap:12px;flex-shrink:0;
 }
-
-.logo-mark{
-    width:44px;
-    height:44px;
-    border-radius:12px;
-    background:linear-gradient(
-        135deg,
-        var(--cyan),
-        #1C7FB2
-    );
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    color:white;
-    font-weight:700;
-    font-size:18px;
-}
-
-.logo-text strong{
-    display:block;
-    color:white;
-    font-size:18px;
-    font-weight:700;
-}
-
-.logo-text small{
-    color:rgba(255,255,255,.65);
-    font-size:10px;
-    line-height:1.4;
-}
-
+.logo-text strong{display:block;color:white;font-size:18px;font-weight:700;}
+.logo-text small{color:rgba(255,255,255,.65);font-size:10px;line-height:1.4;}
 .sidebar-tagline{
     padding:10px 22px 18px;
-    color:rgba(255,255,255,.35);
-    font-size:10px;
-    border-bottom:1px solid rgba(255,255,255,.06);
+    color:rgba(255,255,255,.35);font-size:10px;
+    border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;
 }
-
-.nav{
-    flex:1;
-    padding:16px 12px;
-}
-
+.nav{flex:1;padding:16px 12px;overflow-y:auto;}
 .nav-label{
-    color:rgba(255,255,255,.28);
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.1em;
-    font-weight:600;
-
+    color:rgba(255,255,255,.28);font-size:10px;
+    text-transform:uppercase;letter-spacing:.1em;font-weight:600;
     margin:14px 10px 8px;
 }
-
 .nav-item{
-    display:flex;
-    align-items:center;
-    gap:10px;
-
-    padding:12px 14px;
-
-    border-radius:10px;
-
-    text-decoration:none;
-
-    color:rgba(255,255,255,.72);
-
-    font-size:13px;
-    font-weight:500;
-
-    transition:.2s;
+    display:flex;align-items:center;gap:10px;
+    padding:12px 14px;border-radius:10px;
+    text-decoration:none;color:rgba(255,255,255,.72);
+    font-size:13px;font-weight:500;transition:.2s;
 }
-
-.nav-item:hover{
-    background:rgba(46,161,219,.14);
-    color:white;
-}
-
-.nav-item.active{
-    background:rgba(46,161,219,.18);
-    color:var(--cyan);
-}
-
+.nav-item:hover{background:rgba(46,161,219,.14);color:white;}
+.nav-item.active{background:rgba(46,161,219,.18);color:var(--cyan);}
 .nav-cta{
     margin-top:18px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-
-    background:var(--green);
-
-    color:white;
-
-    padding:12px;
-
-    border-radius:10px;
-
-    text-decoration:none;
-
-    font-weight:700;
-    font-size:13px;
-
-    box-shadow:0 4px 14px rgba(140,191,69,.35);
-
-    transition:.2s;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--green);color:white;
+    padding:12px;border-radius:10px;text-decoration:none;
+    font-weight:700;font-size:13px;
+    box-shadow:0 4px 14px rgba(140,191,69,.35);transition:.2s;
 }
-
-.nav-cta:hover{
-    background:var(--green-dark);
-}
-
+.nav-cta:hover{background:var(--green-dark);}
 .sidebar-footer{
     padding:16px 12px;
-    border-top:1px solid rgba(255,255,255,.06);
+    border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;
 }
-
-.asesor-info{
-    display:flex;
-    align-items:center;
-    gap:10px;
-
-    margin-bottom:12px;
-}
-
+.asesor-info{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
 .asesor-avatar{
-    width:38px;
-    height:38px;
-
-    border-radius:50%;
-
-    background:linear-gradient(
-        135deg,
-        var(--cyan),
-        #1D6F9D
-    );
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    color:white;
-    font-weight:700;
+    width:38px;height:38px;border-radius:50%;
+    background:linear-gradient(135deg,var(--cyan),#1D6F9D);
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-weight:700;flex-shrink:0;
 }
-
-.asesor-name{
-    color:white;
-    font-size:13px;
-    font-weight:600;
-}
-
-.asesor-role{
-    color:rgba(255,255,255,.45);
-    font-size:11px;
-}
-
+.asesor-name{color:white;font-size:13px;font-weight:600;}
+.asesor-role{color:rgba(255,255,255,.45);font-size:11px;}
 .btn-logout{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-
-    padding:10px;
-
-    border-radius:10px;
-
-    background:rgba(255,255,255,.08);
-
-    color:white;
-
-    text-decoration:none;
-
-    font-size:12px;
-    font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px;border-radius:10px;
+    background:rgba(255,255,255,.08);color:white;
+    text-decoration:none;font-size:12px;font-weight:500;
 }
 
-/* ══════════════════════════════
-   MAIN
-══════════════════════════════ */
-
+/* MAIN — fijo, no scrollea */
 .main{
     margin-left:var(--sidebar-w);
     flex:1;
+    height:100vh;
+    display:flex;flex-direction:column;
+    overflow:hidden;
+    min-width:0;
 }
 
-/* TOPBAR */
-
+/* TOPBAR — siempre visible */
 .topbar{
     height:70px;
-
     background:white;
-
     border-bottom:1px solid var(--border);
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
+    display:flex;align-items:center;justify-content:space-between;
     padding:0 28px;
-
-    position:sticky;
-    top:0;
-
+    flex-shrink:0;
     z-index:20;
+    box-shadow:0 1px 4px rgba(34,58,127,.05);
 }
-
-.topbar-left h1{
-    color:var(--navy);
-    font-size:20px;
-    font-weight:700;
-}
-
-.topbar-left p{
-    color:var(--muted);
-    font-size:12px;
-    margin-top:2px;
-}
-
-.topbar-actions{
-    display:flex;
-    gap:10px;
-}
-
+.topbar-left h1{color:var(--navy);font-size:20px;font-weight:700;}
+.topbar-left p{color:var(--muted);font-size:12px;margin-top:2px;}
+.topbar-actions{display:flex;gap:10px;}
 .btn-top{
-    padding:10px 14px;
-
-    border-radius:10px;
-
-    text-decoration:none;
-
-    font-size:12px;
-    font-weight:600;
-
-    transition:.2s;
+    padding:10px 14px;border-radius:10px;
+    text-decoration:none;font-size:12px;font-weight:600;transition:.2s;
 }
+.btn-top:hover{transform:translateY(-1px);}
+.btn-export{background:var(--navy);color:white;}
+.btn-hist{background:var(--cyan-light);color:var(--cyan);}
+.btn-cal{background:var(--green-soft);color:var(--green-dark);}
 
-.btn-top:hover{
-    transform:translateY(-1px);
-}
-
-.btn-export{
-    background:var(--navy);
-    color:white;
-}
-
-.btn-hist{
-    background:var(--cyan-light);
-    color:var(--cyan);
-}
-
-.btn-cal{
-    background:var(--green-soft);
-    color:var(--green-dark);
-}
-
-/* PAGE */
-
+/* PAGE — ÚNICO elemento con scroll */
 .page{
+    flex:1;
+    overflow-y:auto;
+    overflow-x:hidden;
     padding:26px;
 }
+.page::-webkit-scrollbar{width:5px;}
+.page::-webkit-scrollbar-track{background:transparent;}
+.page::-webkit-scrollbar-thumb{background:var(--cyan-mid);border-radius:3px;}
 
 /* FILTRO */
-
 .filtro-bar{
-    background:white;
-
-    border:1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:16px;
-
-    display:flex;
-    gap:10px;
-
-    box-shadow:var(--shadow);
-
-    margin-bottom:22px;
+    background:white;border:1px solid var(--border);
+    border-radius:var(--radius);padding:16px;
+    display:flex;gap:10px;
+    box-shadow:var(--shadow);margin-bottom:22px;
 }
-
 .filtro-bar input{
-    flex:1;
-
-    padding:12px 14px;
-
-    border:1px solid var(--border);
-
-    border-radius:10px;
-
-    font-family:'Outfit',sans-serif;
-
-    outline:none;
+    flex:1;padding:12px 14px;
+    border:1px solid var(--border);border-radius:10px;
+    font-family:'Outfit',sans-serif;font-size:13px;outline:none;color:var(--text);
 }
-
-.filtro-bar input:focus{
-    border-color:var(--cyan);
-}
-
+.filtro-bar input:focus{border-color:var(--cyan);}
+.filtro-bar input::placeholder{color:var(--subtle);}
 .btn-buscar{
-    padding:12px 18px;
-
-    background:var(--navy);
-
-    color:white;
-
-    border:none;
-
-    border-radius:10px;
-
-    font-weight:600;
-
-    cursor:pointer;
+    padding:12px 18px;background:var(--navy);color:white;
+    border:none;border-radius:10px;
+    font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;transition:.2s;
 }
-
+.btn-buscar:hover{background:var(--navy-deep);}
 .btn-limpiar{
-    padding:12px 16px;
-
-    background:var(--gray-light);
-
-    color:var(--gray);
-
-    border-radius:10px;
-
-    text-decoration:none;
-
-    font-weight:600;
+    padding:12px 16px;background:var(--gray-light);color:var(--gray);
+    border-radius:10px;text-decoration:none;font-weight:600;
 }
 
 /* STATS */
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
-
-    margin-bottom:24px;
-}
-
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
 .stat-card{
-    background:white;
-
-    border-radius:var(--radius);
-
-    border:1px solid var(--border);
-
-    padding:20px;
-
-    display:flex;
-    align-items:center;
-    gap:14px;
-
-    position:relative;
-
-    overflow:hidden;
-
-    box-shadow:var(--shadow);
-
-    transition:.2s;
+    background:white;border-radius:var(--radius);border:1px solid var(--border);
+    padding:20px;display:flex;align-items:center;gap:14px;
+    position:relative;overflow:hidden;box-shadow:var(--shadow);transition:.2s;
 }
-
-.stat-card:hover{
-    transform:translateY(-2px);
-    box-shadow:var(--shadow-md);
-}
-
-.stat-card::after{
-    content:'';
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:4px;
-}
-
-.s-total::after{ background:var(--navy); }
-.s-pend::after{ background:var(--cyan); }
-.s-conf::after{ background:var(--green); }
-.s-rech::after{ background:var(--gray); }
-
-.stat-icon{
-    width:48px;
-    height:48px;
-
-    border-radius:12px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:20px;
-}
-
-.s-total .stat-icon{
-    background:#E9EEFA;
-}
-
-.s-pend .stat-icon{
-    background:var(--cyan-light);
-}
-
-.s-conf .stat-icon{
-    background:var(--green-soft);
-}
-
-.s-rech .stat-icon{
-    background:#ECECEC;
-}
-
-.stat-info .label{
-    font-size:11px;
-    color:var(--muted);
-    text-transform:uppercase;
-    font-weight:600;
-    letter-spacing:.08em;
-}
-
-.stat-info .value{
-    font-size:28px;
-    font-weight:700;
-    margin-top:4px;
-}
-
-.s-total .value{ color:var(--navy); }
-.s-pend .value{ color:var(--cyan); }
-.s-conf .value{ color:var(--green); }
-.s-rech .value{ color:var(--gray); }
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.s-total::after{background:var(--navy);}
+.s-pend::after{background:var(--cyan);}
+.s-conf::after{background:var(--green);}
+.s-rech::after{background:var(--gray);}
+.stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.s-total .stat-icon{background:#E9EEFA;}
+.s-pend  .stat-icon{background:var(--cyan-light);}
+.s-conf  .stat-icon{background:var(--green-soft);}
+.s-rech  .stat-icon{background:#ECECEC;}
+.stat-info .label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.08em;}
+.stat-info .value{font-size:28px;font-weight:700;margin-top:4px;}
+.s-total .value{color:var(--navy);}
+.s-pend  .value{color:var(--cyan);}
+.s-conf  .value{color:var(--green);}
+.s-rech  .value{color:var(--gray);}
 
 /* TABLE */
-
 .table-box{
-    background:white;
-
-    border-radius:var(--radius);
-
-    border:1px solid var(--border);
-
-    overflow:hidden;
-
-    box-shadow:var(--shadow);
+    background:white;border-radius:var(--radius);
+    border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);
 }
-
 .table-header{
-    padding:20px 22px;
-
-    border-bottom:1px solid var(--border);
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    background:linear-gradient(
-        to right,
-        #F8FAFF,
-        #FFFFFF
-    );
+    padding:20px 22px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(to right,#F8FAFF,#FFFFFF);
 }
-
-.table-header h2{
-    color:var(--navy);
-    font-size:15px;
-    font-weight:700;
-}
-
-.table-header p{
-    color:var(--muted);
-    font-size:11px;
-    margin-top:2px;
-}
-
+.table-header h2{color:var(--navy);font-size:15px;font-weight:700;}
+.table-header p{color:var(--muted);font-size:11px;margin-top:2px;}
 .badge-count{
-    background:var(--cyan-light);
-
-    color:var(--navy);
-
-    padding:6px 12px;
-
-    border-radius:30px;
-
-    font-size:11px;
-    font-weight:700;
+    background:var(--cyan-light);color:var(--navy);
+    padding:6px 12px;border-radius:30px;font-size:11px;font-weight:700;
 }
 
-.table-wrap{
-    overflow-x:auto;
-}
+/* Solo table-wrap hace scroll horizontal */
+.table-wrap{overflow-x:auto;}
+.table-wrap::-webkit-scrollbar{height:5px;}
+.table-wrap::-webkit-scrollbar-track{background:#F1F5F9;}
+.table-wrap::-webkit-scrollbar-thumb{background:var(--cyan-mid);border-radius:3px;}
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:1200px;
-}
-
-thead{
-    background:#F8FAFC;
-}
-
+table{width:100%;border-collapse:collapse;min-width:1200px;}
+thead{background:#F8FAFC;}
 th{
-    padding:14px;
-
-    text-align:left;
-
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-
-    color:var(--muted);
-
-    border-bottom:1px solid var(--border);
+    padding:14px;text-align:left;
+    font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;
 }
-
-td{
-    padding:14px;
-
-    border-bottom:1px solid #EEF2F7;
-
-    font-size:13px;
-}
-
-tbody tr:hover{
-    background:#FAFCFF;
-}
-
-.nombre-cell strong{
-    display:block;
-    color:var(--navy);
-    font-weight:600;
-}
-
-.nombre-cell small{
-    color:var(--muted);
-    font-size:10px;
-}
+td{padding:14px;border-bottom:1px solid #EEF2F7;font-size:13px;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#FAFCFF;}
+td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--subtle);width:42px;}
+.nombre-cell strong{display:block;color:var(--navy);font-weight:600;}
+.nombre-cell small{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;}
+.hora-cell{font-family:'JetBrains Mono',monospace;font-size:12px;}
 
 /* PILLS */
-
-.pill{
-    display:inline-block;
-
-    padding:5px 10px;
-
-    border-radius:30px;
-
-    font-size:10px;
-    font-weight:700;
-}
-
-.pill.pendiente{
-    background:var(--cyan-light);
-    color:var(--cyan);
-}
-
-.pill.confirmada{
-    background:var(--green-soft);
-    color:var(--green-dark);
-}
-
-.pill.rechazada{
-    background:#ECECEC;
-    color:var(--gray);
-}
-
-.pill.presencial{
-    background:#E9EEFA;
-    color:var(--navy);
-}
-
-.pill.domicilio{
-    background:var(--cyan-light);
-    color:var(--cyan);
-}
+.pill{display:inline-block;padding:5px 10px;border-radius:30px;font-size:10px;font-weight:700;}
+.pill.pendiente{background:var(--cyan-light);color:var(--cyan);}
+.pill.confirmada{background:var(--green-soft);color:var(--green-dark);}
+.pill.rechazada{background:#ECECEC;color:var(--gray);}
+.pill.cancelada{background:#F3F4F6;color:#6B7280;}
+.pill.presencial{background:#E9EEFA;color:var(--navy);}
+.pill.domicilio{background:var(--cyan-light);color:var(--cyan);}
 
 /* ACTIONS */
-
-.actions{
-    display:flex;
-    gap:6px;
-}
-
+.actions{display:flex;gap:6px;flex-wrap:nowrap;}
 .btn{
-    padding:6px 10px;
-
-    border-radius:8px;
-
-    text-decoration:none;
-
-    font-size:11px;
-    font-weight:600;
+    padding:6px 10px;border-radius:8px;text-decoration:none;
+    font-size:11px;font-weight:600;white-space:nowrap;
+    transition:filter .15s;display:inline-block;
 }
+.btn:hover{filter:brightness(.92);}
+.btn-confirm{background:var(--green-soft);color:var(--green-dark);}
+.btn-reject{background:#ECECEC;color:var(--gray);}
+.btn-edit{background:var(--cyan-light);color:#0F6F9E;}
+.btn-orden{background:#E9EEFA;color:var(--navy);}
 
-.btn-confirm{
-    background:var(--green-soft);
-    color:var(--green-dark);
-}
-
-.btn-reject{
-    background:#ECECEC;
-    color:var(--gray);
-}
-
-.btn-edit{
-    background:var(--cyan-light);
-    color:#0F6F9E;
-}
-
-.btn-orden{
-    background:#E9EEFA;
-    color:var(--navy);
-}
-
+.empty{text-align:center;padding:70px 40px;color:var(--muted);}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+.empty p{font-size:14px;}
+.dash{color:#CBD5E1;}
 </style>
 </head>
-
 <body>
 
-<!-- ══ SIDEBAR ══ -->
 <aside class="sidebar">
-
     <div class="sidebar-logo">
-        <!-- Logo SVG estilo CIB -->
-        <svg class="logo-mark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="42" height="42" rx="9" fill="#0d2459"/>
-            <!-- C -->
-            <path d="M8 21 C8 14 13 9 20 9 C23.5 9 26.5 10.3 28.5 12.5 L25 15.5 C23.8 14.2 22 13.5 20 13.5 C15.6 13.5 12.5 16.8 12.5 21 C12.5 25.2 15.6 28.5 20 28.5 C22 28.5 23.8 27.8 25 26.5 L28.5 29.5 C26.5 31.7 23.5 33 20 33 C13 33 8 28 8 21Z" fill="#00aecc"/>
-            <!-- I -->
-            <rect x="31" y="9" width="4" height="24" rx="2" fill="white"/>
+        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;">
+            <defs><linearGradient id="lg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#2EA1DB"/><stop offset="100%" stop-color="#1C7FB2"/></linearGradient></defs>
+            <rect width="44" height="44" rx="12" fill="url(#lg)"/>
+            <path d="M10 22C10 15.4 15 10 22 10C25.5 10 28.5 11.4 30.5 13.7L27 16.8C25.7 15.4 23.9 14.5 22 14.5C17.3 14.5 14.5 18 14.5 22C14.5 26 17.3 29.5 22 29.5C23.9 29.5 25.7 28.6 27 27.2L30.5 30.3C28.5 32.6 25.5 34 22 34C15 34 10 28.6 10 22Z" fill="white"/>
+            <rect x="33" y="10" width="4" height="24" rx="2" fill="rgba(255,255,255,0.85)"/>
         </svg>
         <div class="logo-text">
             <strong>CIB</strong>
@@ -748,28 +276,12 @@ tbody tr:hover{
 
     <nav class="nav">
         <div class="nav-label">Principal</div>
-
-        <a href="/asesor" class="nav-item active">
-            <span class="nav-icon">📋</span> Solicitudes
-        </a>
-
-        <a href="/asesor/calendario" class="nav-item">
-            <span class="nav-icon">📅</span> Calendario
-        </a>
-
-        <a href="/asesor/historial" class="nav-item">
-            <span class="nav-icon">🕘</span> Historial
-        </a>
-
-        <a href="/asesor/exportar" class="nav-item">
-            <span class="nav-icon">⬇️</span> Exportar CSV
-        </a>
-
+        <a href="/asesor" class="nav-item active"><span>📋</span> Solicitudes</a>
+        <a href="/asesor/calendario" class="nav-item"><span>📅</span> Calendario</a>
+        <a href="/asesor/historial" class="nav-item"><span>🕘</span> Historial</a>
+        <a href="/asesor/exportar" class="nav-item"><span>⬇️</span> Exportar CSV</a>
         <div class="nav-label">Acciones</div>
-
-        <a href="/asesor/nueva" class="nav-cta">
-            <span>＋</span> Nueva cita
-        </a>
+        <a href="/asesor/nueva" class="nav-cta">＋ Nueva cita</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -780,75 +292,69 @@ tbody tr:hover{
                 <div class="asesor-role">Asesor</div>
             </div>
         </div>
-        <a href="/asesor/logout" class="btn-logout">
-            <span>→</span> Cerrar sesión
-        </a>
+        <a href="/asesor/logout" class="btn-logout">→ Cerrar sesión</a>
     </div>
-
 </aside>
 
-<!-- ══ MAIN ══ -->
 <div class="main">
 
-    <!-- TOPBAR -->
     <div class="topbar">
         <div class="topbar-left">
             <h1>Solicitudes Registradas</h1>
             <p>Gestión y seguimiento de citas — CIB Diagnóstico</p>
         </div>
         <div class="topbar-actions">
-            <a href="/asesor/exportar"  class="btn-top btn-export">⬇ Exportar CSV</a>
-            <a href="/asesor/historial" class="btn-top btn-hist">🕘 Historial</a>
+            <a href="/asesor/exportar"   class="btn-top btn-export">⬇ Exportar CSV</a>
+            <a href="/asesor/historial"  class="btn-top btn-hist">🕘 Historial</a>
             <a href="/asesor/calendario" class="btn-top btn-cal">📅 Calendario</a>
         </div>
     </div>
 
-    <!-- PAGE -->
     <div class="page">
 
-        <!-- FILTRO -->
         <form method="GET" class="filtro-bar">
-            <input type="text"
-                   name="documento"
+            <input type="text" name="documento"
                    placeholder="🔍  Buscar por número de cédula..."
                    value="{{ documento_filtro or '' }}">
             <button type="submit" class="btn-buscar">Buscar</button>
             <a href="/asesor" class="btn-limpiar">✕ Limpiar</a>
         </form>
 
-        <!-- STATS -->
+        <div id="filtro-activo" style="display:none;margin-bottom:14px;padding:10px 16px;background:var(--cyan-light);border-radius:10px;font-size:13px;color:var(--navy);font-weight:600;align-items:center;justify-content:space-between;">
+            <span id="filtro-texto">Mostrando: pendiente</span>
+            <a href="#" onclick="filtrarEstado('todos');return false;" style="color:var(--cyan);font-size:12px;text-decoration:none;">✕ Ver todos</a>
+        </div>
+
         <div class="stats">
-            <div class="stat-card s-total">
+            <div class="stat-card s-total" onclick="filtrarEstado('todos')" style="cursor:pointer">
                 <div class="stat-icon">📋</div>
                 <div class="stat-info">
                     <div class="label">Total</div>
                     <div class="value">{{ citas|length }}</div>
                 </div>
             </div>
-            <div class="stat-card s-pend">
+            <div class="stat-card s-pend" onclick="filtrarEstado('pendiente')" style="cursor:pointer">
                 <div class="stat-icon">⏳</div>
                 <div class="stat-info">
                     <div class="label">Pendientes</div>
                     <div class="value">{{ citas|selectattr('estado','equalto','pendiente')|list|length }}</div>
                 </div>
             </div>
-            <div class="stat-card s-conf">
+            <div class="stat-card s-conf" onclick="filtrarEstado('confirmada')" style="cursor:pointer">
                 <div class="stat-icon">✅</div>
                 <div class="stat-info">
                     <div class="label">Confirmadas</div>
                     <div class="value">{{ citas|selectattr('estado','equalto','confirmada')|list|length }}</div>
                 </div>
             </div>
-            <div class="stat-card s-rech">
+            <div class="stat-card s-rech" onclick="filtrarEstado('rechazada')" style="cursor:pointer">
                 <div class="stat-icon">❌</div>
                 <div class="stat-info">
                     <div class="label">Rechazadas</div>
                     <div class="value">{{ citas|selectattr('estado','equalto','rechazada')|list|length }}</div>
                 </div>
             </div>
-        </div>
-
-        <!-- TABLE -->
+        </div>        
         <div class="table-box">
             <div class="table-header">
                 <div>
@@ -863,93 +369,42 @@ tbody tr:hover{
             <table>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Paciente</th>
-                        <th>Documento</th>
-                        <th>Teléfono</th>
-                        <th>Tipo cita</th>
-                        <th>Dirección domicilio</th>
-                        <th>Orden</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Cobertura</th>
-                        <th>Póliza</th>
-                        <th>Examen</th>
-                        <th>Muestra</th>
-                        <th>Estado</th>
-                        <th>Registrada</th>
-                        <th>Acciones</th>
+                        <th>#</th><th>Paciente</th><th>Documento</th><th>Teléfono</th>
+                        <th>Tipo cita</th><th>Dirección domicilio</th><th>Orden</th>
+                        <th>Fecha</th><th>Hora</th><th>Cobertura</th><th>Póliza</th>
+                        <th>Examen</th><th>Muestra</th><th>Estado</th>
+                        <th>Registrada</th><th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for c in citas %}
                 <tr>
                     <td>{{ c.id }}</td>
-
                     <td>
                         <div class="nombre-cell">
                             <strong>{{ c.paciente.nombre }}</strong>
                             <small>{{ c.paciente.tipo_documento }}</small>
                         </div>
                     </td>
-
                     <td>{{ c.paciente.documento }}</td>
                     <td>{{ c.paciente.telefono }}</td>
-
-                    <td>
-                        <span class="pill {{ c.tipo_cita }}">
-                            {{ c.tipo_cita.capitalize() }}
-                        </span>
-                    </td>
-
+                    <td><span class="pill {{ c.tipo_cita }}">{{ c.tipo_cita.capitalize() }}</span></td>
                     <td style="max-width:180px;font-size:11.5px;color:var(--muted)">
-                        {% if c.tipo_cita == 'domicilio' and c.direccion_domicilio %}
-                            {{ c.direccion_domicilio }}
-                        {% else %}
-                            <span class="dash">—</span>
-                        {% endif %}
+                        {% if c.tipo_cita == 'domicilio' and c.direccion_domicilio %}{{ c.direccion_domicilio }}{% else %}<span class="dash">—</span>{% endif %}
                     </td>
-
                     <td>
-                        {% if c.orden_medica %}
-                        <a href="/asesor/orden/{{ c.id }}" target="_blank" class="btn btn-orden">Ver orden</a>
-                        {% else %}
-                        <span class="dash">—</span>
-                        {% endif %}
+                        {% if c.orden_medica %}<a href="/asesor/orden/{{ c.id }}" target="_blank" class="btn btn-orden">Ver orden</a>{% else %}<span class="dash">—</span>{% endif %}
                     </td>
-
-                    <td style="white-space:nowrap;font-size:12px">
-                        {{ c.fecha_cita.strftime('%d/%m/%Y') if c.fecha_cita else '—' }}
-                    </td>
-
-                    <td class="hora-cell">
-                        {{ c.hora_cita or 'Por asignar' }}
-                    </td>
-
+                    <td style="white-space:nowrap;font-size:12px">{{ c.fecha_cita.strftime('%d/%m/%Y') if c.fecha_cita else '—' }}</td>
+                    <td class="hora-cell">{{ c.hora_cita or 'Por asignar' }}</td>
                     <td>{{ c.cobertura or '—' }}</td>
-
                     <td>
-                        {% if c.cobertura and c.cobertura|lower == 'poliza' %}
-                            {{ c.aseguradora or '—' }}
-                        {% else %}
-                            <span class="dash">—</span>
-                        {% endif %}
+                        {% if c.cobertura and c.cobertura|lower == 'poliza' %}{{ c.aseguradora or '—' }}{% else %}<span class="dash">—</span>{% endif %}
                     </td>
-
-                    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ c.tipo_examen }}">
-                        {{ c.tipo_examen or '—' }}
-                    </td>
-
+                    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ c.tipo_examen }}">{{ c.tipo_examen or '—' }}</td>
                     <td>{{ c.tipo_muestra or '—' }}</td>
-
-                    <td>
-                        <span class="pill {{ c.estado }}">{{ c.estado }}</span>
-                    </td>
-
-                    <td style="white-space:nowrap;font-size:11px;color:var(--muted)">
-                        {{ c.creada_en.strftime('%d/%m/%Y %H:%M') if c.creada_en else '—' }}
-                    </td>
-
+                    <td><span class="pill {{ c.estado }}">{{ c.estado }}</span></td>
+                    <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{ c.creada_en.strftime('%d/%m/%Y %H:%M') if c.creada_en else '—' }}</td>
                     <td>
                         <div class="actions">
                             {% if c.estado == 'pendiente' %}
@@ -964,17 +419,60 @@ tbody tr:hover{
                 </tbody>
             </table>
             </div>
-
             {% else %}
             <div class="empty">
                 <div class="empty-icon">📭</div>
                 <p>No hay citas registradas aún.</p>
             </div>
             {% endif %}
-
         </div>
     </div>
 </div>
+<script>
+function filtrarEstado(estado) {
+    const filas   = document.querySelectorAll('tbody tr');
+    const banner  = document.getElementById('filtro-activo');
+    const texto   = document.getElementById('filtro-texto');
+    const cards   = document.querySelectorAll('.stat-card');
+    const mapa    = { pendiente:'s-pend', confirmada:'s-conf', rechazada:'s-rech' };
 
+    if (estado === 'todos') {
+        cards.forEach(c => { c.style.opacity='1'; c.style.outline='none'; });
+        banner.style.display = 'none';
+        filas.forEach(f => f.style.display = '');
+        document.querySelector('.badge-count').textContent =
+            filas.length + ' registros';
+    } else {
+        // Opaca todas, resalta la activa
+        cards.forEach(c => c.style.opacity = '0.45');
+        const activa = document.querySelector('.' + mapa[estado]);
+        if (activa) {
+            activa.style.opacity = '1';
+            activa.style.outline = '2px solid var(--cyan)';
+        }
+        // Quita outline de las demás
+        Object.values(mapa).forEach(cls => {
+            if (cls !== mapa[estado]) {
+                const el = document.querySelector('.' + cls);
+                if (el) el.style.outline = 'none';
+            }
+        });
+        // Banner
+        const nombres = { pendiente:'Pendientes', confirmada:'Confirmadas', rechazada:'Rechazadas' };
+        texto.textContent = 'Filtrando: ' + nombres[estado];
+        banner.style.display = 'flex';
+
+        // Filtrar filas
+        let count = 0;
+        filas.forEach(fila => {
+            const pill = fila.querySelector('.pill.pendiente, .pill.confirmada, .pill.rechazada');
+            const estadoFila = pill ? pill.classList[1] : '';
+            if (estadoFila === estado) { fila.style.display = ''; count++; }
+            else fila.style.display = 'none';
+        });
+        document.querySelector('.badge-count').textContent = count + ' registros';
+    }
+}
+</script>
 </body>
 </html>

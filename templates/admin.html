@@ -735,10 +735,6 @@ tbody tr:hover{
             👥 Asesores
         </a>
 
-        <a href="/admin/historial" class="nav-item">
-            🕘 Historial
-        </a>
-
 
         <div class="nav-label">Acciones</div>
 
@@ -791,7 +787,7 @@ tbody tr:hover{
 
         <div class="topbar-actions">
             <a href="/admin/nuevo" class="btn-top btn-new">＋ Nuevo asesor</a>
-            <a href="/admin/historial" class="btn-top btn-users">🕘 Historial</a>
+           
             
         </div>
 
@@ -803,41 +799,33 @@ tbody tr:hover{
 
         <!-- STATS -->
 
+        <div id="filtro-activo" style="display:none;margin-bottom:14px;padding:10px 16px;background:var(--cyan-light);border-radius:10px;font-size:13px;color:var(--navy);font-weight:600;align-items:center;justify-content:space-between;">
+            <span id="filtro-texto">Filtrando: activos</span>
+            <a href="#" onclick="filtrarEstado('todos');return false;" style="color:var(--cyan);font-size:12px;text-decoration:none;">✕ Ver todos</a>
+        </div>
+
         <div class="stats">
-
-            <div class="stat-card s-total">
+            <div class="stat-card s-total" onclick="filtrarEstado('todos')" style="cursor:pointer">
                 <div class="stat-icon">👥</div>
-
                 <div class="stat-info">
                     <div class="label">Total asesores</div>
-                    <div class="value">
-                        {{ asesores|length }}
-                    </div>
+                    <div class="value">{{ asesores|length }}</div>
                 </div>
             </div>
-
-            <div class="stat-card s-active">
+            <div class="stat-card s-active" onclick="filtrarEstado('activo')" style="cursor:pointer">
                 <div class="stat-icon">✅</div>
-
                 <div class="stat-info">
                     <div class="label">Activos</div>
-                    <div class="value">
-                        {{ asesores|selectattr('activo','equalto',True)|list|length }}
-                    </div>
+                    <div class="value">{{ asesores|selectattr('activo','equalto',True)|list|length }}</div>
                 </div>
             </div>
-
-            <div class="stat-card s-inactive">
+            <div class="stat-card s-inactive" onclick="filtrarEstado('inactivo')" style="cursor:pointer">
                 <div class="stat-icon">🚫</div>
-
                 <div class="stat-info">
                     <div class="label">Inactivos</div>
-                    <div class="value">
-                        {{ asesores|selectattr('activo','equalto',False)|list|length }}
-                    </div>
+                    <div class="value">{{ asesores|selectattr('activo','equalto',False)|list|length }}</div>
                 </div>
             </div>
-
         </div>
 
         <!-- TABLE -->
@@ -964,6 +952,42 @@ tbody tr:hover{
     </div>
 
 </div>
+<script>
+function filtrarEstado(estado) {
+    const filas  = document.querySelectorAll('tbody tr');
+    const banner = document.getElementById('filtro-activo');
+    const texto  = document.getElementById('filtro-texto');
+    const cards  = document.querySelectorAll('.stat-card');
+    const mapa   = { activo:'s-active', inactivo:'s-inactive' };
 
+    if (estado === 'todos') {
+        cards.forEach(c => { c.style.opacity='1'; c.style.outline='none'; });
+        banner.style.display = 'none';
+        filas.forEach(f => f.style.display = '');
+        document.querySelector('.badge-count').textContent =
+            filas.length + ' registros';
+    } else {
+        cards.forEach(c => { c.style.opacity='0.45'; c.style.outline='none'; });
+        const activa = document.querySelector('.' + mapa[estado]);
+        if (activa) { activa.style.opacity='1'; activa.style.outline='2px solid var(--cyan)'; }
+
+        // Siempre resalta total también
+        document.querySelector('.s-total').style.opacity = '0.7';
+
+        const nombres = { activo:'Activos', inactivo:'Inactivos' };
+        texto.textContent = 'Filtrando: ' + nombres[estado];
+        banner.style.display = 'flex';
+
+        let count = 0;
+        filas.forEach(fila => {
+            const pill = fila.querySelector('.pill.activo, .pill.inactivo');
+            const estadoFila = pill ? pill.classList[1] : '';
+            if (estadoFila === estado) { fila.style.display=''; count++; }
+            else fila.style.display = 'none';
+        });
+        document.querySelector('.badge-count').textContent = count + ' registros';
+    }
+}
+</script>
 </body>
 </html>
