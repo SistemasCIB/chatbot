@@ -541,7 +541,7 @@ def manejar_texto(numero, texto):
         # FLUJO: después de examen otro → requisitos
         sesiones[numero]["paso"] = "requisitos"
 
-        enviar_requisitos(numero, "general")
+        enviar_requisitos(numero, "examen_otro")
         return
 
     # -----------------------------------
@@ -787,5 +787,4 @@ def confirmar_cita(numero):
         "modo": "humano",
         "modo_humano_inicio": datetime.utcnow()
     }
-print(Cita)
-print(Cita.__table__.columns.keys())    
+

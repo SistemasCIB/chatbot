@@ -14,58 +14,109 @@ HORARIO_FIN = 17      # 5pm
 
 REQUISITOS = {
     "general": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "Documento de identidad vigente",
+        "Orden médica si aplica"
     ],
-    "examen_directo_hongos": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
-    ],
-    "examen_directo_cultivo": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
-    ],
+
+    # ──── EXAMEN DIRECTO HONGOS ────
+    "examen_directo_hongos": {
+        "Uñas": [
+            "No tener esmalte ni maquillaje en las uñas afectadas (3 a 5 días antes)",
+            "No cortar ni limpiar la uña por lo menos 20 días antes",
+            "No aplicar antitranspirantes ni cremas en el área afectada los 8 días previos",
+            "No aplicar tratamientos caseros (límpido, vinagre, etc.) 8 días antes",
+            "No haber tomado medicamentos antimicóticos 1 mes antes",
+            "No haber aplicado tratamiento tópico para hongos 15 días antes",
+            "Venir con calzado cerrado"
+        ],
+        "Piel": [
+            "No aplicar CREMAS en el sitio de la lesión 5 días antes",
+            "No aplicar TALCOS en el sitio de la lesión 5 días antes",
+            "No haber tomado medicamentos antimicóticos 1 mes antes",
+            "No haber aplicado tratamiento para hongos sobre la lesión 15 días antes"
+        ],
+        "Cuero cabelludo": [
+            "No aplicar CREMAS en el sitio de la lesión 5 días antes",
+            "No aplicar TALCOS en el sitio de la lesión 5 días antes",
+            "No haber tomado medicamentos antimicóticos 1 mes antes",
+            "No haber aplicado tratamiento para hongos sobre la lesión 15 días antes"
+        ],
+        "Flujo vaginal": [
+            "No haberse realizado duchas vaginales 1 día antes",
+            "No haber tomado medicamentos antimicóticos 15 días antes",
+            "Esperar 10 días si se aplicó medicamento tópico vaginal (óvulos o cremas)",
+            "Esperar mínimo 1 día si ha tenido relaciones sexuales"
+        ]
+    },
+
+    # ──── HONGOS + CULTIVO ────
+    "examen_directo_cultivo": {
+        "Uñas": [
+            "No tener esmalte ni maquillaje en las uñas afectadas (3 a 5 días antes)",
+            "No cortar ni limpiar la uña por lo menos 20 días antes",
+            "No aplicar antitranspirantes ni cremas en el área afectada los 8 días previos",
+            "No aplicar tratamientos caseros (límpido, vinagre, etc.) 8 días antes",
+            "No haber tomado medicamentos antimicóticos 1 mes antes",
+            "No haber aplicado tratamiento tópico para hongos 15 días antes",
+            "Venir con calzado cerrado"
+        ],
+        "Piel": [
+            "No aplicar CREMAS en el sitio de la lesión 5 días antes",
+            "No aplicar TALCOS en el sitio de la lesión 5 días antes",
+            "No haber tomado medicamentos antimicóticos 1 mes antes",
+            "No haber aplicado tratamiento para hongos sobre la lesión 15 días antes"
+        ],
+        "Cuero cabelludo": [
+            "No aplicar CREMAS en el sitio de la lesión 5 días antes",
+            "No aplicar TALCOS en el sitio de la lesión 5 días antes",
+            "No haber tomado medicamentos antimicóticos 1 mes antes",
+            "No haber aplicado tratamiento para hongos sobre la lesión 15 días antes"
+        ],
+        "Flujo vaginal": [
+            "No haberse realizado duchas vaginales 1 día antes",
+            "No haber tomado medicamentos antimicóticos 15 días antes",
+            "Esperar 10 días si se aplicó medicamento tópico vaginal (óvulos o cremas)",
+            "Esperar mínimo 1 día si ha tenido relaciones sexuales"
+        ]
+    },
+
+    # ──── ANTÍGENOS Y SEROLOGÍAS → requieren suero ────
     "examen_galactomanano": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "No requiere ayuno"
     ],
     "examen_cryptococcus": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "No requiere ayuno"
     ],
     "examen_serologia_inmuno": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "No requiere ayuno"
     ],
     "examen_serologia_complemento": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "Requiere ayuno (única prueba de suero que lo exige)"
     ],
     "examen_igra": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "No requiere ayuno"
     ],
+
+    # ──── TUBERCULINA PPD ────
     "examen_ppd": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "No haber recibido vacunas en las últimas 4 a 6 semanas",
+        "No repetir la prueba si una anterior fue positiva",
+        "No realizarse si tuvo reacción fuerte previa (necrosis, ampollas, choque anafiláctico)",
+        "No tener diagnóstico de TB activa ni estar en tratamiento antituberculoso",
+        "No tener una infección por TB muy antigua",
+        "No tener menos de seis meses de edad",
+        "No tener infecciones virales activas (sarampión, varicela)",
+        "Informar si está recibiendo corticoesteroides o inmunosupresores (pueden alterar el resultado)"
     ],
+
+    # ──── OTROS ────
     "examen_otro": [
-        "Requisito 1",
-        "Requisito 2",
-        "Requisito 3"
+        "Traer orden médica",
+        "Consultar requisitos específicos con el laboratorio"
     ],
-    'domicilio': [
+    "domicilio": [
         "Documento de identidad vigente",
-        "Direccion completa y detallada",
+        "Dirección completa y detallada",
         "Disponibilidad entre 7:30am y 1:00pm"
     ]
 }
