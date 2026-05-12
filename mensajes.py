@@ -446,11 +446,21 @@ def mostrar_horas_disponibles(numero, sesiones):
         })
 
     # Max 10 filas por sección
-    secciones = [{
-       "title": "Horas disponibles",
-         "rows": rows[:10]
+    secciones = []
 
-    }]
+    if rows[:10]:
+        secciones.append({
+            "title": "Mañana",
+            "rows": rows[:10]
+        })
+
+    if rows[10:]:
+        secciones.append({
+            "title": "Tarde",
+            "rows": rows[10:]
+        })
+
+  
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
