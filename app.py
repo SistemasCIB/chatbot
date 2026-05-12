@@ -3,11 +3,12 @@ from models import db, Log, Cita, Consentimiento, Asesor
 from webhook import webhook_bp
 from asesor import asesor_bp
 from config import SECRET_KEY, TOKEN_META
-from datetime import datetime
+from datetime import datetime, time
 from admin_routes import admin_bp, admin_requerido
 import os
 import requests as req_lib
 from flask_sqlalchemy import SQLAlchemy
+from flask import Response, stream_with_context
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cib.db'
@@ -101,6 +102,26 @@ def ver_orden(cita_id):
         }
     )
 
+
+@app.route('/asesor/eventos')
+def eventos():
+    def stream():
+        ultima = obtener_total_citas()  # consulta el total actual
+        while True:
+            time.sleep(5)
+            actual = obtener_total_citas()
+            if actual != ultima:
+                ultima = actual
+                yield "data: actualizar\n\n"  # avisa al navegador
+    return Response(
+        stream_with_context(stream()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache'}
+    )
+
+def obtener_total_citas():
+    from models import Cita
+    return Cita.query.count()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

@@ -474,5 +474,33 @@ function filtrarEstado(estado) {
     }
 }
 </script>
+<script>
+let filtroActual = 'todos';
+
+const eventos = new EventSource('/asesor/eventos');
+
+eventos.onmessage = async () => {
+    try {
+        const res    = await fetch(window.location.href);
+        const html   = await res.text();
+        const parser = new DOMParser();
+        const newDoc = parser.parseFromString(html, 'text/html');
+
+        document.querySelector('tbody').innerHTML =
+            newDoc.querySelector('tbody').innerHTML;
+
+        document.querySelectorAll('.stat-info .value').forEach((el, i) => {
+            el.textContent =
+                newDoc.querySelectorAll('.stat-info .value')[i].textContent;
+        });
+
+        document.querySelector('.badge-count').textContent =
+            newDoc.querySelector('.badge-count').textContent;
+
+        if (filtroActual !== 'todos') filtrarEstado(filtroActual);
+
+    } catch(e) {}
+};
+</script>
 </body>
 </html>
