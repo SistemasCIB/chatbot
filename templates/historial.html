@@ -3,11 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Historial de Acciones</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>CIB — Historial de acciones</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
+
+:root{
+
+    --black:#000000;
+
+    --navy:#223A7F;
+    --navy-deep:#182B63;
+
+    --cyan:#2EA1DB;
+    --cyan-light:#E7F5FC;
+
+    --gray:#706F6F;
+    --gray-light:#F3F4F6;
+
+    --green:#8CBF45;
+    --green-dark:#6F9F32;
+    --green-soft:#EEF7E2;
+
+    --bg:#F7F9FC;
+    --surface:#FFFFFF;
+    --border:#E4EAF2;
+
+    --text:#1E293B;
+    --muted:#6B7280;
+
+    --orange:#D97706;
+    --orange-soft:#FEF3E0;
+
+    --red:#DC2626;
+    --red-soft:#FDECEC;
+
+    --purple:#7C3AED;
+    --purple-soft:#F3E8FF;
+
+    --sidebar-w:230px;
+
+    --radius:14px;
+
+    --shadow:
+        0 2px 10px rgba(34,58,127,.06),
+        0 1px 3px rgba(34,58,127,.04);
+
+    --shadow-md:
+        0 8px 24px rgba(34,58,127,.12);
+}
+
 *{
     margin:0;
     padding:0;
@@ -15,152 +62,614 @@
 }
 
 body{
-    font-family:'Inter',sans-serif;
-    background:#f0f2f5;
-    color:#1a1a2e;
-    padding:30px;
-}
+    font-family:'Outfit',sans-serif;
 
-.topbar{
+    background:linear-gradient(
+        180deg,
+        #F7F9FC 0%,
+        #EEF3F9 100%
+    );
+
+    color:var(--text);
+
+    min-height:100vh;
+
     display:flex;
-    justify-content:space-between;
+}
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+
+.sidebar{
+    width:var(--sidebar-w);
+
+    background:linear-gradient(
+        180deg,
+        var(--navy) 0%,
+        var(--navy-deep) 100%
+    );
+
+    min-height:100vh;
+
+    position:fixed;
+    left:0;
+    top:0;
+
+    display:flex;
+    flex-direction:column;
+
+    border-right:1px solid rgba(255,255,255,.06);
+}
+
+.sidebar-logo{
+    padding:26px 22px 18px;
+
+    border-bottom:1px solid rgba(255,255,255,.06);
+
+    display:flex;
     align-items:center;
-    margin-bottom:24px;
+    gap:12px;
 }
 
-.topbar h2{
-    font-size:24px;
+.logo-mark{
+    width:44px;
+    height:44px;
+
+    border-radius:12px;
+
+    background:linear-gradient(
+        135deg,
+        var(--cyan),
+        #1C7FB2
+    );
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+    font-weight:700;
+    font-size:18px;
+}
+
+.logo-text strong{
+    display:block;
+
+    color:white;
+
+    font-size:18px;
+    font-weight:700;
+}
+
+.logo-text small{
+    color:rgba(255,255,255,.65);
+
+    font-size:10px;
+
+    line-height:1.4;
+}
+
+.sidebar-tagline{
+    padding:10px 22px 18px;
+
+    color:rgba(255,255,255,.35);
+
+    font-size:10px;
+
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.nav{
+    flex:1;
+
+    padding:16px 12px;
+}
+
+.nav-label{
+    color:rgba(255,255,255,.28);
+
+    font-size:10px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.1em;
+
     font-weight:600;
+
+    margin:14px 10px 8px;
 }
 
-.btn{
-    background:#1a1a2e;
-    color:white;
+.nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:12px 14px;
+
+    border-radius:10px;
+
     text-decoration:none;
-    padding:10px 18px;
-    border-radius:8px;
-    font-size:14px;
+
+    color:rgba(255,255,255,.72);
+
+    font-size:13px;
     font-weight:500;
-    transition:0.2s;
+
+    transition:.2s;
 }
 
-.btn:hover{
-    background:#2c2c52;
-}
+.nav-item:hover{
+    background:rgba(46,161,219,.14);
 
-.card{
-    background:white;
-    border-radius:14px;
-    overflow:hidden;
-    box-shadow:0 4px 18px rgba(0,0,0,0.06);
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-thead{
-    background:#1a1a2e;
     color:white;
 }
 
-th{
-    padding:14px;
-    text-align:left;
+.nav-item.active{
+    background:rgba(46,161,219,.18);
+
+    color:var(--cyan);
+}
+
+.sidebar-footer{
+    padding:16px 12px;
+
+    border-top:1px solid rgba(255,255,255,.06);
+}
+
+.asesor-info{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    margin-bottom:12px;
+}
+
+.asesor-avatar{
+    width:38px;
+    height:38px;
+
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        var(--cyan),
+        #1D6F9D
+    );
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:white;
+    font-weight:700;
+}
+
+.asesor-name{
+    color:white;
+
     font-size:13px;
     font-weight:600;
 }
 
-td{
-    padding:14px;
-    border-bottom:1px solid #f1f1f1;
-    font-size:14px;
+.asesor-role{
+    color:rgba(255,255,255,.45);
+
+    font-size:11px;
 }
 
-tr:hover td{
-    background:#fafafa;
+.btn-logout{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    padding:10px;
+
+    border-radius:10px;
+
+    background:rgba(255,255,255,.08);
+
+    color:white;
+
+    text-decoration:none;
+
+    font-size:12px;
+    font-weight:500;
 }
 
-.badge{
-    padding:5px 10px;
-    border-radius:30px;
+/* ══════════════════════════════
+   MAIN
+══════════════════════════════ */
+
+.main{
+    margin-left:var(--sidebar-w);
+
+    flex:1;
+}
+
+/* TOPBAR */
+
+.topbar{
+    height:70px;
+
+    background:white;
+
+    border-bottom:1px solid var(--border);
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 28px;
+
+    position:sticky;
+    top:0;
+
+    z-index:20;
+}
+
+.topbar-left h1{
+    color:var(--navy);
+
+    font-size:20px;
+    font-weight:700;
+}
+
+.topbar-left p{
+    color:var(--muted);
+
+    font-size:12px;
+
+    margin-top:2px;
+}
+
+.btn-top{
+    padding:10px 14px;
+
+    border-radius:10px;
+
+    text-decoration:none;
+
     font-size:12px;
     font-weight:600;
+
+    background:var(--navy);
+
+    color:white;
+
+    transition:.2s;
+}
+
+.btn-top:hover{
+    transform:translateY(-1px);
+}
+
+/* PAGE */
+
+.page{
+    padding:26px;
+}
+
+/* TABLE */
+
+.table-box{
+    background:white;
+
+    border-radius:var(--radius);
+
+    border:1px solid var(--border);
+
+    overflow:hidden;
+
+    box-shadow:var(--shadow);
+}
+
+.table-header{
+    padding:20px 22px;
+
+    border-bottom:1px solid var(--border);
+
+    background:linear-gradient(
+        to right,
+        #F8FAFF,
+        #FFFFFF
+    );
+}
+
+.table-header h2{
+    color:var(--navy);
+
+    font-size:15px;
+    font-weight:700;
+}
+
+.table-header p{
+    color:var(--muted);
+
+    font-size:11px;
+
+    margin-top:2px;
+}
+
+.table-wrap{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+
+    border-collapse:collapse;
+}
+
+thead{
+    background:#F8FAFC;
+}
+
+th{
+    padding:14px;
+
+    text-align:left;
+
+    font-size:10px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+    color:var(--muted);
+
+    border-bottom:1px solid var(--border);
+}
+
+td{
+    padding:14px;
+
+    border-bottom:1px solid #EEF2F7;
+
+    font-size:13px;
+
+    vertical-align:middle;
+}
+
+tbody tr:hover{
+    background:#FAFCFF;
+}
+
+/* BADGES */
+
+.badge{
     display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:30px;
+
+    font-size:10px;
+    font-weight:700;
 }
 
 .confirmo{
-    background:#e6f7ef;
-    color:#1a7a4a;
+    background:var(--green-soft);
+
+    color:var(--green-dark);
 }
 
 .rechazo{
-    background:#fdecea;
-    color:#c0392b;
+    background:var(--red-soft);
+
+    color:var(--red);
 }
 
 .edito{
-    background:#e8f0fe;
-    color:#1a73e8;
+    background:var(--cyan-light);
+
+    color:var(--cyan);
 }
 
 .creo_manual{
-    background:#f3e8fd;
-    color:#7b1fa2;
+    background:var(--purple-soft);
+
+    color:var(--purple);
 }
 
+/* EMPTY */
+
 .empty{
-    padding:40px;
+    padding:70px 40px;
+
     text-align:center;
-    color:#888;
+
+    color:var(--muted);
 }
+
+.empty-icon{
+    font-size:44px;
+
+    margin-bottom:12px;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-    <h2>Historial de acciones</h2>
-    <a href="/asesor" class="btn">Volver al panel</a>
-</div>
+<!-- ══ SIDEBAR ══ -->
 
-<div class="card">
+<aside class="sidebar">
 
-{% if logs %}
-<table>
-<thead>
-<tr>
-<th>Fecha</th>
-<th>Asesor</th>
-<th>Acción</th>
-<th>Cita</th>
-<th>Detalle</th>
-</tr>
-</thead>
+    <div class="sidebar-logo">
 
-<tbody>
-{% for l in logs %}
-<tr>
-<td>{{ l.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
-<td><strong>{{ l.asesor_nombre }}</strong></td>
-<td>
-<span class="badge {{ l.accion }}">
-{{ l.accion.replace('_',' ').capitalize() }}
-</span>
-</td>
-<td>#{{ l.cita_id }}</td>
-<td>{{ l.detalle }}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+        <svg class="logo-mark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="42" height="42" rx="9" fill="#0d2459"/>
+            <path d="M8 21 C8 14 13 9 20 9 C23.5 9 26.5 10.3 28.5 12.5 L25 15.5 C23.8 14.2 22 13.5 20 13.5 C15.6 13.5 12.5 16.8 12.5 21 C12.5 25.2 15.6 28.5 20 28.5 C22 28.5 23.8 27.8 25 26.5 L28.5 29.5 C26.5 31.7 23.5 33 20 33 C13 33 8 28 8 21Z" fill="#00aecc"/>
+            <rect x="31" y="9" width="4" height="24" rx="2" fill="white"/>
+        </svg>
 
-{% else %}
-<div class="empty">
-No hay movimientos registrados aún.
-</div>
-{% endif %}
+        <div class="logo-text">
+            <strong>CIB</strong>
+            <small>Corporación para<br>Investigaciones Biológicas</small>
+        </div>
+
+    </div>
+
+    <div class="sidebar-tagline">
+        Registro y auditoría del sistema
+    </div>
+
+    <nav class="nav">
+
+        <div class="nav-label">Principal</div>
+
+        <a href="/asesor" class="nav-item">
+            📋 Solicitudes
+        </a>
+
+        <a href="/asesor/calendario" class="nav-item">
+            📅 Calendario
+        </a>
+
+        <a href="/asesor/historial" class="nav-item active">
+            🕘 Historial
+        </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <div class="asesor-info">
+
+            <div class="asesor-avatar">
+                A
+            </div>
+
+            <div>
+                <div class="asesor-name">
+                    {{ asesor_nombre }}
+                </div>
+
+                <div class="asesor-role">
+                    Asesor
+                </div>
+            </div>
+
+        </div>
+
+        <a href="/asesor/logout" class="btn-logout">
+            → Cerrar sesión
+        </a>
+
+    </div>
+
+</aside>
+
+<!-- ══ MAIN ══ -->
+
+<div class="main">
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <div class="topbar-left">
+            <h1>Historial de acciones</h1>
+            <p>Seguimiento y auditoría de movimientos — CIB Diagnóstico</p>
+        </div>
+
+        <a href="/asesor" class="btn-top">
+            ← Volver al panel
+        </a>
+
+    </div>
+
+    <!-- PAGE -->
+
+    <div class="page">
+
+        <div class="table-box">
+
+            <div class="table-header">
+                <div>
+                    <h2>Movimientos registrados</h2>
+                    <p>Historial de acciones realizadas por asesores</p>
+                </div>
+            </div>
+
+            {% if logs %}
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Asesor</th>
+                            <th>Acción</th>
+                            <th>Cita</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for l in logs %}
+
+                    <tr>
+
+                        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
+                            {{ l.fecha.strftime('%d/%m/%Y %H:%M') }}
+                        </td>
+
+                        <td>
+                            <strong style="color:var(--navy)">
+                                {{ l.asesor_nombre }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            <span class="badge {{ l.accion }}">
+                                {{ l.accion.replace('_',' ').capitalize() }}
+                            </span>
+                        </td>
+
+                        <td>
+                            #{{ l.cita_id }}
+                        </td>
+
+                        <td>
+                            {{ l.detalle }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    📭
+                </div>
+
+                <p>
+                    No hay movimientos registrados aún.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
 
 </div>
 

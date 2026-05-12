@@ -78,7 +78,7 @@ def confirmar_cita(cita_id):
             asesor_nombre=session['asesor_nombre'],
             accion='confirmo',
             cita_id=cita.id,
-            detalle=f'Confirmó cita de {cita.paciente.nombre}'
+            detalle=f'Confirmó cita de {cita.paciente.documento} - {cita.paciente.nombre}'
         )
         db.session.add(log)
         db.session.commit()
@@ -115,7 +115,7 @@ def rechazar_cita(cita_id):
             asesor_nombre=session['asesor_nombre'],
             accion='rechazo',
             cita_id=cita.id,
-            detalle=f'Rechazó cita de {cita.paciente.nombre}'
+            detalle=f'Rechazó cita de {cita.paciente.documento} - {cita.paciente.nombre}'
         )
         db.session.add(log)                                 
         db.session.commit()
@@ -202,7 +202,7 @@ def nueva_cita():
             asesor_nombre=session['asesor_nombre'],
             accion='creo_manual',
             cita_id=cita.id,
-            detalle=f'Creó cita manual para {cita.paciente.nombre}'
+            detalle=f'Creó cita manual para {cita.paciente.documento} - {cita.paciente.nombre}'
         )
 
         db.session.add(log)
@@ -270,7 +270,7 @@ def editar_cita(cita_id):
             asesor_nombre=session['asesor_nombre'],
             accion='editó',
             cita_id=cita.id,
-            detalle=f'Editó cita de {paciente.nombre}'
+            detalle=f'Editó cita de {paciente.documento} - {paciente.nombre}'
         )
 
         db.session.add(log)
@@ -396,12 +396,84 @@ def eventos_calendario():
 
             'id': cita.id,
 
-            'title': cita.nombre,
+            'title': f'{cita.paciente.documento} - {cita.paciente.nombre}',
 
             'start': fecha_hora.isoformat(),
 
             'color': color
 
         })
-
     return jsonify(eventos)
+
+# =====================================================
+# CREAR CITA DESDE CALENDARIO
+# =====================================================
+
+@asesor_bp.route(
+    '/asesor/crear_cita_calendario',
+    methods=['POST']
+)
+@login_requerido
+def crear_cita_calendario():
+
+    data = request.get_json()
+
+    fecha_hora = datetime.fromisoformat(
+        data['fecha']
+    )
+
+    nueva = Cita(
+        fecha_cita = fecha_hora.date(),
+
+        hora_cita = fecha_hora.time(),
+
+        estado = 'pendiente'
+
+    )
+
+    db.session.add(nueva)
+    db.session.commit()
+
+    return jsonify({
+
+        'success': True
+
+    })
+
+
+# =====================================================
+# MOVER CITA
+# =====================================================
+
+@asesor_bp.route(
+    '/asesor/mover_cita',
+    methods=['POST']
+)
+@login_requerido
+def mover_cita():
+
+    data = request.get_json()
+
+    cita = Cita.query.get(data['id'])
+
+    if not cita:
+
+        return jsonify({
+            'success': False
+        })
+
+    fecha_hora = datetime.fromisoformat(
+        data['fecha']
+    )
+
+    cita.fecha_cita = fecha_hora.date()
+
+    cita.hora_cita = fecha_hora.time()
+
+    db.session.commit()
+
+    return jsonify({
+
+        'success': True
+
+    })
