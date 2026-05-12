@@ -446,14 +446,25 @@ def mostrar_horas_disponibles(numero, sesiones):
         })
 
     # Max 10 filas por sección
-    secciones = []
+    sesiones[numero]["horas"] = {
+        f"hora_{i+1}": hora for i, hora in enumerate(libres)
+    }
 
+    rows = []
+    for i, hora in enumerate(libres):
+        rows.append({
+            "id": f"hora_{i+1}",
+            "title": hora,
+            "description": ""
+        })
+
+    # Dividir en secciones de máx 10
+    secciones = []
     if rows[:10]:
         secciones.append({
             "title": "Mañana",
             "rows": rows[:10]
         })
-
     if rows[10:]:
         secciones.append({
             "title": "Tarde",
