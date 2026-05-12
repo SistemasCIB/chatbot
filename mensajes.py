@@ -445,64 +445,57 @@ def mostrar_horas_disponibles(numero, sesiones):
             "description": ""
         })
 
-    rows_manana = []
-    rows_tarde = []
+    # Max 10 filas por sección
+# Guardar opciones
+    sesiones[numero]["horas"] = {
+        f"hora_{i+1}": hora for i, hora in enumerate(libres)
+    }
+    rows_am = []
+    rows_pm = []
 
     for i, hora in enumerate(libres):
         hora_dt = datetime.strptime(hora, "%H:%M")
+        entry = {"id": f"hora_{i+1}", "title": hora, "description": ""}
         if hora_dt.hour < 12:
-            rows_manana.append({"id": f"hora_{i+1}", "title": hora, "description": ""})
+            rows_am.append(entry)
         else:
-            rows_tarde.append({"id": f"hora_{i+1}", "title": hora, "description": ""})
+            rows_pm.append(entry)
 
-    secciones = []
-    if rows_manana:
-        secciones.append({
-            "title": "Mañana",
-            "rows": rows_manana
-        })
-    if rows_tarde:
-        secciones.append({
-            "title": "Tarde",
-            "rows": rows_tarde
-        })
-  
-    data = {
-        "messaging_product": "whatsapp",
-        "recipient_type": "individual",
-        "to": numero,
-        "type": "interactive",
-        "interactive": {
-            "type": "list",
-            "body": {"text": "🕐 Selecciona una hora disponible:"},
-            "action": {
-                "button": "Ver horas",
-                "sections": secciones
+    # Primer mensaje: AM
+    if rows_am:
+        data = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": numero,
+            "type": "interactive",
+            "interactive": {
+                "type": "list",
+                "body": {"text": "🕐 Horarios de la mañana:"},
+                "action": {
+                    "button": "Ver horas AM",
+                    "sections": [{"title": "Mañana", "rows": rows_am}]
+                }
             }
         }
-    }
+        enviar_request(data)
 
-    enviar_request(data)
-    if len(rows) > 10:
-         data2 = {
-           "messaging_product": "whatsapp",
-           "recipient_type": "individual",
-           "to": numero,
-           "type": "interactive",
-           "interactive": {
-              "type": "list",
-              "body": {"text": "🕐 Más horarios disponibles:"},
-              "action": {
-                 "button": "Ver más",
-                 "sections": [{
-                    "title": "Horas adicionales",
-                    "rows": rows[10:]
-                }]
+    # Segundo mensaje: PM
+    if rows_pm:
+        data2 = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": numero,
+            "type": "interactive",
+            "interactive": {
+                "type": "list",
+                "body": {"text": "🕐 Horarios de la tarde:"},
+                "action": {
+                    "button": "Ver horas PM",
+                    "sections": [{"title": "Tarde", "rows": rows_pm}]
+                }
             }
         }
-    }
-
-    enviar_request(data2)   
+        enviar_request(data2)  
 
 def enviar_tipo_documento(numero):
     data = {
