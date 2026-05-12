@@ -445,32 +445,27 @@ def mostrar_horas_disponibles(numero, sesiones):
             "description": ""
         })
 
-    # Max 10 filas por sección
-    sesiones[numero]["horas"] = {
-        f"hora_{i+1}": hora for i, hora in enumerate(libres)
-    }
+    rows_manana = []
+    rows_tarde = []
 
-    rows = []
     for i, hora in enumerate(libres):
-        rows.append({
-            "id": f"hora_{i+1}",
-            "title": hora,
-            "description": ""
-        })
+        hora_dt = datetime.strptime(hora, "%H:%M")
+        if hora_dt.hour < 12:
+            rows_manana.append({"id": f"hora_{i+1}", "title": hora, "description": ""})
+        else:
+            rows_tarde.append({"id": f"hora_{i+1}", "title": hora, "description": ""})
 
-    # Dividir en secciones de máx 10
     secciones = []
-    if rows[:10]:
+    if rows_manana:
         secciones.append({
             "title": "Mañana",
-            "rows": rows[:10]
+            "rows": rows_manana
         })
-    if rows[10:]:
+    if rows_tarde:
         secciones.append({
             "title": "Tarde",
-            "rows": rows[10:]
+            "rows": rows_tarde
         })
-
   
     data = {
         "messaging_product": "whatsapp",
