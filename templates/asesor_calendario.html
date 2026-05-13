@@ -1,345 +1,568 @@
-<!-- templates/asesor_calendario.html -->
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calendario de Citas — CIB</title>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
-<title>Agenda de Citas</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<!-- FULLCALENDAR -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet'>
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:'Inter',sans-serif;
-    background:#f4f6f8;
-    color:#1a1a2e;
-}
-
-/* HEADER */
-
-header{
-    background:#1a1a2e;
-    color:white;
-    padding:18px 35px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-header h1{
-    font-size:20px;
-    font-weight:600;
-}
-
-header span{
-    font-size:13px;
-    color:#b8bfd3;
-}
-
-.btn-volver{
-    text-decoration:none;
-    background:#34495e;
-    color:white;
-    padding:10px 15px;
-    border-radius:8px;
-    font-size:14px;
-    transition:0.2s;
-}
-
-.btn-volver:hover{
-    background:#415b76;
-}
-
-/* CONTENT */
-
-.container{
-    padding:30px;
-}
-
-.card{
-    background:white;
-    border-radius:16px;
-    padding:25px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.04);
-    border:1px solid #ececec;
-}
-
-.top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-}
-
-.top h2{
-    font-size:24px;
-    color:#1a1a2e;
-}
-
-.btn-new{
-    background:#1a73e8;
-    color:white;
-    text-decoration:none;
-    padding:12px 18px;
-    border-radius:10px;
-    font-size:14px;
-    font-weight:600;
-    transition:0.2s;
-}
-
-.btn-new:hover{
-    background:#1667cc;
-}
-
-/* CALENDAR */
-
-#calendar{
-    width:100%;
-}
-
-.fc{
-    font-family:'Inter',sans-serif;
-}
-
-.fc-toolbar-title{
-    font-size:22px !important;
-    font-weight:600;
-}
-
-.fc-button{
-    background:#1a73e8 !important;
-    border:none !important;
-    border-radius:8px !important;
-    padding:8px 14px !important;
-}
-
-.fc-button:hover{
-    background:#1667cc !important;
-}
-
-.fc-timegrid-slot{
-    height:55px !important;
-}
-
-.fc-event{
-    border:none !important;
-    border-radius:8px !important;
-    padding:3px 6px !important;
-    font-size:13px;
-    cursor:pointer;
-}
-
-.fc-col-header-cell{
-    background:#1a1a2e;
-    padding:10px 0 !important;
-}
-
-.fc-col-header-cell-cushion{
-    color:white !important;
-    text-decoration:none !important;
-    font-weight:600;
-}
-
-.fc-timegrid-axis{
-    font-size:13px;
-}
-
-.fc-day-today{
-    background:rgba(26,115,232,0.05) !important;
-}
-
-/* RESPONSIVE */
-
-@media(max-width:768px){
-
-    .top{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:15px;
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #181c27;
+      --surface2:  #1f2433;
+      --border:    #2a3045;
+      --accent:    #4f8ef7;
+      --accent2:   #7c5cfc;
+      --success:   #27ae60;
+      --warning:   #f39c12;
+      --danger:    #e74c3c;
+      --text:      #e8eaf0;
+      --muted:     #7a8299;
+      --radius:    12px;
     }
 
-    header{
-        padding:18px 20px;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    .container{
-        padding:15px;
+    /* ── TOPBAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-dot {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .topbar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all .18s;
+      text-decoration: none;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { filter: brightness(1.12); }
+
+    /* ── LEYENDA ── */
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 10px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      flex-shrink: 0;
     }
 
-}
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      padding: 24px 28px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+    }
 
-</style>
+    /* ── CALENDARIO ── */
+    .calendar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      min-width: 0;
+    }
 
+    /* Overrides FullCalendar */
+    .fc { font-family: 'DM Sans', sans-serif; }
+    .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border); }
+    .fc-theme-standard .fc-scrollgrid { border-color: var(--border); }
+    .fc .fc-toolbar-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .fc .fc-button {
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--text) !important;
+      font-family: inherit !important;
+      font-size: 12px !important;
+      border-radius: 7px !important;
+      padding: 5px 12px !important;
+      box-shadow: none !important;
+    }
+    .fc .fc-button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+    .fc .fc-button-active, .fc .fc-button-primary:not(:disabled).fc-button-active {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: #fff !important;
+    }
+    .fc .fc-col-header-cell-cushion { color: var(--muted); font-size: 12px; font-weight: 500; }
+    .fc .fc-daygrid-day-number { color: var(--muted); font-size: 12px; }
+    .fc .fc-daygrid-day.fc-day-today { background: rgba(79,142,247,.07); }
+    .fc .fc-daygrid-day-number:hover { color: var(--accent); }
+    .fc-daygrid-event { border-radius: 5px !important; font-size: 11.5px !important; padding: 1px 5px !important; }
+    .fc .fc-timegrid-slot { height: 36px; }
+    .fc .fc-timegrid-slot-label-cushion { color: var(--muted); font-size: 11px; }
+    .fc-event-title { font-weight: 500; }
+    .fc-popover { background: var(--surface2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; }
+    .fc-popover-header { background: var(--surface2) !important; color: var(--text) !important; }
+    .fc-popover-body { background: var(--surface2) !important; }
+    .fc-list-event:hover td { background: var(--surface2) !important; }
+    .fc-list-day-cushion { background: var(--surface) !important; }
+    .fc-list-event-title a { color: var(--text) !important; }
+    .fc-list-event-time { color: var(--muted) !important; font-size: 11px !important; }
+    .fc-list-day-text, .fc-list-day-side-text { color: var(--muted) !important; }
+    .fc-scroller { background: var(--surface); }
+    .fc-view-harness { background: var(--surface); }
+    td.fc-day, th.fc-col-header-cell { background: var(--surface); }
+
+    /* ── PANEL LATERAL ── */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat-box {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 11px; color: var(--muted); }
+    .stat-box.total .stat-num  { color: var(--accent); }
+    .stat-box.conf  .stat-num  { color: var(--success); }
+    .stat-box.pend  .stat-num  { color: var(--warning); }
+    .stat-box.rech  .stat-num  { color: var(--danger); }
+
+    /* Cita seleccionada */
+    .detail-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 20px 0;
+    }
+    .detail-empty svg { opacity: .3; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
+
+    .detail-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    .badge-confirmada { background: rgba(39,174,96,.18); color: #4cdb8a; }
+    .badge-pendiente  { background: rgba(243,156,18,.18); color: #f7c04a; }
+    .badge-rechazada  { background: rgba(231,76,60,.18);  color: #f17e71; }
+
+    .detail-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 10px;
+    }
+    .detail-row label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .detail-row span {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .detail-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .btn-success { background: var(--success); color: #fff; width: 100%; justify-content: center; }
+    .btn-success:hover { filter: brightness(1.1); }
+    .btn-danger  { background: rgba(231,76,60,.15); color: #f17e71; border: 1px solid rgba(231,76,60,.3); width: 100%; justify-content: center; }
+    .btn-danger:hover  { background: rgba(231,76,60,.25); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); width: 100%; justify-content: center; }
+    .btn-secondary:hover { border-color: var(--accent); }
+
+    /* Nav quick links */
+    .nav-links { display: flex; flex-direction: column; gap: 6px; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .nav-link:hover { background: var(--surface2); color: var(--text); }
+    .nav-link svg { opacity: .7; flex-shrink: 0; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999;
+      min-width: 220px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.ok   { border-color: var(--success); }
+    #toast.err  { border-color: var(--danger); }
+  </style>
 </head>
 <body>
 
-<header>
-
-    <div>
-        <h1>CIB - Panel de Asesores</h1>
-        <span>Agenda semanal de citas</span>
-    </div>
-
-    <a href="/asesor" class="btn-volver">
-        ← Volver
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo-dot"></div>
+    <h1>Calendario de Citas</h1>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size:13px;color:var(--muted)">{{ asesor_nombre }}</span>
+    <a href="/asesor" class="btn btn-ghost">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Panel
     </a>
-
+    <a href="/asesor/logout" class="btn btn-ghost">Salir</a>
+  </div>
 </header>
 
-<div class="container">
+<!-- LEYENDA -->
+<div class="legend">
+  <span>Estado:</span>
+  <div class="legend-item"><div class="dot" style="background:#27ae60"></div> Confirmada</div>
+  <div class="legend-item"><div class="dot" style="background:#f39c12"></div> Pendiente</div>
+  <div class="legend-item"><div class="dot" style="background:#e74c3c"></div> Rechazada</div>
+  <div class="legend-item"><div class="dot" style="background:#4f8ef7"></div> Microsoft 365 sincronizado</div>
+</div>
 
+<!-- MAIN -->
+<div class="main">
+
+  <!-- CALENDARIO -->
+  <div class="calendar-wrap">
+    <div id="calendar"></div>
+  </div>
+
+  <!-- PANEL LATERAL -->
+  <aside class="side-panel">
+
+    <!-- Stats -->
     <div class="card">
-
-        <div class="top">
-
-            <h2>Agenda</h2>
-
-            <a href="/asesor/nueva" class="btn-new">
-                + Nueva cita
-            </a>
-
+      <div class="card-title">Resumen</div>
+      <div class="stats-grid">
+        <div class="stat-box total">
+          <div class="stat-num" id="stat-total">—</div>
+          <div class="stat-label">Total</div>
         </div>
-
-        <div id="calendar"></div>
-
+        <div class="stat-box conf">
+          <div class="stat-num" id="stat-conf">—</div>
+          <div class="stat-label">Confirmadas</div>
+        </div>
+        <div class="stat-box pend">
+          <div class="stat-num" id="stat-pend">—</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-box rech">
+          <div class="stat-num" id="stat-rech">—</div>
+          <div class="stat-label">Rechazadas</div>
+        </div>
+      </div>
     </div>
 
+    <!-- Detalle cita seleccionada -->
+    <div class="card" style="flex:1">
+      <div class="card-title">Detalle de cita</div>
+      <div id="detail-content">
+        <div class="detail-empty">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Haz clic en una cita para ver el detalle
+        </div>
+      </div>
+    </div>
+
+    <!-- Links rápidos -->
+    <div class="card">
+      <div class="card-title">Accesos rápidos</div>
+      <nav class="nav-links">
+        <a href="/asesor" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Panel de citas
+        </a>
+        <a href="/asesor/nueva" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Nueva cita manual
+        </a>
+        <a href="/asesor/historial" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 7 7 7"/></svg>
+          Historial
+        </a>
+        <a href="/asesor/exportar" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </a>
+      </nav>
+    </div>
+
+  </aside>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg"></span>
 </div>
 
 <script>
+  let calendar;
+  let todosLosEventos = [];
 
-document.addEventListener('DOMContentLoaded', function () {
+  // ── TOAST ──
+  function toast(msg, tipo = 'ok') {
+    const el = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    document.getElementById('toast-icon').textContent = tipo === 'ok' ? '✓' : '✕';
+    el.className = 'show ' + tipo;
+    setTimeout(() => el.className = '', 3000);
+  }
 
-    var calendarEl = document.getElementById('calendar');
+  // ── STATS ──
+  function actualizarStats(eventos) {
+    document.getElementById('stat-total').textContent = eventos.length;
+    document.getElementById('stat-conf').textContent  = eventos.filter(e => e.extendedProps?.estado === 'confirmada').length;
+    document.getElementById('stat-pend').textContent  = eventos.filter(e => e.extendedProps?.estado === 'pendiente').length;
+    document.getElementById('stat-rech').textContent  = eventos.filter(e => ['rechazada','cancelada'].includes(e.extendedProps?.estado)).length;
+  }
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
+  // ── DETALLE ──
+  function mostrarDetalle(info) {
+    const p = info.event.extendedProps;
+    const estado = p.estado || 'pendiente';
+    const badgeClass = `badge-${estado}`;
+    const inicio = info.event.start ? info.event.start.toLocaleString('es-CO', {
+      weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+    }) : '—';
 
-        locale: 'es',
+    document.getElementById('detail-content').innerHTML = `
+      <div class="detail-badge ${badgeClass}">
+        <span>●</span> ${estado.charAt(0).toUpperCase() + estado.slice(1)}
+      </div>
 
-        initialView: 'timeGridWeek',
+      <div class="detail-row">
+        <label>Paciente</label>
+        <span>${p.paciente || info.event.title}</span>
+      </div>
+      <div class="detail-row">
+        <label>Fecha y hora</label>
+        <span>${inicio}</span>
+      </div>
+      <div class="detail-row">
+        <label>Teléfono</label>
+        <span>${p.telefono || '—'}</span>
+      </div>
 
-        slotDuration: '00:30:00',
+      <div class="detail-actions">
+        ${estado === 'pendiente' ? `
+          <button class="btn btn-success" onclick="accion(${info.event.id}, 'confirmar')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Confirmar cita
+          </button>
+          <button class="btn btn-danger" onclick="accion(${info.event.id}, 'rechazar')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Rechazar cita
+          </button>
+        ` : ''}
+        <a href="/asesor/editar/${info.event.id}" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar cita
+        </a>
+      </div>
+    `;
+  }
 
-        slotMinTime: '07:30:00',
+  // ── ACCIONES (confirmar / rechazar) ──
+  async function accion(citaId, tipo) {
+    const confirmar = tipo === 'confirmar';
+    const msg = confirmar
+      ? '¿Confirmar esta cita? Se creará el evento en Microsoft 365.'
+      : '¿Rechazar esta cita? Se eliminará del calendario si ya estaba confirmada.';
+    if (!confirm(msg)) return;
 
-        slotMaxTime: '16:00:00',
+    try {
+      const r = await fetch(`/asesor/${tipo}/${citaId}`, { method: 'GET', redirect: 'manual' });
+      toast(confirmar ? 'Cita confirmada y sincronizada con Outlook ✓' : 'Cita rechazada', confirmar ? 'ok' : 'err');
+      // Recargar eventos
+      setTimeout(() => { calendar.refetchEvents(); }, 800);
+      document.getElementById('detail-content').innerHTML = '<div class="detail-empty">Selecciona una cita</div>';
+    } catch(e) {
+      toast('Error al procesar la acción', 'err');
+    }
+  }
 
-        allDaySlot: false,
+  // ── INIT CALENDAR ──
+  document.addEventListener('DOMContentLoaded', function() {
+    const el = document.getElementById('calendar');
 
-        nowIndicator: true,
+    calendar = new FullCalendar.Calendar(el, {
+      initialView: 'dayGridMonth',
+      locale: 'es',
+      height: 'auto',
+      firstDay: 1,
+      nowIndicator: true,
 
-        selectable: true,
+      headerToolbar: {
+        left:   'prev,next today',
+        center: 'title',
+        right:  'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      },
 
-        editable: true,
+      buttonText: {
+        today: 'Hoy',
+        month: 'Mes',
+        week:  'Semana',
+        day:   'Día',
+        list:  'Lista'
+      },
 
-        weekends: false,
-
-        height: '85vh',
-
-        expandRows: true,
-
-        events: '/asesor/eventos',
-
-        headerToolbar: {
-
-            left: 'prev,next today',
-
-            center: 'title',
-
-            right: 'timeGridDay,timeGridWeek,dayGridMonth'
-
-        },
-
-        slotLabelFormat: {
-
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-
-        },
-
-        // CREAR CITA
-        select: function(info){
-
-            window.location.href =
-            '/asesor/nueva?fecha=' +
-            info.startStr;
-
-        },
-
-        // MOVER CITA
-        eventDrop: function(info){
-
-            fetch('/asesor/mover_cita', {
-
-                method: 'POST',
-
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-                body: JSON.stringify({
-
-                    id: info.event.id,
-                    fecha: info.event.start.toISOString()
-
-                })
-
-            })
-            .then(response => response.json())
-            .then(data => {
-
-                if(!data.ok){
-
-                    alert(data.mensaje);
-
-                    info.revert();
-
-                }
-
-            });
-
-        },
-
-        // CLICK EN EVENTO
-        eventClick: function(info){
-
-            window.location.href =
-            '/asesor/editar/' +
-            info.event.id;
-
-        },
-
-        // TOOLTIP
-        eventDidMount: function(info){
-
-            info.el.title =
-                info.event.title +
-                ' | ' +
-                info.event.start.toLocaleTimeString();
-
+      events: {
+        url: '/asesor/eventos',
+        failure: function() {
+          toast('Error cargando eventos', 'err');
         }
+      },
 
+      eventDidMount: function(info) {
+        // Tooltip simple
+        info.el.title = `${info.event.extendedProps.paciente || ''} — ${info.event.extendedProps.estado || ''}`;
+      },
+
+      eventsSet: function(eventos) {
+        todosLosEventos = eventos;
+        actualizarStats(eventos);
+      },
+
+      eventClick: function(info) {
+        info.jsEvent.preventDefault();
+        mostrarDetalle(info);
+      },
+
+      // Hover sutil
+      eventMouseEnter: function(info) {
+        info.el.style.filter = 'brightness(1.15)';
+        info.el.style.cursor = 'pointer';
+      },
+      eventMouseLeave: function(info) {
+        info.el.style.filter = '';
+      }
     });
 
     calendar.render();
-
-});
-
+  });
 </script>
 
 </body>

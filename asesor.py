@@ -6,6 +6,7 @@ from config import HORARIO_INICIO, HORARIO_FIN
 import io, csv, os
 from flask import Response
 from werkzeug.utils import secure_filename
+from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
 
 asesor_bp = Blueprint('asesor', __name__)
 
@@ -66,13 +67,25 @@ def panel():
         documento_filtro=documento
     )
 
+
 @asesor_bp.route('/asesor/confirmar/<int:cita_id>')
 @login_requerido
 def confirmar_cita(cita_id):
     cita = Cita.query.get(cita_id)
     if cita:
         cita.estado = 'confirmada'
+
+        # Crear evento en Outlook solo si no existe aún
+        if not cita.outlook_event_id:
+            try:
+                event_id = crear_evento_outlook(cita)   # retorna el ID directamente
+                cita.outlook_event_id = event_id
+            except Exception as e:
+                print(f"[Outlook] Error creando evento: {e}")
+                # No bloquea la confirmación si Outlook falla
+
         db.session.commit()
+
         log = Auditoria(
             asesor_id=session['asesor_id'],
             asesor_nombre=session['asesor_nombre'],
@@ -90,26 +103,34 @@ def confirmar_cita(cita_id):
             f"Tu cita ha sido confirmada y programada de la siguiente manera:\n"
             f"Modalidad: {cita.tipo_cita.capitalize()}\n"
             f"Fecha: {cita.fecha_cita}\n"
-            f"Hora: {cita.hora_cita}\n"
-            f"Orden Médica: {cita.orden_medica}\n\n"
+            f"Hora: {cita.hora_cita}\n\n"
             f"📌 Por favor ten en cuenta:\n"
             f"• Presentar tu documento de identidad\n"
             f"• Traer la orden médica (si aplica)\n"
             f"• Llegar 15 minutos antes de la cita\n\n"
             f"⚠️ Muy importante:\n"
-            f"Debes cumplir con todos los requisitos del examen (ayuno u otras indicaciones).\n"
-            f"De lo contrario, no será posible tomar la muestra y deberás reagendar tu cita.\n\n"
-            f"Te esperamos y agradecemos por confiar en nosotros💙"
+            f"Debes cumplir con todos los requisitos del examen.\n\n"
+            f"Te esperamos y agradecemos por confiar en nosotros 💙"
         )
     return redirect(url_for('asesor.panel'))
+
 
 @asesor_bp.route('/asesor/rechazar/<int:cita_id>')
 @login_requerido
 def rechazar_cita(cita_id):
     cita = Cita.query.get(cita_id)
     if cita:
+        # Eliminar evento de Outlook si existe
+        if cita.outlook_event_id:
+            try:
+                eliminar_evento_outlook(cita.outlook_event_id)
+                cita.outlook_event_id = None
+            except Exception as e:
+                print(f"[Outlook] Error eliminando evento: {e}")
+
         cita.estado = 'rechazada'
         db.session.commit()
+
         log = Auditoria(
             asesor_id=session['asesor_id'],
             asesor_nombre=session['asesor_nombre'],
@@ -117,14 +138,14 @@ def rechazar_cita(cita_id):
             cita_id=cita.id,
             detalle=f'Rechazó cita de {cita.paciente.documento} - {cita.paciente.nombre}'
         )
-        db.session.add(log)                                 
+        db.session.add(log)
         db.session.commit()
 
         enviar_texto(cita.numero_whatsapp,
             f"👋 Gracias por comunicarte con nosotros.\n\n"
             f"En este momento no fue posible continuar con tu solicitud de cita.\n\n"
-            f"Si más adelante deseas retomarla o completar la información, estaremos atentos para ayudarte por este medio.\n\n"
-            f"¡Que tengas un buen día!💙"
+            f"Si más adelante deseas retomarla, estaremos atentos.\n\n"
+            f"¡Que tengas un buen día! 💙"
         )
     return redirect(url_for('asesor.panel'))
 
@@ -207,6 +228,12 @@ def nueva_cita():
 
         db.session.add(log)
         db.session.commit()
+        if cita.estado == 'confirmada' and not cita.outlook_event_id:
+            try:
+                cita.outlook_event_id = crear_evento_outlook(cita)
+                db.session.commit()
+            except Exception as e:
+                print(f"[Outlook] Error en cita manual: {e}")        
 
         return redirect(url_for('asesor.panel'))
 
@@ -354,127 +381,47 @@ def liberar_chat(cita_id):
 # CALENDARIO
 # =====================================================
 
-# @asesor_bp.route('/asesor/calendario')
-# @login_requerido
-# def calendario():
-
-#     return render_template('asesor_calendario.html')
-
-
-# # =====================================================
-# # EVENTOS CALENDARIO
-# # =====================================================
-
-# from flask import jsonify
-# from datetime import datetime
-
-# @asesor_bp.route('/asesor/eventos')
-# @login_requerido
-# def eventos_calendario():
-
-#     citas = Cita.query.all()
-
-#     eventos = []
-
-#     for cita in citas:
-
-#         # Color según estado
-#         color = '#f39c12'   # pendiente
-
-#         if cita.estado == 'confirmada':
-#             color = '#27ae60'
-
-#         elif cita.estado == 'cancelada':
-#             color = '#e74c3c'
-
-#         # Combinar fecha + hora
-#         fecha_hora = datetime.combine(
-#             cita.fecha_cita,
-#             cita.hora_cita
-#         )
-
-#         eventos.append({
-
-#             'id': cita.id,
-
-#             'title': cita.nombre,
-
-#             'start': fecha_hora.isoformat(),
-
-#             'color': color
-
-#         })
-#     return jsonify(eventos)
-
-# # =====================================================
-# # CREAR CITA DESDE CALENDARIO
-# # =====================================================
-
-# @asesor_bp.route(
-#     '/asesor/crear_cita_calendario',
-#     methods=['POST']
-# )
-# @login_requerido
-# def crear_cita_calendario():
-
-#     data = request.get_json()
-
-#     fecha_hora = datetime.fromisoformat(
-#         data['fecha']
-#     )
-
-#     nueva = Cita(
-#         fecha_cita = fecha_hora.date(),
-
-#         hora_cita = fecha_hora.time(),
-
-#         estado = 'pendiente'
-
-#     )
-
-#     db.session.add(nueva)
-#     db.session.commit()
-
-#     return jsonify({
-
-#         'success': True
-
-#     })
+@asesor_bp.route('/asesor/calendario')
+@login_requerido
+def calendario():
+    return render_template('asesor_calendario.html',
+                           asesor_nombre=session.get('asesor_nombre'))
 
 
-# # =====================================================
-# # MOVER CITA
-# # =====================================================
+@asesor_bp.route('/asesor/eventos')
+@login_requerido
+def eventos_calendario():
+    citas = Cita.query.filter(Cita.fecha_cita.isnot(None)).all()
+    eventos = []
 
-# @asesor_bp.route(
-#     '/asesor/mover_cita',
-#     methods=['POST']
-# )
-# @login_requerido
-# def mover_cita():
+    for cita in citas:
+        color = '#f39c12'                        # pendiente — amarillo
+        if cita.estado == 'confirmada':
+            color = '#27ae60'                    # verde
+        elif cita.estado in ('rechazada', 'cancelada'):
+            color = '#e74c3c'                    # rojo
 
-#     data = request.get_json()
+        # hora_cita viene como string "10:00" o "10:00 AM"
+        try:
+            hora = cita.hora_cita.strip()
+            fmt = "%H:%M" if len(hora) == 5 else "%I:%M %p"
+            hora_obj = datetime.strptime(hora, fmt).time()
+            inicio = datetime.combine(cita.fecha_cita, hora_obj)
+            fin = inicio + timedelta(hours=1)
+        except Exception:
+            continue                             # si la hora es inválida, omite la cita
 
-#     cita = Cita.query.get(data['id'])
+        eventos.append({
+            'id': cita.id,
+            'title': f"{cita.paciente.nombre} — {cita.tipo_examen or cita.tipo_cita}",
+            'start': inicio.isoformat(),
+            'end': fin.isoformat(),
+            'color': color,
+            'extendedProps': {
+                'estado': cita.estado,
+                'telefono': cita.numero_whatsapp,
+                'paciente': cita.paciente.nombre,
+            }
+        })
 
-#     if not cita:
-
-#         return jsonify({
-#             'success': False
-#         })
-
-#     fecha_hora = datetime.fromisoformat(
-#         data['fecha']
-#     )
-
-#     cita.fecha_cita = fecha_hora.date()
-
-#     cita.hora_cita = fecha_hora.time()
-
-#     db.session.commit()
-
-#     return jsonify({
-
-#         'success': True
-
-#     })
+    return jsonify(eventos)
