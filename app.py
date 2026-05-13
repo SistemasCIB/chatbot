@@ -22,6 +22,16 @@ app.register_blueprint(admin_bp)
 with app.app_context():
     db.create_all()
     # Crear asesor por defecto si no existe
+    with app.app_context():
+        db.create_all()
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            try:
+                conn.execute(text('ALTER TABLE cita ADD COLUMN outlook_event_id VARCHAR(255)'))
+                conn.commit()
+                print("Columna outlook_event_id agregada")
+            except Exception:
+                pass  # Ya existe, ignorar   
     if not Asesor.query.filter_by(usuario='test').first():
         asesor = Asesor(usuario='test', nombre='asesor test')
         asesor.set_password('cib2025')
