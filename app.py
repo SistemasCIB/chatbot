@@ -88,7 +88,7 @@ def ver_orden(cita_id):
     if not url_archivo:
         return "No se pudo obtener la URL del archivo.", 500
 
-    # ✅ Descargar con token y devolver al navegador — NO hacer redirect
+    #  Descargar con token y devolver al navegador — NO hacer redirect
     archivo = req_lib.get(url_archivo, headers=headers)
 
     from flask import Response

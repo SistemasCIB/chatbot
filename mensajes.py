@@ -216,7 +216,6 @@ def enviar_requisitos(numero, tipo, tipo_muestra=None):
                 "text":
                     f"RECUERDE:\n\n"
                     f"{lista}\n\n"
-                    f"{horario}\n\n"
                     f"¿Cumples con estos requisitos?"
             },
             "action": {

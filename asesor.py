@@ -349,131 +349,132 @@ def liberar_chat(cita_id):
 
     return redirect(url_for('asesor.panel'))
 
+
 # =====================================================
 # CALENDARIO
 # =====================================================
 
-@asesor_bp.route('/asesor/calendario')
-@login_requerido
-def calendario():
+# @asesor_bp.route('/asesor/calendario')
+# @login_requerido
+# def calendario():
 
-    return render_template('asesor_calendario.html')
-
-
-# =====================================================
-# EVENTOS CALENDARIO
-# =====================================================
-
-from flask import jsonify
-from datetime import datetime
-
-@asesor_bp.route('/asesor/eventos')
-@login_requerido
-def eventos_calendario():
-
-    citas = Cita.query.all()
-
-    eventos = []
-
-    for cita in citas:
-
-        # Color según estado
-        color = '#f39c12'   # pendiente
-
-        if cita.estado == 'confirmada':
-            color = '#27ae60'
-
-        elif cita.estado == 'cancelada':
-            color = '#e74c3c'
-
-        # Combinar fecha + hora
-        fecha_hora = datetime.combine(
-            cita.fecha_cita,
-            cita.hora_cita
-        )
-
-        eventos.append({
-
-            'id': cita.id,
-
-            'title': f'{cita.paciente.documento} - {cita.paciente.nombre}',
-
-            'start': fecha_hora.isoformat(),
-
-            'color': color
-
-        })
-    return jsonify(eventos)
-
-# =====================================================
-# CREAR CITA DESDE CALENDARIO
-# =====================================================
-
-@asesor_bp.route(
-    '/asesor/crear_cita_calendario',
-    methods=['POST']
-)
-@login_requerido
-def crear_cita_calendario():
-
-    data = request.get_json()
-
-    fecha_hora = datetime.fromisoformat(
-        data['fecha']
-    )
-
-    nueva = Cita(
-        fecha_cita = fecha_hora.date(),
-
-        hora_cita = fecha_hora.time(),
-
-        estado = 'pendiente'
-
-    )
-
-    db.session.add(nueva)
-    db.session.commit()
-
-    return jsonify({
-
-        'success': True
-
-    })
+#     return render_template('asesor_calendario.html')
 
 
-# =====================================================
-# MOVER CITA
-# =====================================================
+# # =====================================================
+# # EVENTOS CALENDARIO
+# # =====================================================
 
-@asesor_bp.route(
-    '/asesor/mover_cita',
-    methods=['POST']
-)
-@login_requerido
-def mover_cita():
+# from flask import jsonify
+# from datetime import datetime
 
-    data = request.get_json()
+# @asesor_bp.route('/asesor/eventos')
+# @login_requerido
+# def eventos_calendario():
 
-    cita = Cita.query.get(data['id'])
+#     citas = Cita.query.all()
 
-    if not cita:
+#     eventos = []
 
-        return jsonify({
-            'success': False
-        })
+#     for cita in citas:
 
-    fecha_hora = datetime.fromisoformat(
-        data['fecha']
-    )
+#         # Color según estado
+#         color = '#f39c12'   # pendiente
 
-    cita.fecha_cita = fecha_hora.date()
+#         if cita.estado == 'confirmada':
+#             color = '#27ae60'
 
-    cita.hora_cita = fecha_hora.time()
+#         elif cita.estado == 'cancelada':
+#             color = '#e74c3c'
 
-    db.session.commit()
+#         # Combinar fecha + hora
+#         fecha_hora = datetime.combine(
+#             cita.fecha_cita,
+#             cita.hora_cita
+#         )
 
-    return jsonify({
+#         eventos.append({
 
-        'success': True
+#             'id': cita.id,
 
-    })
+#             'title': cita.nombre,
+
+#             'start': fecha_hora.isoformat(),
+
+#             'color': color
+
+#         })
+#     return jsonify(eventos)
+
+# # =====================================================
+# # CREAR CITA DESDE CALENDARIO
+# # =====================================================
+
+# @asesor_bp.route(
+#     '/asesor/crear_cita_calendario',
+#     methods=['POST']
+# )
+# @login_requerido
+# def crear_cita_calendario():
+
+#     data = request.get_json()
+
+#     fecha_hora = datetime.fromisoformat(
+#         data['fecha']
+#     )
+
+#     nueva = Cita(
+#         fecha_cita = fecha_hora.date(),
+
+#         hora_cita = fecha_hora.time(),
+
+#         estado = 'pendiente'
+
+#     )
+
+#     db.session.add(nueva)
+#     db.session.commit()
+
+#     return jsonify({
+
+#         'success': True
+
+#     })
+
+
+# # =====================================================
+# # MOVER CITA
+# # =====================================================
+
+# @asesor_bp.route(
+#     '/asesor/mover_cita',
+#     methods=['POST']
+# )
+# @login_requerido
+# def mover_cita():
+
+#     data = request.get_json()
+
+#     cita = Cita.query.get(data['id'])
+
+#     if not cita:
+
+#         return jsonify({
+#             'success': False
+#         })
+
+#     fecha_hora = datetime.fromisoformat(
+#         data['fecha']
+#     )
+
+#     cita.fecha_cita = fecha_hora.date()
+
+#     cita.hora_cita = fecha_hora.time()
+
+#     db.session.commit()
+
+#     return jsonify({
+
+#         'success': True
+
+#     })
