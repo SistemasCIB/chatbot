@@ -277,7 +277,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
     <nav class="nav">
         <div class="nav-label">Principal</div>
         <a href="/asesor" class="nav-item active"><span>📋</span> Solicitudes</a>
-        <a href="/asesor/calendario" class="nav-item"><span>📅</span> Calendario</a>
+        <!-- <a href="/asesor/calendario" class="nav-item"><span>📅</span> Calendario</a> -->
         <a href="/asesor/historial" class="nav-item"><span>🕘</span> Historial</a>
         <a href="/asesor/exportar" class="nav-item"><span>⬇️</span> Exportar CSV</a>
         <div class="nav-label">Acciones</div>
@@ -306,7 +306,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
         <div class="topbar-actions">
             <a href="/asesor/exportar"   class="btn-top btn-export">⬇ Exportar CSV</a>
             <a href="/asesor/historial"  class="btn-top btn-hist">🕘 Historial</a>
-            <a href="/asesor/calendario" class="btn-top btn-cal">📅 Calendario</a>
+            <!-- <a href="/asesor/calendario" class="btn-top btn-cal">📅 Calendario</a> -->
         </div>
     </div>
 
@@ -475,32 +475,28 @@ function filtrarEstado(estado) {
 }
 </script>
 <script>
-let filtroActual = 'todos';
+let ultimoTotal = 0;
 
-const eventos = new EventSource('/asesor/eventos');
+async function verificarCitas() {
 
-eventos.onmessage = async () => {
-    try {
-        const res    = await fetch(window.location.href);
-        const html   = await res.text();
-        const parser = new DOMParser();
-        const newDoc = parser.parseFromString(html, 'text/html');
+    const res = await fetch("/api/citas-count");
+    const data = await res.json();
 
-        document.querySelector('tbody').innerHTML =
-            newDoc.querySelector('tbody').innerHTML;
+    if (ultimoTotal === 0) {
+        ultimoTotal = data.total;
+    }
 
-        document.querySelectorAll('.stat-info .value').forEach((el, i) => {
-            el.textContent =
-                newDoc.querySelectorAll('.stat-info .value')[i].textContent;
-        });
+    if (data.total > ultimoTotal) {
+        
+        alert("Nueva cita recibida");
 
-        document.querySelector('.badge-count').textContent =
-            newDoc.querySelector('.badge-count').textContent;
+        location.reload();
+    }
 
-        if (filtroActual !== 'todos') filtrarEstado(filtroActual);
+    ultimoTotal = data.total;
+}
 
-    } catch(e) {}
-};
+setInterval(verificarCitas, 5000);
 </script>
 </body>
 </html>

@@ -103,25 +103,10 @@ def ver_orden(cita_id):
     )
 
 
-@app.route('/asesor/eventos')
-def eventos():
-    def stream():
-        ultima = obtener_total_citas()  # consulta el total actual
-        while True:
-            time.sleep(5)
-            actual = obtener_total_citas()
-            if actual != ultima:
-                ultima = actual
-                yield "data: actualizar\n\n"  # avisa al navegador
-    return Response(
-        stream_with_context(stream()),
-        mimetype='text/event-stream',
-        headers={'Cache-Control': 'no-cache'}
-    )
-
-def obtener_total_citas():
-    from models import Cita
-    return Cita.query.count()
+@app.route("/api/citas-count")
+def citas_count():
+    total = Cita.query.count()
+    return {"total": total}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
