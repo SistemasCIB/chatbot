@@ -15,7 +15,7 @@ AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 
 SCOPES = ["https://graph.microsoft.com/.default"]
 
-GRAPH_URL = "https://graph.microsoft.com/v1.0/users/Sistemas@cib.org.co/events"
+GRAPH_URL = "https://graph.microsoft.com/v1.0/users/aprendizti@cib.org.co/events"
 
 def obtener_token():
 
@@ -80,5 +80,3 @@ def crear_evento_outlook(cita):
 
     return response.json()
 
-print("CLIENT:", CLIENT_ID)
-print("TENANT:", TENANT_ID)
