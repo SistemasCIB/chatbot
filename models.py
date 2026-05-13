@@ -37,6 +37,7 @@ class Cita(db.Model):
     numero_whatsapp = db.Column(db.String(20))
     estado = db.Column(db.String(20), default='pendiente')
     creada_en = db.Column(db.DateTime, default=datetime.utcnow)
+    outlook_event_id = db.Column(db.String(255))
 
 class Consentimiento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
