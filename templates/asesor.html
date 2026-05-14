@@ -236,6 +236,8 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
 .pill.cancelada{background:#F3F4F6;color:#6B7280;}
 .pill.presencial{background:#E9EEFA;color:var(--navy);}
 .pill.domicilio{background:var(--cyan-light);color:var(--cyan);}
+.pill.bacteriologia { background: #dbeafe; color: #8199db; }
+.pill.micologia      { background: #fce7f3; color: #656ccf; }
 
 /* ACTIONS */
 .actions{display:flex;gap:6px;flex-wrap:nowrap;}
@@ -372,7 +374,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                         <th>#</th><th>Paciente</th><th>Documento</th><th>Teléfono</th>
                         <th>Tipo cita</th><th>Dirección domicilio</th><th>Orden</th>
                         <th>Fecha</th><th>Hora</th><th>Cobertura</th><th>Póliza</th>
-                        <th>Examen</th><th>Muestra</th><th>Estado</th>
+                        <th>Examen</th><th>Área</th><th>Muestra</th><th>Estado</th>
                         <th>Registrada</th><th>Acciones</th>
                     </tr>
                 </thead>
@@ -402,6 +404,15 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                         {% if c.cobertura and c.cobertura|lower == 'poliza' %}{{ c.aseguradora or '—' }}{% else %}<span class="dash">—</span>{% endif %}
                     </td>
                     <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ c.tipo_examen }}">{{ c.tipo_examen or '—' }}</td>
+                    <td>
+                        {% if c.area %}
+                            <span class="pill {{ 'bacteriologia' if c.area == 'Bacteriología' else 'micologia' }}">
+                                {{ c.area }}
+                            </span>
+                        {% else %}
+                            <span class="dash">—</span>
+                        {% endif %}
+                    </td>
                     <td>{{ c.tipo_muestra or '—' }}</td>
                     <td><span class="pill {{ c.estado }}">{{ c.estado }}</span></td>
                     <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{ c.creada_en.strftime('%d/%m/%Y %H:%M') if c.creada_en else '—' }}</td>

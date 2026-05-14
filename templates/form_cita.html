@@ -334,6 +334,15 @@ textarea{
                      </option>
                  </select>
               </div>
+              <div class="form-group">
+                    <label>Área</label>
+                    <select name="area" class="form-control">
+                        <option value="">— Seleccionar —</option>
+                        <option value="Micología"     {% if cita and cita.area == 'Micología' %}selected{% endif %}>Micología</option>
+                        <option value="Bacteriología" {% if cita and cita.area == 'Bacteriología' %}selected{% endif %}>Bacteriología</option>
+                        <option value="Por definir"   {% if cita and cita.area == 'Por definir' %}selected{% endif %}>Por definir</option>
+                    </select>
+              </div>              
                 <div> 
                     <label>Tipo de muestra</label>
                     <select name="tipo_muestra">

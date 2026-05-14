@@ -209,6 +209,7 @@ def nueva_cita():
             cobertura=request.form.get('cobertura', ''),
             aseguradora=request.form.get('aseguradora', ''),
             tipo_examen=request.form.get('tipo_examen', ''),
+            area=request.form.get('area', ''),  
             orden_medica=nombre_archivo,
             fecha_cita=fecha_cita,
             hora_cita=request.form['hora_cita'],
@@ -265,6 +266,7 @@ def editar_cita(cita_id):
         cita.cobertura = request.form.get('cobertura', '')
         cita.aseguradora = request.form.get('aseguradora', '')
         cita.tipo_examen = request.form.get('tipo_examen', '')
+        cita.area = request.form.get('area', '') 
 
         # Fecha
         cita.fecha_cita = datetime.strptime(

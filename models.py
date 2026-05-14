@@ -31,6 +31,7 @@ class Cita(db.Model):
     cobertura = db.Column(db.String(50))
     aseguradora = db.Column(db.String(100))
     tipo_examen = db.Column(db.String(300))
+    area = db.Column(db.String(50), nullable=True)
     tipo_muestra = db.Column(db.String(50))
     fecha_cita = db.Column(db.DateTime)
     hora_cita = db.Column(db.String(20))
