@@ -278,6 +278,7 @@ def manejar_boton(numero, opcion_id):
         }
 
         if opcion_id == "examen_otro":
+            sesiones[numero]["area"] = "Por definir" 
             sesiones[numero]["paso"] = "examen_otro_texto"
 
             enviar_texto(
@@ -287,6 +288,9 @@ def manejar_boton(numero, opcion_id):
             return
 
         sesiones[numero]["tipo_examen"] = examenes.get(opcion_id)
+        # Clasificación automática por área
+        bacteriologia = ["examen_igra", "examen_ppd"]
+        sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología"        
 
         # SOLO PARA HONGOS
         if opcion_id in [
@@ -539,7 +543,7 @@ def manejar_texto(numero, texto):
     if paso == "examen_otro_texto":
         sesiones[numero]["tipo_examen"] = texto
         # FLUJO: después de examen otro → requisitos
-        sesiones[numero]["paso"] = "requisitos"
+        sesiones[numero]["paso"] = "requisitos"       
 
         enviar_requisitos(numero, "examen_otro")
         return
@@ -695,7 +699,8 @@ def manejar_archivo(numero, media_id, tipo_mime):
 
 def confirmar_cita(numero):
     sesion = sesiones.get(numero, {})
-
+    print("DEBUG área:", sesion.get("area"))      # ← agrega esto
+    print("DEBUG examen:", sesion.get("tipo_examen")) 
     try:
         from datetime import datetime
 
@@ -747,6 +752,7 @@ def confirmar_cita(numero):
             cobertura=sesion.get("cobertura", ""),
             aseguradora=sesion.get("aseguradora", ""),
             tipo_examen=sesion.get("tipo_examen", ""),
+            area=sesion.get("area", ""), 
             tipo_muestra=sesion.get("tipo_muestra", ""),
             fecha_cita=fecha_real,
             hora_cita=hora_texto if hora_texto else "Por asignar",
