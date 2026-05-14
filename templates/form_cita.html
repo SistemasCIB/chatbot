@@ -239,22 +239,22 @@ textarea{
                   <label>Dirección domicilio</label>
                   <input type="text"
                       name="direccion_domicilio"
-                      value="{{cita.direccion_domicilio if cita else ''}}"
+                      value="{{cita.direccion_domicilio if cita else ''}}">
                         
 
                 <div>
                     <label>Fecha solicitada</label>
                     <input type="date" name="fecha_cita"
-                           value="{{ cita.fecha_cita if cita else '' }}"
-                           required>
+                           value="{{ cita.fecha_cita.strftime('%Y-%m-%d') if cita and cita.fecha_cita else '' }}" required>
                 </div>
                 <div>
                     <label>Hora solicitada</label>
                     <select name="hora_cita" required>
                         {% for hora in ['07:30', '08:00','08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',  '12:00','12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30'] %}
                         <option value="{{ hora }}"
-                        {% if cita and cita.hora_cita == hora %}selected{% endif %}>
-                        {{ hora }}
+                        {% if cita and cita.hora_cita[:5] == hora %}selected{% endif %}>
+                            {{ hora }}
+                        
                         </option>
                         {% endfor %}
                     </select>
