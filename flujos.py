@@ -293,7 +293,7 @@ def manejar_boton(numero, opcion_id):
         sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
         sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"       
         sesiones[numero]["agenda_tipo"] = "domicilio"
-        
+
         # SOLO PARA HONGOS
         if opcion_id in [
             "examen_directo_hongos",
@@ -353,7 +353,8 @@ def manejar_boton(numero, opcion_id):
         )
         enviar_menu(numero)
         return
-        # -----------------------------------
+   
+    # -----------------------------------
     # TIPO DE MUESTRA
     # -----------------------------------
     elif opcion_id.startswith("muestra_"):
@@ -366,6 +367,15 @@ def manejar_boton(numero, opcion_id):
         }
 
         sesiones[numero]["tipo_muestra"] = muestras.get(opcion_id)
+
+        # =========================================
+        # CAMBIO NUEVO
+        # AGENDA AUTOMÁTICA MICOLÓGICA
+        # =========================================
+
+        sesiones[numero]["agenda_tipo"] = "micologia"
+
+        sesiones[numero]["area"] = "Micología"
 
         sesiones[numero]["paso"] = "requisitos"
 
@@ -394,6 +404,7 @@ def manejar_boton(numero, opcion_id):
         sesiones[numero]["tipo_cita"] = "domicilio"
         # FLUJO: después de tipo_cita → fecha
         sesiones[numero]["paso"] = "fecha"
+        sesiones[numero]["agenda_tipo"] = "domicilio"
 
         mostrar_fechas_disponibles(numero, sesiones)
         return
