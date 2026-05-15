@@ -261,25 +261,44 @@ def mostrar_fechas_disponibles(numero, sesiones):
     # Máximo 17 citas de martes a viernes
     # maximo 9 citas los viernes 
     # Desde 2 días en adelante
+    # agendas independientes por área
     # =====================================================
+
     if tipo == "presencial":
+
+        area = sesiones[numero].get(
+            "area",
+            "Micología"
+        )
 
         dia = hoy + timedelta(days=2)
 
         while len(dias) < 3:
 
-            if 1 <= dia.weekday() <= 4:   # martes a viernes
+            if 1 <= dia.weekday() <= 4:
+
                 es_viernes = (dia.weekday() == 4)
+
                 cupo_maximo = 9 if es_viernes else 17
-                
+
                 ocupadas = Cita.query.filter(
                     db.func.date(Cita.fecha_cita) == dia.date(),
-                    Cita.estado.in_(["pendiente", "confirmada"]),
-                    Cita.tipo_cita == "presencial"
-                ).count()
-                agregar_mensajes_log(f"[DEBUG] {dia.date()} → ocupadas={ocupadas}")
 
-                # Si aún hay cupos
+                    Cita.estado.in_([
+                        "pendiente",
+                        "confirmada"
+                    ]),
+
+                    Cita.tipo_cita == "presencial",
+
+                    # =====================================================
+                    # CAMBIO:
+                    # separar por área
+                    # =====================================================
+                    Cita.area == area
+
+                ).count()
+
                 if ocupadas < cupo_maximo:
 
                     texto = (
@@ -288,7 +307,10 @@ def mostrar_fechas_disponibles(numero, sesiones):
                     )
 
                     dias.append(texto)
-                    fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
+
+                    fechas_guardar[f"fecha_{len(dias)}"] = (
+                        dia.strftime("%d/%m/%Y")
+                    )
 
             dia += timedelta(days=1)
 
@@ -406,12 +428,34 @@ def mostrar_horas_disponibles(numero, sesiones):
 
     # -----------------------------------
     # Horas ocupadas (pendiente o confirmada)
-    # -----------------------------------
+    # CAMBIO:
+    # horas ocupadas SOLO para la misma área
+    # =====================================================
 
-    ocupadas = db.session.query(Cita.hora_cita).filter(
+    area = sesiones[numero].get(
+        "area",
+        "Micología"
+    )
+
+    ocupadas = db.session.query(
+        Cita.hora_cita
+    ).filter(
+
         db.func.date(Cita.fecha_cita) == fecha_dt.date(),
+
         Cita.tipo_cita == "presencial",
-        Cita.estado.in_(["pendiente", "confirmada"])
+
+        # =====================================================
+        # CAMBIO:
+        # separar horarios por área
+        # =====================================================
+        Cita.area == area,
+
+        Cita.estado.in_([
+            "pendiente",
+            "confirmada"
+        ])
+
     ).all()
 
     ocupadas = [h[0] for h in ocupadas]

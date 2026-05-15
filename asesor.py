@@ -209,7 +209,16 @@ def nueva_cita():
             cobertura=request.form.get('cobertura', ''),
             aseguradora=request.form.get('aseguradora', ''),
             tipo_examen=request.form.get('tipo_examen', ''),
-            area=request.form.get('area', ''),  
+            tipo_muestra=request.form.get('tipo_muestra', ''),
+            agenda_tipo=request.form.get('agenda_tipo', ''),
+            area=(
+                    "Bacteriología"
+                    if request.form.get('tipo_examen') in [
+                        'IGRAs',
+                        'Tuberculina PPD'
+                    ]
+                    else 'Micología'
+                ),  
             orden_medica=nombre_archivo,
             fecha_cita=fecha_cita,
             hora_cita=request.form['hora_cita'],
@@ -266,7 +275,21 @@ def editar_cita(cita_id):
         cita.cobertura = request.form.get('cobertura', '')
         cita.aseguradora = request.form.get('aseguradora', '')
         cita.tipo_examen = request.form.get('tipo_examen', '')
-        cita.area = request.form.get('area', '') 
+        cita.tipo_muestra = request.form.get('tipo_muestra', '')
+        cita.agenda_tipo = request.form.get('agenda_tipo', '')
+        # =====================================================
+        # CAMBIO:
+        # clasificación automática
+        # =====================================================
+
+        cita.area = (
+            "Bacteriología"
+            if request.form.get('tipo_examen') in [
+                'IGRAs',
+                'Tuberculina PPD'
+            ]
+            else 'Micología'
+        )
 
         # Fecha
         cita.fecha_cita = datetime.strptime(
@@ -384,45 +407,138 @@ def liberar_chat(cita_id):
 # =====================================================
 
 @asesor_bp.route('/asesor/calendario')
+@asesor_bp.route('/asesor/calendario/<area>')
 @login_requerido
-def calendario():
-    return render_template('asesor_calendario.html',
-                           asesor_nombre=session.get('asesor_nombre'))
-
+def calendario(area=None):
+    return render_template(
+        'asesor_calendario.html',
+        asesor_nombre=session.get('asesor_nombre'),
+        area=area or ''
+    )
 
 @asesor_bp.route('/asesor/eventos')
 @login_requerido
 def eventos_calendario():
-    citas = Cita.query.filter(Cita.fecha_cita.isnot(None)).all()
+
+    agenda_filtro = request.args.get('agenda', '')
+
+    query = Cita.query.filter(Cita.fecha_cita.isnot(None))
+
+    if agenda_filtro == 'micologia':
+        query = query.filter(Cita.agenda_tipo == 'micologia')
+    elif agenda_filtro == 'bacteriologia':
+        query = query.filter(Cita.agenda_tipo == 'bacteriologia')
+    elif agenda_filtro == 'domicilio':
+        query = query.filter(Cita.tipo_cita == 'domicilio')
+
+    citas = query.all()
+
     eventos = []
 
     for cita in citas:
-        color = '#f39c12'                        # pendiente — amarillo
-        if cita.estado == 'confirmada':
-            color = '#27ae60'                    # verde
-        elif cita.estado in ('rechazada', 'cancelada'):
-            color = '#e74c3c'                    # rojo
 
-        # hora_cita viene como string "10:00" o "10:00 AM"
+        color = '#f39c12'
+
+        if cita.estado == 'confirmada':
+            color = '#27ae60'
+
+        elif cita.estado in (
+            'rechazada',
+            'cancelada'
+        ):
+            color = '#e74c3c'
+
+        # =====================================================
+        # CAMBIO:
+        # DOMICILIOS SIN HORA
+        # =====================================================
+
+        if cita.tipo_cita == "domicilio":
+
+            eventos.append({
+
+                'id': cita.id,
+
+                'title':
+                    f"🏠 {cita.paciente.nombre}",
+
+                'start':
+                    cita.fecha_cita.date().isoformat(),
+
+                'allDay': True,
+
+                'color': '#9b59b6',
+
+                'extendedProps': {
+                    'estado': cita.estado,
+                    'telefono': cita.numero_whatsapp,
+                    'paciente': cita.paciente.nombre,
+                    'tipo_examen': cita.tipo_examen or '',
+                    'agenda': cita.agenda_tipo or 'domicilio',
+                    'area': cita.area or '',
+                    'tipo': 'domicilio'
+                }
+            })
+
+            continue
+
+        # =====================================================
+        # PRESENCIAL
+        # =====================================================
+
         try:
+
             hora = cita.hora_cita.strip()
-            fmt = "%H:%M" if len(hora) == 5 else "%I:%M %p"
-            hora_obj = datetime.strptime(hora, fmt).time()
-            inicio = datetime.combine(cita.fecha_cita, hora_obj)
+
+            hora_obj = datetime.strptime(
+                hora,
+                "%H:%M"
+            ).time()
+
+            inicio = datetime.combine(
+                cita.fecha_cita.date(),
+                hora_obj
+            )
+
             fin = inicio + timedelta(hours=1)
+
         except Exception:
-            continue                             # si la hora es inválida, omite la cita
+            continue
+
+        # =====================================================
+        # COLOR POR ÁREA
+        # =====================================================
+
+        if cita.area == "Micología":
+            color_area = "#4f8ef7"
+
+        elif cita.area == "Bacteriología":
+            color_area = "#16a085"
+
+        else:
+            color_area = color
 
         eventos.append({
+
             'id': cita.id,
-            'title': f"{cita.paciente.nombre} — {cita.tipo_examen or cita.tipo_cita}",
+
+            'title':
+                f"{cita.paciente.nombre} — {cita.tipo_examen}",
+
             'start': inicio.isoformat(),
+
             'end': fin.isoformat(),
-            'color': color,
+
+            'color': color_area,
+
             'extendedProps': {
                 'estado': cita.estado,
                 'telefono': cita.numero_whatsapp,
                 'paciente': cita.paciente.nombre,
+                'tipo_examen': cita.tipo_examen or '',
+                'agenda': cita.agenda_tipo or cita.area or '',
+                'area': cita.area or '',
+                'tipo': 'presencial'
             }
         })
 

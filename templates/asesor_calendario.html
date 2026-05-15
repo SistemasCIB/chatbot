@@ -1,907 +1,293 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calendario de Citas — CIB</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- FullCalendar -->
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<title>Calendario de Citas</title>
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
 
-  <style>
-    :root {
-      --bg:        #0f1117;
-      --surface:   #181c27;
-      --surface2:  #1f2433;
-      --border:    #2a3045;
-      --accent:    #4f8ef7;
-      --accent2:   #7c5cfc;
-      --success:   #27ae60;
-      --warning:   #f39c12;
-      --danger:    #e74c3c;
-      --text:      #e8eaf0;
-      --muted:     #7a8299;
-      --radius:    12px;
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+
+<style>
+
+body{
+    margin:0;
+    padding:0;
+    background:#f4f6f9;
+    font-family:Arial, sans-serif;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    padding:20px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+h1{
+    margin:0;
+}
+
+.filtros{
+    display:flex;
+    gap:15px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+select{
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:14px;
+}
+
+#calendar{
+    background:white;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+.fc-toolbar-title{
+    font-size:20px !important;
+}
+
+.fc-event{
+    border:none !important;
+    padding:3px;
+    border-radius:8px !important;
+    cursor:pointer;
+}
+
+.legend{
+    margin-top:20px;
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.color-box{
+    width:16px;
+    height:16px;
+    border-radius:4px;
+}
+
+@media(max-width:768px){
+
+    .topbar{
+        flex-direction:column;
+        align-items:flex-start;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    #calendar{
+        padding:10px;
+    }
+}
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── TOPBAR ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 28px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .logo-dot {
-      width: 10px; height: 10px;
-      background: var(--accent);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--accent);
-    }
-    .topbar h1 {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: .02em;
-    }
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 16px;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: all .18s;
-      text-decoration: none;
-    }
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-    .btn-primary:hover { filter: brightness(1.12); }
-
-    /* ── LEYENDA ── */
-    .legend {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      padding: 10px 28px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .dot {
-      width: 9px; height: 9px; border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* ── MAIN ── */
-    .main {
-      flex: 1;
-      padding: 24px 28px;
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 20px;
-    }
-
-    /* ── CALENDARIO ── */
-    .calendar-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      min-width: 0;
-    }
-
-    /* Overrides FullCalendar */
-    .fc { font-family: 'DM Sans', sans-serif; }
-    .fc-theme-standard td, .fc-theme-standard th { border-color: var(--border); }
-    .fc-theme-standard .fc-scrollgrid { border-color: var(--border); }
-    .fc .fc-toolbar-title { font-size: 16px; font-weight: 600; color: var(--text); }
-    .fc .fc-button {
-      background: var(--surface2) !important;
-      border: 1px solid var(--border) !important;
-      color: var(--text) !important;
-      font-family: inherit !important;
-      font-size: 12px !important;
-      border-radius: 7px !important;
-      padding: 5px 12px !important;
-      box-shadow: none !important;
-    }
-    .fc .fc-button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
-    .fc .fc-button-active, .fc .fc-button-primary:not(:disabled).fc-button-active {
-      background: var(--accent) !important;
-      border-color: var(--accent) !important;
-      color: #fff !important;
-    }
-    .fc .fc-col-header-cell-cushion { color: var(--muted); font-size: 12px; font-weight: 500; }
-    .fc .fc-daygrid-day-number { color: var(--muted); font-size: 12px; }
-    .fc .fc-daygrid-day.fc-day-today { background: rgba(79,142,247,.07); }
-    .fc .fc-daygrid-day-number:hover { color: var(--accent); }
-    .fc-daygrid-event { border-radius: 5px !important; font-size: 11.5px !important; padding: 1px 5px !important; }
-    .fc .fc-timegrid-slot { height: 36px; }
-    .fc .fc-timegrid-slot-label-cushion { color: var(--muted); font-size: 11px; }
-    .fc-event-title { font-weight: 500; }
-    .fc-popover { background: var(--surface2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; }
-    .fc-popover-header { background: var(--surface2) !important; color: var(--text) !important; }
-    .fc-popover-body { background: var(--surface2) !important; }
-    .fc-list-event:hover td { background: var(--surface2) !important; }
-    .fc-list-day-cushion { background: var(--surface) !important; }
-    .fc-list-event-title a { color: var(--text) !important; }
-    .fc-list-event-time { color: var(--muted) !important; font-size: 11px !important; }
-    .fc-list-day-text, .fc-list-day-side-text { color: var(--muted) !important; }
-    .fc-scroller { background: var(--surface); }
-    .fc-view-harness { background: var(--surface); }
-    td.fc-day, th.fc-col-header-cell { background: var(--surface); }
-
-    /* ── PANEL LATERAL ── */
-    .side-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-    }
-    .card-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .stat-box {
-      background: var(--surface2);
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: 'DM Mono', monospace;
-      font-size: 22px;
-      font-weight: 500;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-label { font-size: 11px; color: var(--muted); }
-    .stat-box.total .stat-num  { color: var(--accent); }
-    .stat-box.conf  .stat-num  { color: var(--success); }
-    .stat-box.pend  .stat-num  { color: var(--warning); }
-    .stat-box.rech  .stat-num  { color: var(--danger); }
-
-    /* Cita seleccionada */
-    .detail-empty {
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      padding: 20px 0;
-    }
-    .detail-empty svg { opacity: .3; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
-
-    .detail-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-bottom: 14px;
-    }
-    .badge-confirmada { background: rgba(39,174,96,.18); color: #4cdb8a; }
-    .badge-pendiente  { background: rgba(243,156,18,.18); color: #f7c04a; }
-    .badge-rechazada  { background: rgba(231,76,60,.18);  color: #f17e71; }
-
-    .detail-row {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      margin-bottom: 10px;
-    }
-    .detail-row label {
-      font-size: 10px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-    .detail-row span {
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .detail-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 14px;
-    }
-    .btn-success { background: var(--success); color: #fff; width: 100%; justify-content: center; }
-    .btn-success:hover { filter: brightness(1.1); }
-    .btn-danger  { background: rgba(231,76,60,.15); color: #f17e71; border: 1px solid rgba(231,76,60,.3); width: 100%; justify-content: center; }
-    .btn-danger:hover  { background: rgba(231,76,60,.25); }
-    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); width: 100%; justify-content: center; }
-    .btn-secondary:hover { border-color: var(--accent); }
-
-    /* Nav quick links */
-    .nav-links { display: flex; flex-direction: column; gap: 6px; }
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--muted);
-      text-decoration: none;
-      transition: all .15s;
-    }
-    .nav-link:hover { background: var(--surface2); color: var(--text); }
-    .nav-link svg { opacity: .7; flex-shrink: 0; }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 24px; right: 24px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all .3s cubic-bezier(.34,1.56,.64,1);
-      z-index: 999;
-      min-width: 220px;
-    }
-    #toast.show { transform: translateY(0); opacity: 1; }
-    #toast.ok   { border-color: var(--success); }
-    #toast.err  { border-color: var(--danger); }
-
-  /* ── MODAL ── */
-
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
-
-  .modal.show {
-    display: flex;
-  }
-
-  .modal-box {
-    width: 90%;
-    max-width: 700px;
-
-    max-height: 90vh;
-    overflow-y: auto;
-
-    background: var(--surface);
-    border-radius: 12px;
-    padding: 20px;
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
-  }
-
-  .modal-header h3 {
-    font-size: 16px;
-  }
-
-  .modal-header button {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 18px;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 14px;
-  }
-
-  .form-group label {
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .form-group input,
-  .form-group select {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 11px 12px;
-    color: var(--text);
-    font-family: inherit;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  </style>
+</style>
 </head>
+
 <body>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="logo-dot"></div>
-    <h1>Calendario de Citas</h1>
-  </div>
-  <div class="topbar-right">
-    <span style="font-size:13px;color:var(--muted)">{{ asesor_nombre }}</span>
-    <a href="/asesor" class="btn btn-ghost">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Panel
-    </a>
-    <a href="/asesor/logout" class="btn btn-ghost">Salir</a>
-  </div>
-</header>
+<div class="container">
 
-<!-- LEYENDA -->
-<div class="legend">
-  <span>Estado:</span>
-  <div class="legend-item"><div class="dot" style="background:#27ae60"></div> Confirmada</div>
-  <div class="legend-item"><div class="dot" style="background:#f39c12"></div> Pendiente</div>
-  <div class="legend-item"><div class="dot" style="background:#e74c3c"></div> Rechazada</div>
-  <div class="legend-item"><div class="dot" style="background:#4f8ef7"></div> Microsoft 365 sincronizado</div>
-</div>
+    <!-- ====================================== -->
+    <!-- HEADER -->
+    <!-- ====================================== -->
 
-<!-- MAIN -->
-<div class="main">
+    <div class="topbar">
 
-  <!-- CALENDARIO -->
-  <div class="calendar-wrap">
+        <h1>
+            Calendario de citas
+        </h1>
+
+        <!-- ====================================== -->
+        <!-- FILTROS -->
+        <!-- ====================================== -->
+
+        <div class="filtros">
+
+            <!-- CAMBIO NUEVO -->
+            <div>
+                <label><strong>Agenda:</strong></label>
+
+                <select id="filtroAgenda">
+
+                    <option value="">
+                        Todas
+                    </option>
+
+                    <option value="micologia">
+                        Micología
+                    </option>
+
+                    <option value="bacteriologia">
+                        Bacteriología
+                    </option>
+
+                    <option value="domicilio">
+                        Domicilio
+                    </option>
+
+                </select>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- CALENDARIO -->
+    <!-- ====================================== -->
+
     <div id="calendar"></div>
-  </div>
 
-  <!-- PANEL LATERAL -->
-  <aside class="side-panel">
+    <!-- ====================================== -->
+    <!-- LEYENDA -->
+    <!-- ====================================== -->
 
-    <!-- Stats -->
-    <div class="card">
-      <div class="card-title">Resumen</div>
-      <div class="stats-grid">
-        <div class="stat-box total">
-          <div class="stat-num" id="stat-total">—</div>
-          <div class="stat-label">Total</div>
+    <div class="legend">
+
+        <div class="legend-item">
+            <div class="color-box" style="background:#f39c12;"></div>
+            <span>Pendiente</span>
         </div>
-        <div class="stat-box conf">
-          <div class="stat-num" id="stat-conf">—</div>
-          <div class="stat-label">Confirmadas</div>
+
+        <div class="legend-item">
+            <div class="color-box" style="background:#27ae60;"></div>
+            <span>Confirmada</span>
         </div>
-        <div class="stat-box pend">
-          <div class="stat-num" id="stat-pend">—</div>
-          <div class="stat-label">Pendientes</div>
+
+        <div class="legend-item">
+            <div class="color-box" style="background:#e74c3c;"></div>
+            <span>Cancelada / Rechazada</span>
         </div>
-        <div class="stat-box rech">
-          <div class="stat-num" id="stat-rech">—</div>
-          <div class="stat-label">Rechazadas</div>
-        </div>
-      </div>
+
     </div>
 
-    <!-- Detalle cita seleccionada -->
-    <div class="card" style="flex:1">
-      <div class="card-title">Detalle de cita</div>
-      <div id="detail-content">
-        <div class="detail-empty">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          Haz clic en una cita para ver el detalle
-        </div>
-      </div>
-    </div>
-
-    <!-- Links rápidos -->
-    <div class="card">
-      <div class="card-title">Accesos rápidos</div>
-      <nav class="nav-links">
-        <a href="/asesor" class="nav-link">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          Panel de citas
-        </a>
-        <a href="/asesor/nueva" class="nav-link">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          Nueva cita manual
-        </a>
-        <a href="/asesor/historial" class="nav-link">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 7 7 7"/></svg>
-          Historial
-        </a>
-        <a href="/asesor/exportar" class="nav-link">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exportar CSV
-        </a>
-      </nav>
-    </div>
-
-  </aside>
 </div>
 
-<!-- TOAST -->
-<div id="toast">
-  <span id="toast-icon">✓</span>
-  <span id="toast-msg"></span>
-</div>
-<!-- MODAL NUEVA CITA -->
-<div id="modal-cita" class="modal">
-  <div class="modal-box">
-
-    <div class="modal-header">
-      <h3>Nueva cita</h3>
-      <button type="button" onclick="cerrarModal()">✕</button>
-    </div>
-
-    <form id="form-cita">
-
-      <!-- DOCUMENTO -->
-      <div class="form-group">
-        <label>Documento</label>
-        <input type="text" id="documento" required>
-      </div>
-
-      <!-- TIPO DOCUMENTO -->
-      <div class="form-group">
-        <label>Tipo documento</label>
-        <select id="tipo_documento" required>
-          <option value="cc">CC</option>
-          <option value="ti">TI</option>
-          <option value="pasaporte">Pasaporte</option>
-          <option value="CE">CE</option>
-          <option value="PPT">PPT</option>
-          <option value="RC">RC</option>
-          <option value="otro">Otro</option>
-        </select>
-      </div>
-
-      <!-- NOMBRE -->
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" id="paciente" required>
-      </div>
-
-      <!-- TELÉFONO -->
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" id="telefono" required>
-      </div>
-
-      <!-- TIPO CITA -->
-      <div class="form-group">
-        <label>Tipo de cita</label>
-        <select id="tipo_cita" required>
-          <option value="presencial">Presencial</option>
-          <option value="domicilio">Domicilio</option>
-        </select>
-      </div>
-
-      <!-- DIRECCIÓN (solo domicilio) -->
-      <div class="form-group">
-        <label>Dirección domicilio</label>
-        <input type="text" id="direccion_domicilio">
-      </div>
-
-      <!-- FECHA (SOLO LECTURA - viene del calendario) -->
-      <div class="form-group">
-        <label>Fecha</label>
-        <input type="date" id="fecha" readonly>
-      </div>
-
-      <!-- HORA (SOLO LECTURA - viene del calendario) -->
-      <div class="form-group">
-        <label>Hora</label>
-        <input type="time" id="hora" readonly>
-      </div>
-
-      <!-- COBERTURA -->
-      <div class="form-group">
-        <label>Cobertura</label>
-        <select id="cobertura">
-          <option value="particular">Particular</option>
-          <option value="poliza">Póliza</option>
-        </select>
-      </div>
-
-      <!-- ASEGURADORA -->
-      <div class="form-group">
-        <label>Aseguradora</label>
-        <select id="aseguradora">
-          <option value="">N/A</option>
-          <option value="Poliza sura">Póliza Sura</option>
-          <option value="Coomeva">Coomeva</option>
-          <option value="Medplus">Medplus</option>
-          <option value="Seguros Bolivar">Seguros Bolívar</option>
-        </select>
-      </div>
-
-      <!-- TIPO EXAMEN -->
-      <div class="form-group">
-        <label>Tipo de examen</label>
-        <select id="tipo_examen">
-          <option value="">Seleccionar</option>
-          <option value="Directo hongos">Directo hongos</option>
-          <option value="Hongos + Cultivo">Hongos + Cultivo</option>
-          <option value="Galactomanan">Galactomanan</option>
-          <option value="Cryptococcus">Cryptococcus</option>
-          <option value="IGRAs">IGRAs</option>
-          <option value="Tuberculina PPD">Tuberculina PPD</option>
-          <option value="Otro examen">Otro examen</option>
-        </select>
-      </div>
-
-      <!-- MUESTRA -->
-      <div class="form-group">
-        <label>Tipo de muestra</label>
-        <select id="tipo_muestra">
-          <option value="">Seleccionar</option>
-          <option value="uñas">Uñas</option>
-          <option value="piel">Piel</option>
-          <option value="cuero cabelludo">Cuero cabelludo</option>
-          <option value="flujo vaginal">Flujo vaginal</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Orden médica</label>
-        <input type="file" id="orden_medica" accept=".pdf,image/*">
-      </div>      
-
-      <!-- ESTADO -->
-      <div class="form-group">
-        <label>Estado</label>
-        <select id="estado">
-          <option value="pendiente">Pendiente</option>
-          <option value="confirmada">Confirmada</option>
-          <option value="rechazada">Rechazada</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn btn-primary" style="width:100%">
-        Crear cita
-      </button>
-
-    </form>
-
-  </div>
-</div>
 <script>
 
-  let calendar;
-  let todosLosEventos = [];
+document.addEventListener('DOMContentLoaded', function() {
 
-  // ── TOAST ──
-  function toast(msg, tipo = 'ok') {
+    const calendarEl = document.getElementById('calendar');
 
-    const el = document.getElementById('toast');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
 
-    document.getElementById('toast-msg').textContent = msg;
+        locale: 'es',
 
-    document.getElementById('toast-icon').textContent =
-      tipo === 'ok' ? '✓' : '✕';
+        initialView: 'dayGridMonth',
 
-    el.className = 'show ' + tipo;
+        height: 'auto',
 
-    setTimeout(() => {
-      el.className = '';
-    }, 3000);
-  }
+        selectable: true,
 
-  // ── STATS ──
-  function actualizarStats(eventos) {
+        editable: false,
 
-    document.getElementById('stat-total').textContent =
-      eventos.length;
+        navLinks: true,
 
-    document.getElementById('stat-conf').textContent =
-      eventos.filter(e => e.extendedProps?.estado === 'confirmada').length;
+        dayMaxEvents: true,
 
-    document.getElementById('stat-pend').textContent =
-      eventos.filter(e => e.extendedProps?.estado === 'pendiente').length;
+        headerToolbar: {
 
-    document.getElementById('stat-rech').textContent =
-      eventos.filter(e => ['rechazada', 'cancelada'].includes(e.extendedProps?.estado)).length;
-  }
+            left: 'prev,next today',
 
-  // ── DETALLE ──
-  function mostrarDetalle(info) {
+            center: 'title',
 
-    const p = info.event.extendedProps;
-    const estado = p.estado || 'pendiente';
-    const badgeClass = `badge-${estado}`;
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
 
-    const inicio = info.event.start
-      ? info.event.start.toLocaleString('es-CO', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      : '—';
+        buttonText: {
 
-    document.getElementById('detail-content').innerHTML = `
-      <div class="detail-badge ${badgeClass}">
-        <span>●</span>
-        ${estado.charAt(0).toUpperCase() + estado.slice(1)}
-      </div>
+            today: 'Hoy',
 
-      <div class="detail-row">
-        <label>Paciente</label>
-        <span>${p.paciente || info.event.title}</span>
-      </div>
+            month: 'Mes',
 
-      <div class="detail-row">
-        <label>Fecha y hora</label>
-        <span>${inicio}</span>
-      </div>
+            week: 'Semana',
 
-      <div class="detail-row">
-        <label>Teléfono</label>
-        <span>${p.telefono || '—'}</span>
-      </div>
+            day: 'Día'
+        },
 
-      <div class="detail-actions">
+        /* =======================================
+           CAMBIO NUEVO
+        ======================================= */
 
-        ${estado === 'pendiente' ? `
-          <button class="btn btn-success" onclick="accion(${info.event.id}, 'confirmar')">
-            Confirmar cita
-          </button>
+        events: function(fetchInfo, successCallback, failureCallback) {
 
-          <button class="btn btn-danger" onclick="accion(${info.event.id}, 'rechazar')">
-            Rechazar cita
-          </button>
-        ` : ''}
+            const agenda =
+                document.getElementById('filtroAgenda').value;
 
-        <a href="/asesor/editar/${info.event.id}" class="btn btn-secondary">
-          Editar cita
-        </a>
+            fetch(`/asesor/eventos?agenda=${agenda}`)
 
-      </div>
-    `;
-  }
+                .then(response => response.json())
 
-  // ── ACCIONES ──
-  async function accion(citaId, tipo) {
+                .then(data => successCallback(data))
 
-    const confirmar = tipo === 'confirmar';
+                .catch(error => failureCallback(error));
+        },
 
-    const msg = confirmar
-      ? '¿Confirmar esta cita?'
-      : '¿Rechazar esta cita?';
+        /* =======================================
+           CLICK EVENTO
+        ======================================= */
 
-    if (!confirm(msg)) return;
+        eventClick: function(info) {
 
-    try {
+            const evento = info.event;
 
-      await fetch(`/asesor/${tipo}/${citaId}`, {
-        method: 'GET'
-      });
+            const props = evento.extendedProps;
 
-      toast(confirmar ? 'Cita confirmada ✓' : 'Cita rechazada', confirmar ? 'ok' : 'err');
+            alert(
 
-      setTimeout(() => {
-        calendar.refetchEvents();
-      }, 500);
+                "👤 Paciente: " + props.paciente + "\n\n" +
 
-      document.getElementById('detail-content').innerHTML =
-        '<div class="detail-empty">Selecciona una cita</div>';
+                "🔬 Examen: " + props.tipo_examen + "\n\n" +
 
-    } catch (e) {
-      toast('Error al procesar acción', 'err');
-    }
-  }
+                "📂 Agenda: " + props.agenda + "\n\n" +
 
-  // ── MODAL ──
-  function abrirModal(dateObj) {
+                "🧪 Área: " + props.area + "\n\n" +
 
-    const modal = document.getElementById('modal-cita');
+                "📞 Teléfono: " + props.telefono + "\n\n" +
 
-    const fecha = new Date(dateObj);
-
-    // FECHA
-    document.getElementById('fecha').value =
-      fecha.toISOString().split('T')[0];
-
-    // HORA (redondeada a la celda)
-    const horas = String(fecha.getHours()).padStart(2, '0');
-    const minutos = String(fecha.getMinutes()).padStart(2, '0');
-
-    document.getElementById('hora').value =
-      `${horas}:${minutos}`;
-
-    modal.classList.add('show');
-  }
-
-  function cerrarModal() {
-    document.getElementById('modal-cita')
-      .classList.remove('show');
-  }
-
-  // ── INIT CALENDAR ──
-  document.addEventListener('DOMContentLoaded', function () {
-
-    const el = document.getElementById('calendar');
-
-    calendar = new FullCalendar.Calendar(el, {
-
-      initialView: 'dayGridMonth',
-      locale: 'es',
-      height: 'auto',
-      firstDay: 1,
-      nowIndicator: true,
-
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-      },
-
-      buttonText: {
-        today: 'Hoy',
-        month: 'Mes',
-        week: 'Semana',
-        day: 'Día',
-        list: 'Lista'
-      },
-
-      // ── CLICK EN CELDA ──
-      dateClick: function (info) {
-        abrirModal(info.date); // 🔥 CORRECTO
-      },
-
-      // ── EVENTOS ──
-      events: {
-        url: '/asesor/eventos',
-        failure: function () {
-          toast('Error cargando eventos', 'err');
+                "📌 Estado: " + props.estado
+            );
         }
-      },
-
-      // ── EVENT CLICK ──
-      eventClick: function (info) {
-        info.jsEvent.preventDefault();
-        mostrarDetalle(info);
-      },
-
-      eventsSet: function (eventos) {
-        todosLosEventos = eventos;
-        actualizarStats(eventos);
-      },
-
-      eventMouseEnter: function (info) {
-        info.el.style.filter = 'brightness(1.15)';
-        info.el.style.cursor = 'pointer';
-      },
-
-      eventMouseLeave: function (info) {
-        info.el.style.filter = '';
-      }
 
     });
 
     calendar.render();
 
-  });
+    /* =======================================
+       CAMBIO NUEVO
+       RECARGAR AL CAMBIAR FILTRO
+    ======================================= */
 
-  // ── CREAR CITA (FORM MODAL) ──
-  document.getElementById('form-cita')
-    .addEventListener('submit', async function (e) {
+    document
+        .getElementById('filtroAgenda')
+        .addEventListener('change', function() {
 
-      e.preventDefault();
+            calendar.refetchEvents();
 
-      const formData = new FormData();
-
-      formData.append('nombre', document.getElementById('paciente').value);
-      formData.append('documento', document.getElementById('documento').value);
-      formData.append('tipo_documento', document.getElementById('tipo_documento').value);
-      formData.append('tipo_cita', document.getElementById('tipo_cita').value);
-      formData.append('telefono', document.getElementById('telefono').value);
-      formData.append('direccion_domicilio', document.getElementById('direccion_domicilio').value);
-      formData.append('cobertura', document.getElementById('cobertura').value);
-      formData.append('aseguradora', document.getElementById('aseguradora').value);
-      formData.append('tipo_examen', document.getElementById('tipo_examen').value);
-      formData.append('tipo_muestra', document.getElementById('tipo_muestra').value);
-      formData.append('fecha_cita', document.getElementById('fecha').value);
-      formData.append('hora_cita', document.getElementById('hora').value);
-      formData.append('estado', document.getElementById('estado').value);
-      const archivo = document.getElementById('orden_medica').files[0];
-      if (archivo) {
-        formData.append('orden_medica', archivo);
-      }
-
-      
-
-      try {
-
-        const r = await fetch('/asesor/nueva', {
-          method: 'POST',
-          body: formData
         });
 
-        if (!r.ok) throw new Error();
-
-        cerrarModal();
-
-        toast('Cita creada correctamente');
-
-        calendar.refetchEvents();
-
-        document.getElementById('form-cita').reset();
-
-      } catch (err) {
-        toast('Error creando cita', 'err');
-      }
-
-    });
+});
 
 </script>
 

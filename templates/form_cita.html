@@ -1,456 +1,461 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if cita %}Editar cita{% else %}Nueva cita{% endif %}</title>
 
-<title>{{ 'Editar cita' if cita else 'Nueva cita' }}</title>
+    <style>
+        * { box-sizing: border-box; }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f8;
+            margin: 0;
+            padding: 30px 20px;
+        }
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+        .container {
+            max-width: 920px;
+            margin: auto;
+            background: white;
+            padding: 36px;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
 
-body{
-    font-family:'Inter',sans-serif;
-    background:#f4f6f8;
-    color:#1a1a2e;
-}
+        h1 {
+            margin: 0 0 28px;
+            font-size: 22px;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 16px;
+        }
 
-/* HEADER */
+        /* ========================= */
+        /* SECCIONES */
+        /* ========================= */
 
-header{
-    background:#1a1a2e;
-    color:white;
-    padding:18px 40px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
+        .seccion {
+            margin-bottom: 28px;
+        }
 
-header h1{
-    font-size:18px;
-    font-weight:600;
-}
+        .seccion-titulo {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
 
-header span{
-    font-size:13px;
-    color:#aab0c5;
-}
+        /* ========================= */
+        /* GRID */
+        /* ========================= */
 
-.btn-volver{
-    text-decoration:none;
-    color:white;
-    background:#34495e;
-    padding:8px 14px;
-    border-radius:6px;
-    font-size:13px;
-    font-weight:500;
-}
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
 
-/* CONTENT */
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
 
-.container{
-    max-width:850px;
-    margin:40px auto;
-    padding:0 20px;
-}
+        .campo-full {
+            grid-column: 1 / -1;
+        }
 
-.card{
-    background:white;
-    border-radius:12px;
-    padding:35px;
-    border:1px solid #e5e5e5;
-    box-shadow:0 8px 20px rgba(0,0,0,0.03);
-}
+        label {
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
 
-.card h2{
-    font-size:22px;
-    margin-bottom:8px;
-}
+        input,
+        select,
+        textarea {
+            padding: 10px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1e293b;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
 
-.card p{
-    font-size:14px;
-    color:#777;
-    margin-bottom:30px;
-}
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
 
-/* FORM */
+        textarea {
+            resize: vertical;
+        }
 
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:18px;
-}
+        .hidden {
+            display: none;
+        }
 
-.full{
-    grid-column:1 / -1;
-}
+        /* ========================= */
+        /* ACCIONES */
+        /* ========================= */
 
-label{
-    display:block;
-    margin-bottom:6px;
-    font-size:13px;
-    font-weight:600;
-    color:#444;
-}
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
 
-input,
-select,
-textarea{
-    width:100%;
-    padding:12px 14px;
-    border:1px solid #dcdcdc;
-    border-radius:8px;
-    font-size:14px;
-    font-family:'Inter',sans-serif;
-    outline:none;
-    transition:0.2s;
-}
+        .btn-save {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
 
-input:focus,
-select:focus,
-textarea:focus{
-    border-color:#1a73e8;
-    box-shadow:0 0 0 3px rgba(26,115,232,0.08);
-}
+        .btn-save:hover { background: #1d4ed8; }
 
-textarea{
-    resize:vertical;
-    min-height:110px;
-}
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
 
-/* ACTIONS */
+        .btn-cancel:hover { background: #e2e8f0; }
 
-.actions{
-    margin-top:28px;
-    display:flex;
-    gap:12px;
-}
+        /* archivo actual */
+        .archivo-actual {
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #64748b;
+        }
 
-.btn{
-    padding:12px 18px;
-    border:none;
-    border-radius:8px;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    text-decoration:none;
-}
+        .archivo-actual a {
+            color: #2563eb;
+            text-decoration: none;
+        }
 
-.btn-save{
-    background:#1a73e8;
-    color:white;
-}
-
-.btn-save:hover{
-    background:#1666cb;
-}
-
-.btn-cancel{
-    background:#eef1f5;
-    color:#333;
-}
-
-.btn-cancel:hover{
-    background:#dde3ea;
-}
-
-@media(max-width:768px){
-    .grid{
-        grid-template-columns:1fr;
-    }
-}
-</style>
-
+        @media (max-width: 640px) {
+            .grid { grid-template-columns: 1fr; }
+            .campo-full { grid-column: 1; }
+            body { padding: 16px; }
+            .container { padding: 20px; }
+        }
+    </style>
 </head>
 <body>
 
-<header>
-    <div>
-        <h1>CIB - Panel de Asesores</h1>
-        <span>{{ 'Editar solicitud de cita' if cita else 'Registrar nueva cita' }}</span>
-    </div>
-
-    <a href="/asesor" class="btn-volver">← Volver</a>
-</header>
-
 <div class="container">
 
-    <div class="card">
+    <h1>
+        {% if cita %}Editar cita{% else %}Nueva cita{% endif %}
+    </h1>
 
-        <h2>{{ 'Editar cita' if cita else 'Nueva cita manual' }}</h2>
-        <p>Completa la información del paciente y guarda los cambios.</p>
+    <form method="POST" enctype="multipart/form-data">
 
-        <form method="POST" enctype="multipart/form-data">
+        <!-- ========================= -->
+        <!-- DATOS PACIENTE -->
+        <!-- ========================= -->
 
+        <div class="seccion">
+            <div class="seccion-titulo">Datos del paciente</div>
             <div class="grid">
 
-                <div>
-                    <label>Nombre completo</label>
-                    <input type="text" name="nombre"
-                           value="{{ cita.paciente.nombre if cita else '' }}" required>
-                </div>
-                <div>
-                    <label>Tipo de documento</label>
+                <div class="campo">
+                    <label>Tipo documento</label>
                     <select name="tipo_documento" required>
-                        <option value="cc" {% if cita and cita.paciente.tipo_documento == 'cc' %}selected{% endif %}>Cédula de ciudadanía</option>
-                        <option value="ti" {% if cita and cita.paciente.tipo_documento == 'ti' %}selected{% endif %}>Tarjeta de identidad</option>
-                        <option value="pasaporte" {% if cita and cita.paciente.tipo_documento == 'pasaporte' %}selected{% endif %}>Pasaporte</option>
-                        <option value="CE" {% if cita and cita.paciente.tipo_documento == 'CE' %}selected{% endif %}>Cedula de extranjeria</option>
-                        <option value="PPT" {% if cita and cita.paciente.tipo_documento == 'PPT' %}selected{% endif %}>Permiso por protección temporal</option>
-                        <option value="RC" {% if cita and cita.paciente.tipo_documento == 'RC' %}selected{% endif %}>Registro civil</option>
-                        <option value="otro" {% if cita and cita.paciente.tipo_documento == 'otro' %}selected{% endif %}>Otro</option>
+                        <option value="CC" {% if cita and cita.paciente.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
+                        <option value="TI" {% if cita and cita.paciente.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
+                        <option value="CE" {% if cita and cita.paciente.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
+                        <option value="PP" {% if cita and cita.paciente.tipo_documento == 'PP' %}selected{% endif %}>Pasaporte</option>
                     </select>
                 </div>
 
-                <div>
+                <div class="campo">
                     <label>Documento</label>
-                    <input type="text" name="documento"
-                           value="{{ cita.paciente.documento if cita else '' }}" required>
+                    <input type="text" name="documento" id="documento"
+                        value="{{ cita.paciente.documento if cita else '' }}" required>
                 </div>
 
-                <div>
+                <div class="campo">
+                    <label>Nombre completo</label>
+                    <input type="text" name="nombre" id="nombre"
+                        value="{{ cita.paciente.nombre if cita else '' }}" required>
+                </div>
+
+                <div class="campo">
                     <label>Teléfono</label>
-                    <input type="text" name="telefono"
-                           value="{{ cita.paciente.telefono if cita else '' }}" required>
+                    <input type="text" name="telefono" id="telefono"
+                        value="{{ cita.paciente.telefono if cita else '' }}" required>
                 </div>
 
-                <div>
+                <div class="campo campo-full">
+                    <label>Correo</label>
+                    <input type="email" name="correo"
+                        value="{{ cita.paciente.correo if cita else '' }}">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- TIPO CITA Y AGENDA -->
+        <!-- ========================= -->
+
+        <div class="seccion">
+            <div class="seccion-titulo">Tipo de cita</div>
+            <div class="grid">
+
+                <div class="campo">
                     <label>Tipo de cita</label>
-                    <select name="tipo_cita" required>
-                        <option value="presencial"
-                        {% if cita and cita.tipo_cita == 'presencial' %}selected{% endif %}>
-                        Presencial
-                        </option>
-
-                        <option value="domicilio"
-                        {% if cita and cita.tipo_cita == 'domicilio' %}selected{% endif %}>
-                        Domicilio
-                        </option>
+                    <select name="tipo_cita" id="tipo_cita" required>
+                        <option value="">Selecciona</option>
+                        <option value="presencial" {% if cita and cita.tipo_cita == 'presencial' %}selected{% endif %}>Presencial</option>
+                        <option value="domicilio"  {% if cita and cita.tipo_cita == 'domicilio'  %}selected{% endif %}>Domicilio</option>
                     </select>
                 </div>
-                <!-- NUEVO BLOQUE DIRECCIÓN -->
-                <div id="bloque_domicilio" class="full">
-                  <label>Dirección domicilio</label>
-                  <input type="text"
-                      name="direccion_domicilio"
-                      value="{{cita.direccion_domicilio if cita else ''}}">
-                        
 
-                <div>
-                    <label>Fecha solicitada</label>
-                    <input type="date" name="fecha_cita"
-                           value="{{ cita.fecha_cita.strftime('%Y-%m-%d') if cita and cita.fecha_cita else '' }}" required>
-                </div>
-                <div>
-                    <label>Hora solicitada</label>
-                    <select name="hora_cita" required>
-                        {% for hora in ['07:30', '08:00','08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',  '12:00','12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30'] %}
-                        <option value="{{ hora }}"
-                        {% if cita and cita.hora_cita[:5] == hora %}selected{% endif %}>
-                            {{ hora }}
-                        
-                        </option>
-                        {% endfor %}
+                <div class="campo">
+                    <label>Agenda</label>
+                    <select name="agenda_tipo" id="agenda_tipo">
+                        <option value="">Selecciona agenda</option>
+                        <option value="micologia"     {% if cita and cita.agenda_tipo == 'micologia'     %}selected{% endif %}>Micología</option>
+                        <option value="bacteriologia" {% if cita and cita.agenda_tipo == 'bacteriologia' %}selected{% endif %}>Bacteriología</option>
+                        <option value="domicilio"     {% if cita and cita.agenda_tipo == 'domicilio'     %}selected{% endif %}>Domicilio</option>
                     </select>
-                </div>  
-                <div>
+                </div>
+
+                <div class="campo campo-full hidden" id="direccion_box">
+                    <label>Dirección domicilio</label>
+                    <textarea name="direccion_domicilio" rows="3">{{ cita.direccion_domicilio if cita else '' }}</textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- COBERTURA -->
+        <!-- ========================= -->
+
+        <div class="seccion">
+            <div class="seccion-titulo">Cobertura</div>
+            <div class="grid">
+
+                <div class="campo">
                     <label>Cobertura</label>
-                    <select name="cobertura" required>
-                        <option value="particular"
-                        {% if cita and cita.cobertura == 'particular' %}selected{% endif %}>
-                        Particular
-                        </option>
-
-                        <option value="poliza"
-                        {% if cita and cita.cobertura == 'poliza' %}selected{% endif %}>
-                        Póliza
-                        </option>
-                    </select>    
-                </div>  
-                <div>
-                    <label>Póliza / Aseguradora</label>
-                    <select name = "aseguradora">
-                        <option value="" {% if cita and not cita.aseguradora %}selected{% endif %}>N/A</option>
-                        <option value="Poliza sura" {% if cita and cita.aseguradora == 'Poliza sura' %}selected{% endif %}>Poliza sura</option>
-                        <option value="Coomeva" {% if cita and cita.aseguradora == 'Coomeva' %}selected{% endif %}>Coomeva</option>
-                        <option value="Medplus" {% if cita and cita.aseguradora == 'Medplus' %}selected{% endif %}>Medplus</option>
-                        <option value="Seguros Bolivar" {% if cita and cita.aseguradora == 'Seguros Bolivar' %}selected{% endif %}>Seguros Bolivar</option>
-                  </select>  
-                </div>
-                <div class="full">
-                  <label>Tipo de examen</label>
-                  <select name="tipo_examen">
-                     <option value="">Seleccionar</option>
-
-                     <option value="Directo hongos"
-                     {% if cita and cita.tipo_examen == 'Directo hongos' %}selected{% endif %}>
-                     Directo hongos
-                     </option>
-
-                     <option value="Hongos + Cultivo"
-                     {% if cita and cita.tipo_examen == 'Hongos + Cultivo' %}selected{% endif %}>
-                     Hongos + Cultivo
-                     </option>
-
-                     <option value="Galactomanan"
-                     {% if cita and cita.tipo_examen == 'Galactomanan' %}selected{% endif %}>
-                     Galactomanan
-                     </option>
-
-                     <option value="Cryptococcus"
-                     {% if cita and cita.tipo_examen == 'Cryptococcus' %}selected{% endif %}>
-                     Cryptococcus
-                     </option>
-
-                     <option value="Serologia hongos"
-                     {% if cita and cita.tipo_examen == 'Serologia hongos' %}selected{% endif %}>
-                     Serologia hongos
-                     </option>
-
-                     <option value="Serologia endemicos"
-                     {% if cita and cita.tipo_examen == 'Serologia endemicos' %}selected{% endif %}>
-                     Serologia endemicos
-                     </option>
-
-                     <option value="IGRAs"
-                     {% if cita and cita.tipo_examen == 'IGRAs' %}selected{% endif %}>
-                     IGRAs
-                     </option>
-
-                     <option value="Tuberculina PPD"
-                     {% if cita and cita.tipo_examen == 'Tuberculina PPD' %}selected{% endif %}>
-                     Tuberculina PPD
-                     </option>
-
-                     <option value="Otro examen"
-                     {% if cita and cita.tipo_examen == 'Otro examen' %}selected{% endif %}>
-                     Otro examen
-                     </option>
-                 </select>
-              </div>
-              <div class="form-group">
-                    <label>Área</label>
-                    <select name="area" class="form-control">
-                        <option value="">— Seleccionar —</option>
-                        <option value="Micología"     {% if cita and cita.area == 'Micología' %}selected{% endif %}>Micología</option>
-                        <option value="Bacteriología" {% if cita and cita.area == 'Bacteriología' %}selected{% endif %}>Bacteriología</option>
-                        <option value="Por definir"   {% if cita and cita.area == 'Por definir' %}selected{% endif %}>Por definir</option>
+                    <select name="cobertura">
+                        <option value="Particular" {% if cita and cita.cobertura == 'Particular' %}selected{% endif %}>Particular</option>
+                        <option value="Poliza"     {% if cita and cita.cobertura == 'Poliza'     %}selected{% endif %}>Póliza</option>
                     </select>
-              </div>              
-                <div> 
+                </div>
+
+                <div class="campo">
+                    <label>Póliza / Aseguradora</label>
+                    <select name="aseguradora">
+                        <option value=""              {% if cita and not cita.aseguradora              %}selected{% endif %}>N/A</option>
+                        <option value="Poliza sura"   {% if cita and cita.aseguradora == 'Poliza sura'   %}selected{% endif %}>Póliza Sura</option>
+                        <option value="Coomeva"       {% if cita and cita.aseguradora == 'Coomeva'       %}selected{% endif %}>Coomeva</option>
+                        <option value="Medplus"       {% if cita and cita.aseguradora == 'Medplus'       %}selected{% endif %}>Medplus</option>
+                        <option value="Seguros Bolivar" {% if cita and cita.aseguradora == 'Seguros Bolivar' %}selected{% endif %}>Seguros Bolívar</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- EXAMEN -->
+        <!-- ========================= -->
+
+        <div class="seccion">
+            <div class="seccion-titulo">Examen</div>
+            <div class="grid">
+
+                <div class="campo">
+                    <label>Tipo de examen</label>
+                    <select name="tipo_examen">
+                        <option value="">Seleccionar</option>
+                        <option value="Directo hongos"    {% if cita and cita.tipo_examen == 'Directo hongos'    %}selected{% endif %}>Directo hongos</option>
+                        <option value="Hongos + Cultivo"  {% if cita and cita.tipo_examen == 'Hongos + Cultivo'  %}selected{% endif %}>Hongos + Cultivo</option>
+                        <option value="Galactomanan"      {% if cita and cita.tipo_examen == 'Galactomanan'      %}selected{% endif %}>Galactomanan</option>
+                        <option value="Cryptococcus"      {% if cita and cita.tipo_examen == 'Cryptococcus'      %}selected{% endif %}>Cryptococcus</option>
+                        <option value="Serologia hongos"  {% if cita and cita.tipo_examen == 'Serologia hongos'  %}selected{% endif %}>Serología hongos</option>
+                        <option value="Serologia endemicos" {% if cita and cita.tipo_examen == 'Serologia endemicos' %}selected{% endif %}>Serología endémicos</option>
+                        <option value="IGRAs"             {% if cita and cita.tipo_examen == 'IGRAs'             %}selected{% endif %}>IGRAs</option>
+                        <option value="Tuberculina PPD"   {% if cita and cita.tipo_examen == 'Tuberculina PPD'   %}selected{% endif %}>Tuberculina PPD</option>
+                        <option value="Otro examen"       {% if cita and cita.tipo_examen == 'Otro examen'       %}selected{% endif %}>Otro examen</option>
+                    </select>
+                </div>
+
+                <div class="campo">
                     <label>Tipo de muestra</label>
                     <select name="tipo_muestra">
                         <option value="">Seleccionar</option>
-                        <option value="uñas"
-                        {% if cita and cita.tipo_muestra == 'uñas' %}selected{% endif %}>
-                        Uñas
-                        </option>
-
-                        <option value="piel"
-                        {% if cita and cita.tipo_muestra == 'piel' %}selected{% endif %}>
-                        Piel
-                        </option>
-
-                        <option value="cuero cabelludo"
-                        {% if cita and cita.tipo_muestra == 'cuero cabelludo' %}selected{% endif %}>
-                        Cuero cabelludo
-                        </option>
-
-                        <option value="flujo vaginal"
-                        {% if cita and cita.tipo_muestra == 'flujo vaginal' %}selected{% endif %}>
-                        Flujo vaginal
-                        </option>
+                        <option value="uñas"           {% if cita and cita.tipo_muestra == 'uñas'           %}selected{% endif %}>Uñas</option>
+                        <option value="piel"           {% if cita and cita.tipo_muestra == 'piel'           %}selected{% endif %}>Piel</option>
+                        <option value="cuero cabelludo" {% if cita and cita.tipo_muestra == 'cuero cabelludo' %}selected{% endif %}>Cuero cabelludo</option>
+                        <option value="flujo vaginal"  {% if cita and cita.tipo_muestra == 'flujo vaginal'  %}selected{% endif %}>Flujo vaginal</option>
                     </select>
                 </div>
 
-                <div>
+                <div class="campo">
+                    <label>Área</label>
+                    <select name="area">
+                        <option value="">Selecciona</option>
+                        <option value="Micología"    {% if cita and cita.area == 'Micología'    %}selected{% endif %}>Micología</option>
+                        <option value="Bacteriología" {% if cita and cita.area == 'Bacteriología' %}selected{% endif %}>Bacteriología</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- FECHA, HORA Y ESTADO -->
+        <!-- ========================= -->
+
+        <div class="seccion">
+            <div class="seccion-titulo">Programación</div>
+            <div class="grid">
+
+                <div class="campo">
+                    <label>Fecha cita</label>
+                    <input type="date" name="fecha_cita" required
+                        value="{{ cita.fecha_cita.strftime('%Y-%m-%d') if cita and cita.fecha_cita else '' }}">
+                </div>
+
+                <div class="campo">
+                    <label>Hora cita</label>
+                    <input type="time" name="hora_cita"
+                        value="{{ cita.hora_cita if cita else '' }}">
+                </div>
+
+                <div class="campo">
                     <label>Estado</label>
                     <select name="estado">
-
-                        <option value="pendiente"
-                        {% if cita and cita.estado == 'pendiente' %}selected{% endif %}>
-                        Pendiente
-                        </option>
-
-                        <option value="confirmada"
-                        {% if cita and cita.estado == 'confirmada' %}selected{% endif %}>
-                        Confirmada
-                        </option>
-
-                        <option value="rechazada"
-                        {% if cita and cita.estado == 'rechazada' %}selected{% endif %}>
-                        Rechazada
-                        </option>
-
-                        <option value="cancelada"
-                        {% if cita and cita.estado == 'cancelada' %}selected{% endif %}>
-                        Cancelada
-                        </option>
-
+                        <option value="pendiente"  {% if cita and cita.estado == 'pendiente'  %}selected{% endif %}>Pendiente</option>
+                        <option value="confirmada" {% if cita and cita.estado == 'confirmada' %}selected{% endif %}>Confirmada</option>
+                        <option value="rechazada"  {% if cita and cita.estado == 'rechazada'  %}selected{% endif %}>Rechazada</option>
+                        <option value="cancelada"  {% if cita and cita.estado == 'cancelada'  %}selected{% endif %}>Cancelada</option>
                     </select>
                 </div>
 
-                <div class="full">
-                    <label>Orden médica</label>
+            </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- ORDEN MÉDICA -->
+        <!-- ========================= -->
+
+        <div class="seccion">
+            <div class="seccion-titulo">Orden médica</div>
+            <div class="grid">
+
+                <div class="campo campo-full">
+                    <label>Adjuntar orden médica</label>
                     <input type="file" name="orden_medica" accept=".pdf,image/*">
                     {% if cita and cita.orden_medica %}
-                       <small style="display:block; margin-top:8px; color:#666;">
-                       archivo actual:
-                        <a href="{{ url_for('static', filename='uploads/' + cita.orden_medica) }}" target="_blank">
-                            {{ cita.orden_medica }}
-                        </a>
-                       </small> 
+                        <span class="archivo-actual">
+                            Archivo actual:
+                            <a href="{{ url_for('static', filename='uploads/' + cita.orden_medica) }}" target="_blank">
+                                {{ cita.orden_medica }}
+                            </a>
+                        </span>
                     {% endif %}
-
                 </div>
 
             </div>
+        </div>
 
-            <div class="actions">
+        <!-- ========================= -->
+        <!-- ACCIONES -->
+        <!-- ========================= -->
 
-                <button type="submit" class="btn btn-save">
-                    Guardar cambios
-                </button>
+        <div class="actions">
+            <button type="submit" class="btn-save">Guardar cambios</button>
+            <a href="/asesor" class="btn-cancel">Cancelar</a>
+        </div>
 
-                <a href="/asesor" class="btn btn-cancel">
-                    Cancelar
-                </a>
-
-            </div>
-
-        </form>
-
-    </div>
-
+    </form>
 </div>
-<!--AUTOCOMPLETE -->
+
 <script>
-document.getElementById('buscar_documento').addEventListener('keyup', function() {
 
-    let doc = this.value;
+// =====================================================
+// MOSTRAR / OCULTAR DIRECCIÓN + AUTO AGENDA
+// =====================================================
 
-    if (doc.length < 5) return;
+const tipoCita   = document.getElementById('tipo_cita');
+const direccionBox = document.getElementById('direccion_box');
+const agendaTipo = document.getElementById('agenda_tipo');
 
-    fetch('/asesor/buscar_paciente?documento=' + doc)
-    .then(res => res.json())
-    .then(data => {
-
-        if (data.nombre) {
-            document.getElementById('nombre').value = data.nombre;
-            document.getElementById('tipo_documento').value = data.tipo_documento;
-            document.getElementById('telefono').value = data.telefono;
-            document.getElementById('documento').value = doc;
+function actualizarFormulario() {
+    if (tipoCita.value === 'domicilio') {
+        direccionBox.classList.remove('hidden');
+        agendaTipo.value = 'domicilio';
+    } else {
+        direccionBox.classList.add('hidden');
+        if (agendaTipo.value === 'domicilio') {
+            agendaTipo.value = '';
         }
+    }
+}
 
+tipoCita.addEventListener('change', actualizarFormulario);
+actualizarFormulario();
+
+// =====================================================
+// BUSCAR PACIENTE AUTOMÁTICO
+// =====================================================
+
+const documentoInput = document.getElementById('documento');
+
+if (documentoInput) {
+    documentoInput.addEventListener('blur', async () => {
+        const documento = documentoInput.value.trim();
+        if (!documento) return;
+        try {
+            const response = await fetch(`/asesor/buscar_paciente?documento=${documento}`);
+            const data = await response.json();
+            if (data.nombre) {
+                document.getElementById('nombre').value   = data.nombre   || '';
+                document.getElementById('telefono').value = data.telefono || '';
+            }
+        } catch (error) {
+            console.log(error);
+        }
     });
+}
 
-});
 </script>
+
 </body>
 </html>

@@ -290,8 +290,10 @@ def manejar_boton(numero, opcion_id):
         sesiones[numero]["tipo_examen"] = examenes.get(opcion_id)
         # Clasificación automática por área
         bacteriologia = ["examen_igra", "examen_ppd"]
-        sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología"        
-
+        sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
+        sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"       
+        sesiones[numero]["agenda_tipo"] = "domicilio"
+        
         # SOLO PARA HONGOS
         if opcion_id in [
             "examen_directo_hongos",
@@ -411,7 +413,7 @@ def manejar_boton(numero, opcion_id):
             return
         else:    
         ## Si es domicilio no pide hora
-           sesiones[numero]["hora_cita"] = "Por asignar"
+           sesiones[numero]["hora_cita"] = None
            sesiones[numero]["paso"] = "direccion_domicilio"
 
         enviar_texto(
@@ -699,8 +701,6 @@ def manejar_archivo(numero, media_id, tipo_mime):
 
 def confirmar_cita(numero):
     sesion = sesiones.get(numero, {})
-    print("DEBUG área:", sesion.get("area"))      # ← agrega esto
-    print("DEBUG examen:", sesion.get("tipo_examen")) 
     try:
         from datetime import datetime
 
@@ -710,7 +710,7 @@ def confirmar_cita(numero):
         fecha_texto = sesion.get("fecha_cita", "").strip()
         hora_texto = sesion.get("hora_cita", "").strip()
 
-        if hora_texto and hora_texto != "Por asignar":
+        if hora_texto:
             fecha_real = datetime.strptime(
                 f"{fecha_texto} {hora_texto}",
                 "%d/%m/%Y %H:%M"
@@ -755,7 +755,8 @@ def confirmar_cita(numero):
             area=sesion.get("area", ""), 
             tipo_muestra=sesion.get("tipo_muestra", ""),
             fecha_cita=fecha_real,
-            hora_cita=hora_texto if hora_texto else "Por asignar",
+            hora_cita=hora_texto if hora_texto else None,
+            agenda_tipo=sesion.get("agenda_tipo", sesion.get("area", "").lower()),
             numero_whatsapp=numero,
             estado="pendiente"
         )
