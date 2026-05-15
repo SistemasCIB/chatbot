@@ -348,13 +348,13 @@
 
                 <div class="campo">
                     <label>Fecha cita</label>
-                    <input type="date" name="fecha_cita" required
+                    <input type="date" name="fecha_cita" id="fecha_cita" required
                         value="{{ cita.fecha_cita.strftime('%Y-%m-%d') if cita and cita.fecha_cita else '' }}">
                 </div>
 
                 <div class="campo">
                     <label>Hora cita</label>
-                    <input type="time" name="hora_cita"
+                    <input type="time" name="hora_cita" id="hora_cita"
                         value="{{ cita.hora_cita if cita else '' }}">
                 </div>
 
@@ -453,6 +453,13 @@ if (documentoInput) {
             console.log(error);
         }
     });
+}
+const params = new URLSearchParams(window.location.search);
+if (params.get('fecha')) {
+    document.getElementById('fecha_cita').value = params.get('fecha');
+}
+if (params.get('hora') && params.get('hora') !== '00:00') {
+    document.getElementById('hora_cita').value = params.get('hora');
 }
 
 </script>

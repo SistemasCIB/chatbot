@@ -476,6 +476,8 @@ def eventos_calendario():
                     'tipo_examen': cita.tipo_examen or '',
                     'agenda': cita.agenda_tipo or 'domicilio',
                     'area': cita.area or '',
+                    'direccion': cita.direccion_domicilio,
+                    'correo': cita.paciente.correo or'',
                     'tipo': 'domicilio'
                 }
             })
@@ -538,6 +540,8 @@ def eventos_calendario():
                 'tipo_examen': cita.tipo_examen or '',
                 'agenda': cita.agenda_tipo or cita.area or '',
                 'area': cita.area or '',
+                'correo': cita.paciente.correo or '',
+                'direccion': cita.direccion_domicilio or '',   # ← AGREGAR
                 'tipo': 'presencial'
             }
         })

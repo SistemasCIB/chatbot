@@ -77,6 +77,7 @@ def enviar_confirmacion_datos(numero):
         f"📞 *Teléfono:* {sesion.get('telefono', '')}\n"
         f"📧 *Correo:* {sesion.get('correo', '')}\n"
         f"🔬 *Examen:* {sesion.get('tipo_examen', '')}\n"
+        f"🧪 *Tipo de muestra:*{sesion.get('tipo_muestra','')}\n"
         f"🏥 *Tipo de cita:* {tipo_cita}\n"
         f"📆 *Fecha:* {sesion.get('fecha_cita', '')}"
         f"{hora_linea}"
@@ -95,6 +96,7 @@ def enviar_confirmacion_datos(numero):
             {"id": "edit_telefono",        "title": "✏️ Cambiar teléfono"},
             {"id": "edit_correo",          "title": "✏️ Cambiar correo"},
             {"id": "edit_examen",          "title": "✏️ Cambiar examen"},
+            {"id": "edit_tipo_muestra",    "title": "✏️ Cambiar examen"},
             {"id": "edit_tipo_cita",       "title": "✏️ Cambiar tipo de cita"},
             {"id": "edit_fecha",           "title": "✏️ Cambiar fecha"},
         ]

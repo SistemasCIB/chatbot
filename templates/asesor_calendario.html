@@ -266,9 +266,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 "📞 Teléfono: " + props.telefono + "\n\n" +
 
+                "📧 Correo: " + props.correo + "\n\n" +
+                (props.direccion ? "🏠 Dirección: " + props.direccion + "\n\n" : "") +  
+                
                 "📌 Estado: " + props.estado
             );
-        }
+        },
+
+        dateClick: function(info) {
+            console.log("dateStr:", info.dateStr);
+            console.log("view:", info.view.type);
+            
+            const fecha = info.dateStr.slice(0, 10);
+            const hora  = info.view.type === 'timeGridWeek' || info.view.type === 'timeGridDay'
+                          ? info.date.toTimeString().slice(0, 5)
+                          : '';
+
+            let url = `/asesor/nueva?fecha=${fecha}`;
+            if (hora) url += `&hora=${hora}`;
+
+            console.log("url:", url);
+            window.location.href = url;
+        },
+
+        /* =======================================
+           SELECCIÓN DE RANGO
+        ======================================= */
+
+        select: function(info) {
+            const fecha = info.startStr.slice(0, 10);
+            const hora  = info.start.toTimeString().slice(0, 5);
+
+            window.location.href = `/asesor/nueva?fecha=${fecha}&hora=${hora}`;
+        },        
 
     });
 
