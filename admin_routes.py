@@ -53,12 +53,16 @@ def logout():
 @admin_bp.route('/admin')
 @admin_requerido
 def panel():
-    asesores = Asesor.query.filter_by(rol='asesor').order_by(Asesor.nombre).all()
+    asesores      = Asesor.query.filter_by(rol='asesor').order_by(Asesor.nombre).all()
+    especialistas = Asesor.query.filter(
+        Asesor.rol.in_(['micologia', 'bacteriologia'])
+    ).order_by(Asesor.nombre).all()
+
     return render_template('admin.html',
         asesores=asesores,
+        especialistas=especialistas,
         admin_nombre=session.get('admin_nombre')
     )
-
 
 # =====================================================
 # CREAR ASESOR
@@ -93,9 +97,37 @@ def nuevo_asesor():
         admin_nombre=session.get('admin_nombre')
     )
 
+# =====================================================
+# CREAR ESPECIALISTA (micología / bacteriología)
+# =====================================================
+@admin_bp.route('/admin/nuevo-especialista', methods=['GET', 'POST'])
+@admin_requerido
+def nuevo_especialista():
+    error = None
+    if request.method == 'POST':
+        nombre   = request.form['nombre'].strip()
+        usuario  = request.form['usuario'].strip()
+        password = request.form['password'].strip()
+        rol      = request.form['rol'].strip()   # 'micologia' o 'bacteriologia'
+
+        if rol not in ('micologia', 'bacteriologia'):
+            error = "Rol inválido."
+        elif Asesor.query.filter_by(usuario=usuario).first():
+            error = "Ya existe un usuario con ese nombre."
+        else:
+            esp = Asesor(nombre=nombre, usuario=usuario, rol=rol, activo=True)
+            esp.set_password(password)
+            db.session.add(esp)
+            db.session.commit()
+            return redirect(url_for('admin.panel'))
+
+    return render_template('admin_form_especialista.html',
+        error=error,
+        admin_nombre=session.get('admin_nombre')
+    )
 
 # =====================================================
-# EDITAR ASESOR
+# EDITAR ASESOR — ahora soporta cualquier rol
 # =====================================================
 @admin_bp.route('/admin/editar/<int:asesor_id>', methods=['GET', 'POST'])
 @admin_requerido
@@ -107,6 +139,12 @@ def editar_asesor(asesor_id):
         asesor.nombre  = request.form['nombre'].strip()
         asesor.usuario = request.form['usuario'].strip()
 
+        # Si es especialista, el admin puede cambiar el rol
+        if asesor.rol in ('micologia', 'bacteriologia'):
+            nuevo_rol = request.form.get('rol', '').strip()
+            if nuevo_rol in ('micologia', 'bacteriologia'):
+                asesor.rol = nuevo_rol
+
         password = request.form.get('password', '').strip()
         if password:
             asesor.set_password(password)
@@ -114,9 +152,15 @@ def editar_asesor(asesor_id):
         db.session.commit()
         return redirect(url_for('admin.panel'))
 
-    return render_template('admin_form_asesor.html',
-        asesor=asesor,
-        error=error,
+    # Reutilizar el form correcto según el rol
+    template = (
+        'admin_form_especialista.html'
+        if asesor.rol in ('micologia', 'bacteriologia')
+        else 'admin_form_asesor.html'
+    )
+
+    return render_template(template,
+        asesor=asesor, error=error,
         admin_nombre=session.get('admin_nombre')
     )
 

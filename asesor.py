@@ -1,3 +1,5 @@
+from functools import wraps
+
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
 from models import db, Cita, Asesor, Auditoria, ChatActivo, Paciente
 from datetime import datetime, timedelta
@@ -9,6 +11,34 @@ from werkzeug.utils import secure_filename
 from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
 
 asesor_bp = Blueprint('asesor', __name__)
+
+
+@asesor_bp.route('/asesor/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        usuario  = request.form.get('usuario', '').strip()
+        password = request.form.get('password', '').strip()
+
+        asesor = Asesor.query.filter_by(usuario=usuario, activo=True).first()
+
+        if asesor and asesor.check_password(password):
+            session['asesor_id']     = asesor.id
+            session['asesor_nombre'] = asesor.nombre
+            session['asesor_rol']    = asesor.rol          # ← guardar rol
+
+            # Redirigir según rol
+            if asesor.rol == 'micologia':
+                return redirect(url_for('asesor.calendario_micologia'))
+
+            elif asesor.rol == 'bacteriologia':
+                return redirect(url_for('asesor.calendario_bacteriologia'))
+
+            else:  # asesor normal → calendario completo
+                return redirect(url_for('asesor.calendario'))
+
+        return render_template('login.html', error='Usuario o contraseña incorrectos')
+
+    return render_template('login.html')
 
 def login_requerido(f):
     from functools import wraps
@@ -25,24 +55,19 @@ def login_requerido(f):
     
     return decorated
 
-@asesor_bp.route('/asesor/login', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        usuario = request.form.get('usuario')
-        password = request.form.get('password')
-        asesor = Asesor.query.filter_by(usuario=usuario).first()
-        if asesor and asesor.check_password(password):
-            session['asesor_id'] = asesor.id
-            session['asesor_nombre'] = asesor.nombre
-            return redirect(url_for('asesor.panel'))
-        error = "Usuario o contrasena incorrectos"
-    return render_template('login.html', error=error)
-
-@asesor_bp.route('/asesor/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('asesor.login'))
+def rol_requerido(*roles_permitidos):
+    """Uso: @rol_requerido('asesor', 'micologia')"""
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if 'asesor_id' not in session:
+                return redirect(url_for('asesor.login'))
+            rol_actual = session.get('asesor_rol', 'asesor')
+            if rol_actual not in roles_permitidos:
+                return render_template('sin_permiso.html'), 403
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
 
 @asesor_bp.route('/asesor')
 @login_requerido
@@ -522,11 +547,46 @@ def calendario(area=None):
         area=area or ''
     )
 
+
+# CALENDARIO MICOLOGÍA (rol: micologia) — solo micología
+
+@asesor_bp.route('/asesor/calendario/micologia')
+@login_requerido
+@rol_requerido('micologia')
+def calendario_micologia():
+    return render_template(
+        'asesor_calendario.html',
+        asesor_nombre=session.get('asesor_nombre'),
+        asesor_rol='micologia',
+        agenda_fija='micologia'   # filtro bloqueado al template
+    ) 
+
+# CALENDARIO BACTERIOLOGÍA (rol: bacteriologia) — solo bacteriología
+
+@asesor_bp.route('/asesor/calendario/bacteriologia')
+@login_requerido
+@rol_requerido('bacteriologia')
+def calendario_bacteriologia():
+    return render_template(
+        'asesor_calendario.html',
+        asesor_nombre=session.get('asesor_nombre'),
+        asesor_rol='bacteriologia',
+        agenda_fija='bacteriologia'
+    )
+
 @asesor_bp.route('/asesor/eventos')
 @login_requerido
 def eventos_calendario():
 
+    rol_actual   = session.get('asesor_rol', 'asesor')
     agenda_filtro = request.args.get('agenda', '')
+
+    # Si el rol es micologia o bacteriologia, forzar su agenda
+    # sin importar lo que venga por query param
+    if rol_actual == 'micologia':
+        agenda_filtro = 'micologia'
+    elif rol_actual == 'bacteriologia':
+        agenda_filtro = 'bacteriologia'
 
     query = Cita.query.filter(Cita.fecha_cita.isnot(None))
 
@@ -653,6 +713,8 @@ def eventos_calendario():
         })
 
     return jsonify(eventos)
+
+
 
 @asesor_bp.route('/asesor/cambiar-password')
 @login_requerido

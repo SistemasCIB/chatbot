@@ -3,185 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>CIB — Panel Administrador</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
 <style>
-
 :root{
-
-    /* ══════════════════════════════
-       PALETA CIB
-    ══════════════════════════════ */
-
     --black:#000000;
-
     --navy:#223A7F;
     --navy-deep:#182B63;
-
     --cyan:#2EA1DB;
     --cyan-light:#E7F5FC;
     --cyan-mid:#B8E0F4;
-
     --gray:#706F6F;
     --gray-light:#F3F4F6;
-
     --green:#8CBF45;
     --green-dark:#6F9F32;
     --green-soft:#EEF7E2;
-
     --bg:#F7F9FC;
     --surface:#FFFFFF;
     --border:#E4EAF2;
-
     --text:#1E293B;
     --muted:#6B7280;
-
     --orange:#D97706;
     --orange-soft:#FEF3E0;
-
     --red:#DC2626;
     --red-soft:#FDECEC;
-
     --purple:#7C3AED;
     --purple-soft:#F3E8FF;
-
+    --mico:#4f8ef7;
+    --mico-soft:#E8F0FE;
+    --bacte:#16a085;
+    --bacte-soft:#E6F7F4;
     --sidebar-w:230px;
-
     --radius:14px;
-
-    --shadow:
-        0 2px 10px rgba(34,58,127,.06),
-        0 1px 3px rgba(34,58,127,.04);
-
-    --shadow-md:
-        0 8px 24px rgba(34,58,127,.12);
-
+    --shadow: 0 2px 10px rgba(34,58,127,.06), 0 1px 3px rgba(34,58,127,.04);
+    --shadow-md: 0 8px 24px rgba(34,58,127,.12);
 }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+*{ margin:0; padding:0; box-sizing:border-box; }
 
 body{
     font-family:'Outfit',sans-serif;
-
-    background:linear-gradient(
-        180deg,
-        #F7F9FC 0%,
-        #EEF3F9 100%
-    );
-
+    background:linear-gradient(180deg,#F7F9FC 0%,#EEF3F9 100%);
     color:var(--text);
-
     min-height:100vh;
-
     display:flex;
 }
 
-/* ══════════════════════════════
-   SIDEBAR
-══════════════════════════════ */
-
+/* ══ SIDEBAR ══ */
 .sidebar{
     width:var(--sidebar-w);
-
-    background:linear-gradient(
-        180deg,
-        var(--navy) 0%,
-        var(--navy-deep) 100%
-    );
-
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep) 100%);
     min-height:100vh;
-
     position:fixed;
-    left:0;
-    top:0;
-
+    left:0; top:0;
     display:flex;
     flex-direction:column;
-
     border-right:1px solid rgba(255,255,255,.06);
 }
 
 .sidebar-logo{
     padding:26px 22px 18px;
-
     border-bottom:1px solid rgba(255,255,255,.06);
-
     display:flex;
     align-items:center;
     gap:12px;
 }
 
 .logo-mark{
-    width:44px;
-    height:44px;
-
+    width:44px; height:44px;
     border-radius:12px;
-
-    background:linear-gradient(
-        135deg,
-        var(--cyan),
-        #1C7FB2
-    );
-
+    background:linear-gradient(135deg,var(--cyan),#1C7FB2);
     display:flex;
     align-items:center;
     justify-content:center;
-
     color:white;
     font-weight:700;
     font-size:18px;
+    flex-shrink:0;
 }
 
-.logo-text strong{
-    display:block;
-
-    color:white;
-
-    font-size:18px;
-    font-weight:700;
-}
-
-.logo-text small{
-    color:rgba(255,255,255,.65);
-
-    font-size:10px;
-    line-height:1.4;
-}
+.logo-text strong{ display:block; color:white; font-size:18px; font-weight:700; }
+.logo-text small{ color:rgba(255,255,255,.65); font-size:10px; line-height:1.4; }
 
 .sidebar-tagline{
     padding:10px 22px 18px;
-
     color:rgba(255,255,255,.35);
-
     font-size:10px;
-
     border-bottom:1px solid rgba(255,255,255,.06);
 }
 
-.nav{
-    flex:1;
-
-    padding:16px 12px;
-}
+.nav{ flex:1; padding:16px 12px; }
 
 .nav-label{
     color:rgba(255,255,255,.28);
-
     font-size:10px;
-
     text-transform:uppercase;
-
     letter-spacing:.1em;
-
     font-weight:600;
-
     margin:14px 10px 8px;
 }
 
@@ -189,675 +107,473 @@ body{
     display:flex;
     align-items:center;
     gap:10px;
-
     padding:12px 14px;
-
     border-radius:10px;
-
     text-decoration:none;
-
     color:rgba(255,255,255,.72);
-
     font-size:13px;
     font-weight:500;
-
     transition:.2s;
 }
-
-.nav-item:hover{
-    background:rgba(46,161,219,.14);
-
-    color:white;
-}
-
-.nav-item.active{
-    background:rgba(46,161,219,.18);
-
-    color:var(--cyan);
-}
+.nav-item:hover{ background:rgba(46,161,219,.14); color:white; }
+.nav-item.active{ background:rgba(46,161,219,.18); color:var(--cyan); }
 
 .nav-cta{
-    margin-top:18px;
-
+    margin-top:10px;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:8px;
-
     background:var(--green);
-
     color:white;
-
     padding:12px;
-
     border-radius:10px;
-
     text-decoration:none;
-
     font-weight:700;
     font-size:13px;
-
     box-shadow:0 4px 14px rgba(140,191,69,.35);
-
     transition:.2s;
 }
+.nav-cta:hover{ background:var(--green-dark); }
 
-.nav-cta:hover{
-    background:var(--green-dark);
-}
-
-.sidebar-footer{
-    padding:16px 12px;
-
-    border-top:1px solid rgba(255,255,255,.06);
-}
-
-.admin-info{
-    display:flex;
-    align-items:center;
-    gap:10px;
-
-    margin-bottom:12px;
-}
-
-.admin-avatar{
-    width:38px;
-    height:38px;
-
-    border-radius:50%;
-
-    background:linear-gradient(
-        135deg,
-        var(--cyan),
-        #1D6F9D
-    );
-
+.nav-cta-mico{
+    margin-top:10px;
     display:flex;
     align-items:center;
     justify-content:center;
+    gap:8px;
+    background:var(--mico-soft);
+    color:var(--mico);
+    padding:12px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:700;
+    font-size:13px;
+    transition:.2s;
+    border:1px solid rgba(79,142,247,.2);
+}
+.nav-cta-mico:hover{ background:#d4e4fd; }
 
+.sidebar-footer{
+    padding:16px 12px;
+    border-top:1px solid rgba(255,255,255,.06);
+}
+
+.admin-info{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+
+.admin-avatar{
+    width:38px; height:38px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--cyan),#1D6F9D);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     color:white;
     font-weight:700;
+    flex-shrink:0;
 }
 
-.admin-name{
-    color:white;
-
-    font-size:13px;
-    font-weight:600;
-}
-
-.admin-role{
-    color:rgba(255,255,255,.45);
-
-    font-size:11px;
-}
+.admin-name{ color:white; font-size:13px; font-weight:600; }
+.admin-role{ color:rgba(255,255,255,.45); font-size:11px; }
 
 .btn-logout{
     display:flex;
     align-items:center;
     justify-content:center;
     gap:8px;
-
     padding:10px;
-
     border-radius:10px;
-
     background:rgba(255,255,255,.08);
-
     color:white;
-
     text-decoration:none;
-
     font-size:12px;
     font-weight:500;
+    transition:.2s;
 }
+.btn-logout:hover{ background:rgba(255,255,255,.14); }
 
-/* ══════════════════════════════
-   MAIN
-══════════════════════════════ */
-
-.main{
-    margin-left:var(--sidebar-w);
-
-    flex:1;
-}
-
-/* TOPBAR */
+/* ══ MAIN ══ */
+.main{ margin-left:var(--sidebar-w); flex:1; }
 
 .topbar{
     height:70px;
-
     background:white;
-
     border-bottom:1px solid var(--border);
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
     padding:0 28px;
-
     position:sticky;
     top:0;
-
     z-index:20;
 }
 
-.topbar-left h1{
-    color:var(--navy);
+.topbar-left h1{ color:var(--navy); font-size:20px; font-weight:700; }
+.topbar-left p{ color:var(--muted); font-size:12px; margin-top:2px; }
 
-    font-size:20px;
-    font-weight:700;
-}
-
-.topbar-left p{
-    color:var(--muted);
-
-    font-size:12px;
-
-    margin-top:2px;
-}
-
-.topbar-actions{
-    display:flex;
-
-    gap:10px;
-}
+.topbar-actions{ display:flex; gap:10px; }
 
 .btn-top{
     padding:10px 14px;
-
     border-radius:10px;
-
     text-decoration:none;
-
     font-size:12px;
     font-weight:600;
-
     transition:.2s;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
 }
+.btn-top:hover{ transform:translateY(-1px); }
+.btn-new{ background:var(--green); color:white; }
+.btn-especialista{ background:var(--mico-soft); color:var(--mico); }
+.btn-users{ background:var(--cyan-light); color:var(--cyan); }
 
-.btn-top:hover{
-    transform:translateY(-1px);
-}
+.page{ padding:26px; }
 
-.btn-new{
-    background:var(--green);
-    color:white;
-}
-
-.btn-users{
-    background:var(--cyan-light);
-    color:var(--cyan);
-}
-
-
-
-/* PAGE */
-
-.page{
-    padding:26px;
-}
-
-/* STATS */
-
+/* ══ STATS ══ */
 .stats{
     display:grid;
-
-    grid-template-columns:repeat(3,1fr);
-
+    grid-template-columns:repeat(4,1fr);
     gap:16px;
-
     margin-bottom:24px;
 }
 
 .stat-card{
     background:white;
-
     border-radius:var(--radius);
-
     border:1px solid var(--border);
-
     padding:20px;
-
     display:flex;
     align-items:center;
     gap:14px;
-
     position:relative;
-
     overflow:hidden;
-
     box-shadow:var(--shadow);
-
     transition:.2s;
+    cursor:pointer;
 }
-
-.stat-card:hover{
-    transform:translateY(-2px);
-
-    box-shadow:var(--shadow-md);
-}
-
+.stat-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
 .stat-card::after{
     content:'';
-
     position:absolute;
-
-    top:0;
-    left:0;
-    right:0;
-
+    top:0; left:0; right:0;
     height:4px;
 }
-
 .s-total::after{ background:var(--navy); }
 .s-active::after{ background:var(--green); }
 .s-inactive::after{ background:var(--red); }
+.s-esp::after{ background:var(--mico); }
 
 .stat-icon{
-    width:48px;
-    height:48px;
-
+    width:48px; height:48px;
     border-radius:12px;
-
     display:flex;
     align-items:center;
     justify-content:center;
-
     font-size:20px;
+    flex-shrink:0;
 }
-
-.s-total .stat-icon{
-    background:#E9EEFA;
-}
-
-.s-active .stat-icon{
-    background:var(--green-soft);
-}
-
-.s-inactive .stat-icon{
-    background:var(--grey);
-}
+.s-total .stat-icon{ background:#E9EEFA; }
+.s-active .stat-icon{ background:var(--green-soft); }
+.s-inactive .stat-icon{ background:#ECECEC; }
+.s-esp .stat-icon{ background:var(--mico-soft); }
 
 .stat-info .label{
     font-size:11px;
-
     color:var(--muted);
-
     text-transform:uppercase;
-
     font-weight:600;
-
     letter-spacing:.08em;
 }
-
-.stat-info .value{
-    font-size:28px;
-
-    font-weight:700;
-
-    margin-top:4px;
-}
-
+.stat-info .value{ font-size:28px; font-weight:700; margin-top:4px; }
 .s-total .value{ color:var(--navy); }
 .s-active .value{ color:var(--green-dark); }
-.s-inactive .value{ color:var(--grey); }
+.s-inactive .value{ color:var(--gray); }
+.s-esp .value{ color:var(--mico); }
 
-/* TABLE */
-
+/* ══ TABLE ══ */
 .table-box{
     background:white;
-
     border-radius:var(--radius);
-
     border:1px solid var(--border);
-
     overflow:hidden;
-
     box-shadow:var(--shadow);
 }
 
 .table-header{
     padding:20px 22px;
-
     border-bottom:1px solid var(--border);
-
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    background:linear-gradient(
-        to right,
-        #F8FAFF,
-        #FFFFFF
-    );
+    background:linear-gradient(to right,#F8FAFF,#FFFFFF);
 }
-
-.table-header h2{
-    color:var(--navy);
-
-    font-size:15px;
-    font-weight:700;
-}
-
-.table-header p{
-    color:var(--muted);
-
-    font-size:11px;
-
-    margin-top:2px;
-}
+.table-header h2{ color:var(--navy); font-size:15px; font-weight:700; }
+.table-header p{ color:var(--muted); font-size:11px; margin-top:2px; }
 
 .badge-count{
     background:var(--cyan-light);
-
     color:var(--navy);
-
     padding:6px 12px;
-
     border-radius:30px;
-
     font-size:11px;
     font-weight:700;
 }
 
-.table-wrap{
-    overflow-x:auto;
-}
-
-table{
-    width:100%;
-
-    border-collapse:collapse;
-}
-
-thead{
-    background:#F8FAFC;
-}
-
-th{
-    padding:14px;
-
-    text-align:left;
-
-    font-size:10px;
-
-    text-transform:uppercase;
-
-    letter-spacing:.08em;
-
-    color:var(--muted);
-
-    border-bottom:1px solid var(--border);
-}
-
-td{
-    padding:14px;
-
-    border-bottom:1px solid #EEF2F7;
-
-    font-size:13px;
-
-    vertical-align:middle;
-}
-
-tbody tr:hover{
-    background:#FAFCFF;
-}
-
-/* PILLS */
-
-.pill{
-    display:inline-block;
-
-    padding:5px 10px;
-
+.badge-esp{
+    background:var(--mico-soft);
+    color:var(--mico);
+    padding:6px 12px;
     border-radius:30px;
-
-    font-size:10px;
+    font-size:11px;
     font-weight:700;
 }
 
-.pill.activo{
-    background:var(--green-soft);
+.table-wrap{ overflow-x:auto; }
 
-    color:var(--green-dark);
+table{ width:100%; border-collapse:collapse; }
+thead{ background:#F8FAFC; }
+th{
+    padding:14px;
+    text-align:left;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    border-bottom:1px solid var(--border);
+}
+td{
+    padding:14px;
+    border-bottom:1px solid #EEF2F7;
+    font-size:13px;
+    vertical-align:middle;
+}
+tbody tr:hover{ background:#FAFCFF; }
+tbody tr:last-child td{ border-bottom:none; }
+
+/* ══ PILLS ══ */
+.pill{
+    display:inline-block;
+    padding:5px 10px;
+    border-radius:30px;
+    font-size:10px;
+    font-weight:700;
+}
+.pill.activo{ background:var(--green-soft); color:var(--green-dark); }
+.pill.inactivo{ background:#ECECEC; color:var(--gray); }
+
+.chip-mico{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    background:var(--mico-soft);
+    color:var(--mico);
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+}
+.chip-bacte{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    background:var(--bacte-soft);
+    color:var(--bacte);
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
 }
 
-.pill.inactivo{
-    background:#ECECEC;
-
-    color:var(--gray);
-}
-
-/* ACTIONS */
-
-.actions{
-    display:flex;
-
-    gap:6px;
-
-    flex-wrap:wrap;
-}
+/* ══ ACTIONS ══ */
+.actions{ display:flex; gap:6px; flex-wrap:wrap; }
 
 .btn{
     padding:6px 10px;
-
     border-radius:8px;
-
     text-decoration:none;
-
     font-size:11px;
     font-weight:600;
+    transition:.15s;
+    white-space:nowrap;
 }
+.btn:hover{ opacity:.85; }
+.btn-edit{ background:var(--cyan-light); color:#0F6F9E; }
+.btn-toggle-off{ background:var(--orange-soft); color:var(--orange); }
+.btn-toggle-on{ background:var(--green-soft); color:var(--green-dark); }
+.btn-delete{ background:var(--red-soft); color:var(--red); }
+.btn-historial{ background:var(--purple-soft); color:var(--purple); }
 
-.btn-edit{
+/* ══ FILTRO BANNER ══ */
+.filtro-banner{
+    display:none;
+    margin-bottom:14px;
+    padding:10px 16px;
     background:var(--cyan-light);
-
-    color:#0F6F9E;
+    border-radius:10px;
+    font-size:13px;
+    color:var(--navy);
+    font-weight:600;
+    align-items:center;
+    justify-content:space-between;
 }
 
-.btn-toggle-off{
-    background:var(--orange-soft);
-
-    color:var(--orange);
-}
-
-.btn-toggle-on{
-    background:var(--green-soft);
-
-    color:var(--green-dark);
-}
-
-.btn-delete{
-    background:var(--red-soft);
-
-    color:var(--red);
-}
-
-.btn-historial{
-    background:var(--purple-soft);
-
-    color:var(--purple);
-}
-
-/* EMPTY */
-
+/* ══ EMPTY ══ */
 .empty{
     text-align:center;
-
     padding:70px 40px;
-
     color:var(--muted);
 }
+.empty-icon{ font-size:44px; margin-bottom:12px; }
 
-.empty-icon{
-    font-size:44px;
-
-    margin-bottom:12px;
+/* ══ SECTION TITLE ══ */
+.section-sep{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:28px 0 16px;
 }
-
+.section-sep h3{
+    font-size:13px;
+    font-weight:700;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    white-space:nowrap;
+}
+.section-sep::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--border);
+}
 </style>
 </head>
 
 <body>
 
 <!-- ══ SIDEBAR ══ -->
-
 <aside class="sidebar">
 
     <div class="sidebar-logo">
-
         <svg class="logo-mark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="42" height="42" rx="9" fill="#0d2459"/>
             <path d="M8 21 C8 14 13 9 20 9 C23.5 9 26.5 10.3 28.5 12.5 L25 15.5 C23.8 14.2 22 13.5 20 13.5 C15.6 13.5 12.5 16.8 12.5 21 C12.5 25.2 15.6 28.5 20 28.5 C22 28.5 23.8 27.8 25 26.5 L28.5 29.5 C26.5 31.7 23.5 33 20 33 C13 33 8 28 8 21Z" fill="#00aecc"/>
             <rect x="31" y="9" width="4" height="24" rx="2" fill="white"/>
         </svg>
-
         <div class="logo-text">
             <strong>CIB</strong>
             <small>Corporación para<br>Investigaciones Biológicas</small>
         </div>
-
     </div>
 
     <div class="sidebar-tagline">
-        Administración y control de asesores
+        Administración y control de accesos
     </div>
 
     <nav class="nav">
 
         <div class="nav-label">Administración</div>
 
-        <a href="/admin" class="nav-item active">
-            👥 Asesores
-        </a>
-        <a href="/admin/admins" class="nav-item">
-            💼 Administradores
-
+        <a href="/admin" class="nav-item active">👥 Asesores</a>
+        <a href="/admin/admins" class="nav-item">💼 Administradores</a>
+        <a href="#especialistas" class="nav-item">🔬 Especialistas</a>
 
         <div class="nav-label">Acciones</div>
 
-        <a href="/admin/nuevo" class="nav-cta">
-            ＋ Nuevo asesor
-        </a>
-
-        <a href="/admin/nuevo-admin" class="nav-cta">
-            ＋ Nuevo administrador
-        </a>
+        <a href="/admin/nuevo" class="nav-cta">＋ Nuevo asesor</a>
+        <a href="/admin/nuevo-especialista" class="nav-cta-mico">🔬 Nuevo especialista</a>
+        <a href="/admin/nuevo-admin" class="nav-cta" style="margin-top:10px;">＋ Nuevo administrador</a>
 
     </nav>
 
     <div class="sidebar-footer">
-
         <div class="admin-info">
-
-            <div class="admin-avatar">
-                A
-            </div>
-
+            <div class="admin-avatar">A</div>
             <div>
-                <div class="admin-name">
-                    {{ admin_nombre }}
-                </div>
-
-                <div class="admin-role">
-                    Administrador
-                </div>
+                <div class="admin-name">{{ admin_nombre }}</div>
+                <div class="admin-role">Administrador</div>
             </div>
-
         </div>
-
         <a href="/admin/logout" class="btn-logout">
             <span>→</span> Cerrar sesión
         </a>
-
     </div>
 
 </aside>
 
 <!-- ══ MAIN ══ -->
-
 <div class="main">
 
     <!-- TOPBAR -->
-
     <div class="topbar">
-
         <div class="topbar-left">
             <h1>Panel Administrador</h1>
-            <p>Gestión de accesos y asesores — CIB Diagnóstico</p>
+            <p>Gestión de accesos y usuarios — CIB Diagnóstico</p>
         </div>
-
         <div class="topbar-actions">
             <a href="/admin/nuevo" class="btn-top btn-new">＋ Nuevo asesor</a>
-            <a href="/admin/nuevo-admin" class="btn-top btn-users">＋ Nuevo admin</a>   
-           
-            
+            <a href="/admin/nuevo-especialista" class="btn-top btn-especialista">🔬 Nuevo especialista</a>
+            <a href="/admin/nuevo-admin" class="btn-top btn-users">＋ Nuevo admin</a>
         </div>
-
     </div>
 
     <!-- PAGE -->
-
     <div class="page">
 
-        <!-- STATS -->
-
-        <div id="filtro-activo" style="display:none;margin-bottom:14px;padding:10px 16px;background:var(--cyan-light);border-radius:10px;font-size:13px;color:var(--navy);font-weight:600;align-items:center;justify-content:space-between;">
+        <!-- ══ STATS ══ -->
+        <div id="filtro-activo" class="filtro-banner">
             <span id="filtro-texto">Filtrando: activos</span>
-            <a href="#" onclick="filtrarEstado('todos');return false;" style="color:var(--cyan);font-size:12px;text-decoration:none;">✕ Ver todos</a>
+            <a href="#" onclick="filtrarEstado('todos');return false;"
+               style="color:var(--cyan);font-size:12px;text-decoration:none;">✕ Ver todos</a>
         </div>
 
         <div class="stats">
-            <div class="stat-card s-total" onclick="filtrarEstado('todos')" style="cursor:pointer">
+            <div class="stat-card s-total" onclick="filtrarEstado('todos')">
                 <div class="stat-icon">👥</div>
                 <div class="stat-info">
                     <div class="label">Total asesores</div>
                     <div class="value">{{ asesores|length }}</div>
                 </div>
             </div>
-            <div class="stat-card s-active" onclick="filtrarEstado('activo')" style="cursor:pointer">
+            <div class="stat-card s-active" onclick="filtrarEstado('activo')">
                 <div class="stat-icon">✅</div>
                 <div class="stat-info">
                     <div class="label">Activos</div>
                     <div class="value">{{ asesores|selectattr('activo','equalto',True)|list|length }}</div>
                 </div>
             </div>
-            <div class="stat-card s-inactive" onclick="filtrarEstado('inactivo')" style="cursor:pointer">
+            <div class="stat-card s-inactive" onclick="filtrarEstado('inactivo')">
                 <div class="stat-icon">🚫</div>
                 <div class="stat-info">
                     <div class="label">Inactivos</div>
                     <div class="value">{{ asesores|selectattr('activo','equalto',False)|list|length }}</div>
                 </div>
             </div>
+            <div class="stat-card s-esp" style="cursor:default">
+                <div class="stat-icon">🔬</div>
+                <div class="stat-info">
+                    <div class="label">Especialistas</div>
+                    <div class="value">{{ especialistas|length }}</div>
+                </div>
+            </div>
         </div>
 
-        <!-- TABLE -->
-
+        <!-- ══ TABLA ASESORES ══ -->
         <div class="table-box">
 
             <div class="table-header">
-
                 <div>
                     <h2>Asesores registrados</h2>
                     <p>Gestión y administración de usuarios</p>
                 </div>
-
-                <span class="badge-count">
-                    {{ asesores|length }} registros
-                </span>
-
+                <span class="badge-count" id="badge-asesores">{{ asesores|length }} registros</span>
             </div>
 
             {% if asesores %}
-
             <div class="table-wrap">
-
-                <table>
-
+                <table id="tabla-asesores">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -868,21 +584,16 @@ tbody tr:hover{
                             <th>Acciones</th>
                         </tr>
                     </thead>
-
                     <tbody>
-
                     {% for a in asesores %}
-
-                    <tr>
+                    <tr data-estado="{{ 'activo' if a.activo else 'inactivo' }}">
 
                         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
                             {{ a.id }}
                         </td>
 
                         <td>
-                            <strong style="color:var(--navy)">
-                                {{ a.nombre }}
-                            </strong>
+                            <strong style="color:var(--navy)">{{ a.nombre }}</strong>
                         </td>
 
                         <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
@@ -900,85 +611,159 @@ tbody tr:hover{
                         </td>
 
                         <td>
-
                             <div class="actions">
-
-                                <a href="/admin/editar/{{ a.id }}"
-                                   class="btn btn-edit">
-                                    Editar
-                                </a>
-
-                                <a href="/admin/historial/{{ a.id }}"
-                                   class="btn btn-historial">
-                                    Historial
-                                </a>
-
+                                <a href="/admin/editar/{{ a.id }}" class="btn btn-edit">Editar</a>
+                                <a href="/admin/historial/{{ a.id }}" class="btn btn-historial">Historial</a>
                                 <a href="/admin/toggle/{{ a.id }}"
                                    class="btn {{ 'btn-toggle-off' if a.activo else 'btn-toggle-on' }}">
                                     {{ 'Desactivar' if a.activo else 'Activar' }}
                                 </a>
-
                                 <a href="/admin/eliminar/{{ a.id }}"
                                    class="btn btn-delete"
                                    onclick="return confirm('¿Eliminar al asesor {{ a.nombre }}?')">
                                     Eliminar
                                 </a>
-
                             </div>
-
                         </td>
 
                     </tr>
-
                     {% endfor %}
-
                     </tbody>
-
                 </table>
-
             </div>
-
             {% else %}
-
             <div class="empty">
-
-                <div class="empty-icon">
-                    👤
-                </div>
-
-                <p>
-                    No hay asesores registrados aún.
-                </p>
-
+                <div class="empty-icon">👤</div>
+                <p>No hay asesores registrados aún.</p>
             </div>
-
             {% endif %}
 
         </div>
 
-    </div>
+        <!-- ══ TABLA ESPECIALISTAS ══ -->
+        <div class="section-sep" id="especialistas">
+            <h3>Especialistas</h3>
+        </div>
 
-</div>
+        <div class="table-box">
+
+            <div class="table-header">
+                <div>
+                    <h2>Micología y Bacteriología</h2>
+                    <p>Usuarios especializados — acceden con el mismo login de asesores</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="background:var(--mico-soft);color:var(--mico);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                        🔬 Micología: {{ especialistas|selectattr('rol','equalto','micologia')|list|length }}
+                    </span>
+                    <span style="background:var(--bacte-soft);color:var(--bacte);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                        🧫 Bacteriología: {{ especialistas|selectattr('rol','equalto','bacteriologia')|list|length }}
+                    </span>
+                </div>
+            </div>
+
+            {% if especialistas %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Área</th>
+                            <th>Estado</th>
+                            <th>Registrado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for e in especialistas %}
+                    <tr>
+
+                        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
+                            {{ e.id }}
+                        </td>
+
+                        <td>
+                            <strong style="color:var(--navy)">{{ e.nombre }}</strong>
+                        </td>
+
+                        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
+                            {{ e.usuario }}
+                        </td>
+
+                        <td>
+                            {% if e.rol == 'micologia' %}
+                                <span class="chip-mico">🔬 Micología</span>
+                            {% else %}
+                                <span class="chip-bacte">🧫 Bacteriología</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="pill {{ 'activo' if e.activo else 'inactivo' }}">
+                                {{ 'Activo' if e.activo else 'Inactivo' }}
+                            </span>
+                        </td>
+
+                        <td style="font-size:11px;color:var(--muted)">
+                            {{ e.creado_en.strftime('%d/%m/%Y') if e.creado_en else '—' }}
+                        </td>
+
+                        <td>
+                            <div class="actions">
+                                <a href="/admin/editar/{{ e.id }}" class="btn btn-edit">Editar</a>
+                                <a href="/admin/toggle/{{ e.id }}"
+                                   class="btn {{ 'btn-toggle-off' if e.activo else 'btn-toggle-on' }}">
+                                    {{ 'Desactivar' if e.activo else 'Activar' }}
+                                </a>
+                                <a href="/admin/eliminar/{{ e.id }}"
+                                   class="btn btn-delete"
+                                   onclick="return confirm('¿Eliminar a {{ e.nombre }}?')">
+                                    Eliminar
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty">
+                <div class="empty-icon">🔬</div>
+                <p>No hay especialistas registrados aún.</p>
+                <a href="/admin/nuevo-especialista"
+                   style="display:inline-block;margin-top:14px;padding:10px 20px;background:var(--mico-soft);color:var(--mico);border-radius:10px;text-decoration:none;font-weight:600;font-size:13px;">
+                    ＋ Crear primer especialista
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div><!-- /page -->
+</div><!-- /main -->
+
 <script>
 function filtrarEstado(estado) {
-    const filas  = document.querySelectorAll('tbody tr');
-    const banner = document.getElementById('filtro-activo');
-    const texto  = document.getElementById('filtro-texto');
-    const cards  = document.querySelectorAll('.stat-card');
-    const mapa   = { activo:'s-active', inactivo:'s-inactive' };
+    const filas   = document.querySelectorAll('#tabla-asesores tbody tr');
+    const banner  = document.getElementById('filtro-activo');
+    const texto   = document.getElementById('filtro-texto');
+    const badge   = document.getElementById('badge-asesores');
+    const cards   = document.querySelectorAll('.stat-card');
+    const mapa    = { activo:'s-active', inactivo:'s-inactive' };
 
     if (estado === 'todos') {
         cards.forEach(c => { c.style.opacity='1'; c.style.outline='none'; });
         banner.style.display = 'none';
         filas.forEach(f => f.style.display = '');
-        document.querySelector('.badge-count').textContent =
-            filas.length + ' registros';
+        badge.textContent = filas.length + ' registros';
     } else {
         cards.forEach(c => { c.style.opacity='0.45'; c.style.outline='none'; });
         const activa = document.querySelector('.' + mapa[estado]);
         if (activa) { activa.style.opacity='1'; activa.style.outline='2px solid var(--cyan)'; }
-
-        // Siempre resalta total también
         document.querySelector('.s-total').style.opacity = '0.7';
 
         const nombres = { activo:'Activos', inactivo:'Inactivos' };
@@ -987,14 +772,14 @@ function filtrarEstado(estado) {
 
         let count = 0;
         filas.forEach(fila => {
-            const pill = fila.querySelector('.pill.activo, .pill.inactivo');
-            const estadoFila = pill ? pill.classList[1] : '';
+            const estadoFila = fila.dataset.estado || '';
             if (estadoFila === estado) { fila.style.display=''; count++; }
             else fila.style.display = 'none';
         });
-        document.querySelector('.badge-count').textContent = count + ' registros';
+        badge.textContent = count + ' registros';
     }
 }
 </script>
+
 </body>
 </html>

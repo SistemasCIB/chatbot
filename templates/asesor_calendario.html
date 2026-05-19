@@ -114,42 +114,49 @@ select{
 
     <div class="topbar">
 
-        <h1>
-            Calendario de citas
-        </h1>
+        <div>
+            <h1>Calendario de citas</h1>
+            <p style="margin:4px 0 0; font-size:13px; color:#888;">
+                {{ asesor_nombre }}
+                {% if asesor_rol == 'micologia' %}
+                    &nbsp;·&nbsp;
+                    <span style="
+                        background:#4f8ef7;
+                        color:white;
+                        padding:2px 10px;
+                        border-radius:20px;
+                        font-size:12px;
+                    ">🔬 Micología</span>
+                {% elif asesor_rol == 'bacteriologia' %}
+                    &nbsp;·&nbsp;
+                    <span style="
+                        background:#16a085;
+                        color:white;
+                        padding:2px 10px;
+                        border-radius:20px;
+                        font-size:12px;
+                    ">🧫 Bacteriología</span>
+                {% endif %}
+            </p>
+        </div>
 
-        <!-- ====================================== -->
-        <!-- FILTROS -->
-        <!-- ====================================== -->
-
+        <!-- Solo el asesor general ve el filtro de agenda -->
+        {% if not agenda_fija %}
         <div class="filtros">
-
-            <!-- CAMBIO NUEVO -->
             <div>
                 <label><strong>Agenda:</strong></label>
-
                 <select id="filtroAgenda">
-
-                    <option value="">
-                        Todas
-                    </option>
-
-                    <option value="micologia">
-                        Micología
-                    </option>
-
-                    <option value="bacteriologia">
-                        Bacteriología
-                    </option>
-
-                    <option value="domicilio">
-                        Domicilio
-                    </option>
-
+                    <option value="">Todas</option>
+                    <option value="micologia">Micología</option>
+                    <option value="bacteriologia">Bacteriología</option>
+                    <option value="domicilio">Domicilio</option>
                 </select>
             </div>
-
         </div>
+        {% else %}
+        <!-- Campo oculto con agenda fija para el rol -->
+        <input type="hidden" id="filtroAgenda" value="{{ agenda_fija }}">
+        {% endif %}
 
     </div>
 

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIB — {{ 'Editar' if asesor else 'Nuevo' }} Especialista</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ── reutiliza las mismas variables del panel ── */
+    :root {
+        --navy:#223A7F; --navy-deep:#182B63;
+        --cyan:#2EA1DB; --cyan-light:#E7F5FC;
+        --green:#8CBF45; --green-dark:#6F9F32;
+        --red:#DC2626; --red-soft:#FDECEC;
+        --border:#E4EAF2; --muted:#6B7280;
+        --text:#1E293B; --bg:#F7F9FC;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        font-family:'Outfit',sans-serif;
+        background:var(--bg);
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:30px;
+    }
+    .card {
+        background:white;
+        border-radius:16px;
+        border:1px solid var(--border);
+        padding:36px 40px;
+        width:100%;
+        max-width:460px;
+        box-shadow:0 4px 24px rgba(34,58,127,.09);
+    }
+    .card-header { margin-bottom:28px; }
+    .card-header h2 { color:var(--navy); font-size:20px; font-weight:700; }
+    .card-header p  { color:var(--muted); font-size:13px; margin-top:4px; }
+    .form-group { margin-bottom:18px; }
+    label { display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+    input, select {
+        width:100%;
+        padding:11px 14px;
+        border:1px solid var(--border);
+        border-radius:10px;
+        font-size:14px;
+        font-family:'Outfit',sans-serif;
+        outline:none;
+        transition:border .2s;
+        color:var(--text);
+    }
+    input:focus, select:focus { border-color:var(--cyan); }
+
+    /* Badge de rol en el select */
+    .rol-select { appearance:none; cursor:pointer; }
+
+    .btn-row { display:flex; gap:10px; margin-top:8px; }
+    .btn {
+        flex:1; padding:12px;
+        border-radius:10px;
+        font-size:14px; font-weight:600;
+        cursor:pointer; border:none;
+        font-family:'Outfit',sans-serif;
+        text-decoration:none;
+        text-align:center;
+        transition:.2s;
+    }
+    .btn:hover { transform:translateY(-1px); }
+    .btn-primary { background:var(--navy); color:white; }
+    .btn-cancel  { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+    .error {
+        background:var(--red-soft); color:var(--red);
+        padding:10px 14px; border-radius:8px;
+        font-size:13px; margin-bottom:18px;
+    }
+    .hint { font-size:11px; color:var(--muted); margin-top:4px; }
+
+    /* Chip de rol (solo lectura al editar) */
+    .chip {
+        display:inline-block; padding:4px 12px;
+        border-radius:20px; font-size:12px; font-weight:700;
+    }
+    .chip-mico  { background:#E8F0FE; color:#4f8ef7; }
+    .chip-bacte { background:#E6F7F4; color:#16a085; }
+</style>
+</head>
+<body>
+<div class="card">
+
+    <div class="card-header">
+        <h2>{{ '✏️ Editar especialista' if asesor else '🔬 Nuevo especialista' }}</h2>
+        <p>{{ 'Modifica los datos del especialista.' if asesor else 'Crea un usuario de Micología o Bacteriología.' }}</p>
+    </div>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+
+        <div class="form-group">
+            <label>Nombre completo</label>
+            <input type="text" name="nombre"
+                   value="{{ asesor.nombre if asesor else '' }}"
+                   placeholder="Ej: María López" required>
+        </div>
+
+        <div class="form-group">
+            <label>Usuario</label>
+            <input type="text" name="usuario"
+                   value="{{ asesor.usuario if asesor else '' }}"
+                   placeholder="Ej: mlopez" required>
+        </div>
+
+        <div class="form-group">
+            <label>Área / Rol</label>
+
+            {% if asesor %}
+                <!-- Al editar, mostrar chip + select para cambiar si se quiere -->
+                <span class="chip {{ 'chip-mico' if asesor.rol == 'micologia' else 'chip-bacte' }}"
+                      style="margin-bottom:8px;display:inline-block;">
+                    {{ '🔬 Micología' if asesor.rol == 'micologia' else '🧫 Bacteriología' }}
+                </span>
+                <select name="rol" class="rol-select">
+                    <option value="micologia"
+                        {{ 'selected' if asesor.rol == 'micologia' }}>
+                        🔬 Micología
+                    </option>
+                    <option value="bacteriologia"
+                        {{ 'selected' if asesor.rol == 'bacteriologia' }}>
+                        🧫 Bacteriología
+                    </option>
+                </select>
+            {% else %}
+                <select name="rol" class="rol-select" required>
+                    <option value="" disabled selected>Selecciona el área…</option>
+                    <option value="micologia">🔬 Micología</option>
+                    <option value="bacteriologia">🧫 Bacteriología</option>
+                </select>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>Contraseña{{ ' (dejar vacío para no cambiar)' if asesor else '' }}</label>
+            <input type="password" name="password"
+                   placeholder="{{ 'Nueva contraseña (opcional)' if asesor else 'Mínimo 6 caracteres' }}"
+                   {{ '' if asesor else 'required' }}>
+            <p class="hint">El usuario usará el mismo login que los asesores en <code>/asesor/login</code></p>
+        </div>
+
+        <div class="btn-row">
+            <a href="/admin" class="btn btn-cancel">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                {{ 'Guardar cambios' if asesor else 'Crear especialista' }}
+            </button>
+        </div>
+
+    </form>
+</div>
+</body>
+</html>
