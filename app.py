@@ -9,6 +9,7 @@ import os
 import requests as req_lib
 from flask_sqlalchemy import SQLAlchemy
 from flask import Response, stream_with_context
+from admin_routes import admin_requerido
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cib.db'
@@ -49,6 +50,7 @@ def ordenar_registros_por_fecha(registros):
     return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
 
 @app.route('/')
+@admin_requerido  
 def index():
     registros = ordenar_registros_por_fecha(Log.query.all())
     citas = Cita.query.order_by(Cita.creada_en.desc()).all()
