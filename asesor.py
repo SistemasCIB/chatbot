@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify
+from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
 from models import db, Cita, Asesor, Auditoria, ChatActivo, Paciente
 from datetime import datetime, timedelta
 from mensajes import enviar_texto
@@ -148,6 +148,112 @@ def rechazar_cita(cita_id):
             f"¡Que tengas un buen día! 💙"
         )
     return redirect(url_for('asesor.panel'))
+
+# ==========================================
+# CITA CUMPLIDA
+# ==========================================
+
+@asesor_bp.route('/asesor/cumplida/<int:cita_id>')
+@login_requerido
+def marcar_cumplida(cita_id):
+
+    cita = Cita.query.get(cita_id)
+
+    if cita:
+
+        cita.estado = 'cumplida'
+
+        db.session.commit()
+
+        # ---------------------------------
+        # AUDITORÍA
+        # ---------------------------------
+
+        log = Auditoria(
+            asesor_id=session['asesor_id'],
+            asesor_nombre=session['asesor_nombre'],
+            accion='cumplida',
+            cita_id=cita.id,
+            detalle=(
+                f'Marcó como cumplida la cita de '
+                f'{cita.paciente.documento} - '
+                f'{cita.paciente.nombre}'
+            )
+        )
+
+        db.session.add(log)
+        db.session.commit()
+
+        # ---------------------------------
+        # WHATSAPP
+        # ---------------------------------
+
+        enviar_texto(
+            cita.numero_whatsapp,
+            f"✅ Tu cita fue registrada como completada.\n\n"
+            f"Gracias por confiar en CIB 💙"
+        )
+
+    return redirect(url_for('asesor.panel'))
+
+
+# ==========================================
+# CITA NO CUMPLIDA
+# ==========================================
+
+@asesor_bp.route('/asesor/no_cumplio/<int:cita_id>')
+@login_requerido
+def marcar_no_cumplio(cita_id):
+
+    cita = Cita.query.get(cita_id)
+
+    if cita:
+
+        cita.estado = 'no cumplio'
+
+        db.session.commit()
+
+        log = Auditoria(
+            asesor_id=session['asesor_id'],
+            asesor_nombre=session['asesor_nombre'],
+            accion='no cumplio',
+            cita_id=cita.id,
+            detalle=(
+                f'Marcó como no cumplida la cita de '
+                f'{cita.paciente.documento} - '
+                f'{cita.paciente.nombre}'
+            )
+        )
+
+        db.session.add(log)
+        db.session.commit()
+
+        enviar_texto(
+            cita.numero_whatsapp,
+            f"⚠️ Tu cita fue registrada como no asistida.\n\n"
+            f"Si deseas reagendar, estaremos atentos para ayudarte."
+        )
+
+    return redirect(url_for('asesor.panel'))
+
+@asesor_bp.route('/asesor/trazabilidad')
+@login_requerido
+def trazabilidad():
+
+    citas = Cita.query.filter(
+        Cita.estado.in_([
+            'cumplida',
+            'no cumplio'
+        ])
+    ).order_by(
+        Cita.fecha_cita.desc()
+    ).all()
+
+    return render_template(
+        'trazabilidad.html',
+        citas=citas,
+        asesor_nombre=session.get('asesor_nombre')
+    )  
 
 @asesor_bp.route('/asesor/exportar')
 @login_requerido

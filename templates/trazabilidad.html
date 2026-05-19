@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CIB — Trazabilidad</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --navy:#223A7F;
+    --cyan:#2EA1DB;
+    --green:#10b981;
+    --green-soft:#dcfce7;
+    --red:#ef4444;
+    --red-soft:#fee2e2;
+    --border:#E4EAF2;
+    --bg:#F7F9FC;
+    --surface:#FFFFFF;
+    --text:#1E293B;
+    --muted:#64748B;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(0,0,0,.05);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Outfit',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    padding:30px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.topbar h1{
+    font-size:28px;
+    color:var(--navy);
+}
+
+.topbar p{
+    color:var(--muted);
+    margin-top:4px;
+    font-size:14px;
+}
+
+.btn-back{
+    background:var(--navy);
+    color:white;
+    text-decoration:none;
+    padding:12px 18px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:600;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+    margin-bottom:28px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:var(--radius);
+    padding:24px;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    transition:.2s;
+    border:1px solid var(--border);
+}
+
+.stat-card:hover{
+    transform:translateY(-2px);
+}
+
+.stat-icon{
+    font-size:32px;
+    margin-bottom:12px;
+}
+
+.label{
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:8px;
+}
+
+.value{
+    font-size:34px;
+    font-weight:700;
+}
+
+.s-total .value{
+    color:var(--navy);
+}
+
+.s-cump .value{
+    color:var(--green);
+}
+
+.s-nocump .value{
+    color:var(--red);
+}
+
+.table-box{
+    background:white;
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+}
+
+.table-header{
+    padding:20px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.table-header h2{
+    color:var(--navy);
+}
+
+.badge{
+    background:#EFF6FF;
+    color:var(--navy);
+    padding:8px 14px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.table-wrap{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#F8FAFC;
+    padding:14px;
+    text-align:left;
+    font-size:12px;
+    color:var(--muted);
+    border-bottom:1px solid var(--border);
+}
+
+td{
+    padding:14px;
+    border-bottom:1px solid #EEF2F7;
+    font-size:14px;
+}
+
+tbody tr:hover{
+    background:#FAFCFF;
+}
+
+.pill{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.pill.cumplida{
+    background:var(--green-soft);
+    color:var(--green);
+}
+
+.pill.no-cumplida{
+    background:var(--red-soft);
+    color:var(--red);
+}
+
+#filtro-activo{
+    display:none;
+    margin-bottom:20px;
+    padding:12px 16px;
+    background:#EFF6FF;
+    border-radius:10px;
+    color:var(--navy);
+    font-size:14px;
+    font-weight:600;
+    justify-content:space-between;
+    align-items:center;
+}
+
+#filtro-activo a{
+    text-decoration:none;
+    color:var(--cyan);
+}
+
+.empty{
+    padding:70px;
+    text-align:center;
+    color:var(--muted);
+}
+
+.empty-icon{
+    font-size:50px;
+    margin-bottom:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="topbar">
+
+        <div>
+            <h1>📈 Trazabilidad de Citas</h1>
+            <p>Seguimiento de cumplimiento y asistencia</p>
+        </div>
+
+        <a href="/asesor" class="btn-back">
+            ← Volver
+        </a>
+
+    </div>
+
+    <!-- CONTADORES -->
+
+    <div class="stats">
+
+        <div class="stat-card s-total"
+             onclick="filtrarEstado('todos')">
+
+            <div class="stat-icon">📋</div>
+
+            <div class="label">Total</div>
+
+            <div class="value">
+                {{ citas|length }}
+            </div>
+
+        </div>
+
+        <div class="stat-card s-cump"
+             onclick="filtrarEstado('cumplida')">
+
+            <div class="stat-icon">✅</div>
+
+            <div class="label">Cumplidas</div>
+
+            <div class="value">
+                {{ citas|selectattr('estado','equalto','cumplida')|list|length }}
+            </div>
+
+        </div>
+
+        <div class="stat-card s-nocump"
+             onclick="filtrarEstado('no cumplio')">
+
+            <div class="stat-icon">❌</div>
+
+            <div class="label">No cumplidas</div>
+
+            <div class="value">
+                {{ citas|selectattr('estado','equalto','no cumplio')|list|length }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FILTRO -->
+
+    <div id="filtro-activo">
+
+        <span id="filtro-texto"></span>
+
+        <a href="#"
+           onclick="filtrarEstado('todos');return false;">
+            ✕ Ver todos
+        </a>
+
+    </div>
+
+    <!-- TABLA -->
+
+    <div class="table-box">
+
+        <div class="table-header">
+
+            <h2>Historial</h2>
+
+            <div class="badge">
+                {{ citas|length }} registros
+            </div>
+
+        </div>
+
+        {% if citas %}
+
+        <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Paciente</th>
+                    <th>Documento</th>
+                    <th>Teléfono</th>
+                    <th>Examen</th>
+                    <th>Área</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for c in citas %}
+
+            <tr>
+
+                <td>{{ c.paciente.nombre }}</td>
+
+                <td>{{ c.paciente.documento }}</td>
+
+                <td>{{ c.paciente.telefono }}</td>
+
+                <td>{{ c.tipo_examen or '—' }}</td>
+
+                <td>{{ c.area or '—' }}</td>
+
+                <td>
+                    {{ c.fecha_cita.strftime('%d/%m/%Y') if c.fecha_cita else '—' }}
+                </td>
+
+                <td>{{ c.hora_cita or '—' }}</td>
+
+                <td>
+
+                    <span class="pill {{ c.estado|replace(' ', '-') }}">
+
+                        {{ c.estado }}
+
+                    </span>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty">
+
+            <div class="empty-icon">📭</div>
+
+            <p>No hay registros de trazabilidad.</p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script>
+
+function filtrarEstado(estado){
+
+    const filas =
+        document.querySelectorAll('tbody tr');
+
+    const banner =
+        document.getElementById('filtro-activo');
+
+    const texto =
+        document.getElementById('filtro-texto');
+
+    if(estado === 'todos'){
+
+        filas.forEach(f => {
+            f.style.display = '';
+        });
+
+        banner.style.display = 'none';
+
+        return;
+    }
+
+    banner.style.display = 'flex';
+
+    texto.textContent =
+        'Filtrando: ' + estado;
+
+    filas.forEach(fila => {
+
+        const pill =
+            fila.querySelector('.pill');
+
+        const estadoFila =
+            pill.classList[1].replace('-', ' ');
+
+        if(estadoFila === estado){
+
+            fila.style.display = '';
+
+        }else{
+
+            fila.style.display = 'none';
+
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>

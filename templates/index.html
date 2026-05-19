@@ -213,8 +213,8 @@
                     {% for c in citas %}
                     <tr>
                         <td><strong>{{ c.nombre }}</strong></td>
-                        <td>{{ c.documento }}</td>
-                        <td>{{ c.telefono }}</td>
+                        <td>{{ c.paciente.documento }}</td>
+                        <td>{{ c.paciente.telefono }}</td>
                         <td>{{ c.fecha_cita }}</td>
                         <td style="color:#888;">{{ c.numero_whatsapp }}</td>
                         <td><span class="pill {{ c.estado }}">{{ c.estado }}</span></td>

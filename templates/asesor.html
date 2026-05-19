@@ -234,10 +234,12 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
 .pill.confirmada{background:var(--green-soft);color:var(--green-dark);}
 .pill.rechazada{background:#ECECEC;color:var(--gray);}
 .pill.cancelada{background:#F3F4F6;color:#6B7280;}
+.pill.cumplida{background:#DCFCE7;color:#257243;}
+.pill.no-cumplio{background:#FEE2E2;color:#a57575;}
 .pill.presencial{background:#E9EEFA;color:var(--navy);}
 .pill.domicilio{background:var(--cyan-light);color:var(--cyan);}
-.pill.bacteriologia { background: #dbeafe; color: #8199db; }
-.pill.micologia      { background: #fce7f3; color: #656ccf; }
+.pill.bacteriologia{ background: #dbeafe; color: #8199db; }
+.pill.micologia{ background: #fce7f3; color: #656ccf; }
 
 /* ACTIONS */
 .actions{display:flex;gap:6px;flex-wrap:nowrap;}
@@ -246,6 +248,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
     font-size:11px;font-weight:600;white-space:nowrap;
     transition:filter .15s;display:inline-block;
 }
+
 .btn:hover{filter:brightness(.92);}
 .btn-confirm{background:var(--green-soft);color:var(--green-dark);}
 .btn-reject{background:#ECECEC;color:var(--gray);}
@@ -256,6 +259,62 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
 .empty-icon{font-size:44px;margin-bottom:14px;}
 .empty p{font-size:14px;}
 .dash{color:#CBD5E1;}
+/* =========================================
+   DROPDOWN ACCIONES
+========================================= */
+
+.dropdown{
+    position:relative;
+    display:inline-block;
+}
+
+.dropbtn{
+    background:var(--cyan-light);
+    color:#0F6F9E;
+    border:none;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:11px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Outfit',sans-serif;
+    transition:.2s;
+}
+
+.dropbtn:hover{
+    background:#d8eef9;
+}
+
+.dropdown-content{
+    display:none;
+    position:absolute;
+    right:0;
+    top:42px;
+    min-width:220px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:var(--shadow-md);
+    z-index:999;
+}
+
+.dropdown-content a{
+    display:block;
+    padding:12px 14px;
+    text-decoration:none;
+    color:var(--text);
+    font-size:12px;
+    transition:.15s;
+}
+
+.dropdown-content a:hover{
+    background:#F8FAFC;
+}
+
+.dropdown:hover .dropdown-content{
+    display:block;
+}
 </style>
 </head>
 <body>
@@ -281,6 +340,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
         <a href="/asesor" class="nav-item active"><span>📋</span> Solicitudes</a>
         <a href="/asesor/calendario" class="nav-item"><span>📅</span> Calendario</a>
         <a href="/asesor/historial" class="nav-item"><span>🕘</span> Historial</a>
+        <a href="/asesor/trazabilidad" class="nav-item"><span>📈</span> Trazabilidad</a>
         <a href="/asesor/exportar" class="nav-item"><span>⬇️</span> Exportar CSV</a>
         <div class="nav-label">Acciones</div>
         <a href="/asesor/nueva" class="nav-cta">＋ Nueva cita</a>
@@ -309,6 +369,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
             <a href="/asesor/exportar"   class="btn-top btn-export">⬇ Exportar CSV</a>
             <a href="/asesor/historial"  class="btn-top btn-hist">🕘 Historial</a>
             <a href="/asesor/calendario" class="btn-top btn-cal">📅 Calendario</a>
+            <a href="/asesor/trazabilidad" class="btn-top btn-traz">📈 Trazabilidad</a>
         </div>
     </div>
 
@@ -356,6 +417,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                     <div class="value">{{ citas|selectattr('estado','equalto','rechazada')|list|length }}</div>
                 </div>
             </div>
+           
         </div>        
         <div class="table-box">
             <div class="table-header">
@@ -414,16 +476,47 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                         {% endif %}
                     </td>
                     <td>{{ c.tipo_muestra or '—' }}</td>
-                    <td><span class="pill {{ c.estado }}">{{ c.estado }}</span></td>
+                    <td><span class="pill {{ c.estado|replace(' ', '-') }}">{{ c.estado }}</span></td>
                     <td style="white-space:nowrap;font-size:11px;color:var(--muted)">{{ c.creada_en.strftime('%d/%m/%Y %H:%M') if c.creada_en else '—' }}</td>
                     <td>
+
                         <div class="actions">
+
                             {% if c.estado == 'pendiente' %}
-                            <a href="/asesor/confirmar/{{ c.id }}" class="btn btn-confirm">Confirmar</a>
-                            <a href="/asesor/rechazar/{{ c.id }}"  class="btn btn-reject">Rechazar</a>
+
+                                <a href="/asesor/confirmar/{{ c.id }}"
+                                class="btn btn-confirm">
+                                Confirmar
+                                </a>
+
+                                <a href="/asesor/rechazar/{{ c.id }}"
+                                class="btn btn-reject">
+                                Rechazar
+                                </a>
+
                             {% endif %}
-                            <a href="/asesor/editar/{{ c.id }}" class="btn btn-edit">Editar</a>
+
+                            {% if c.estado == 'confirmada' %}
+
+                                <a href="/asesor/cumplida/{{ c.id }}"
+                                class="btn btn-confirm">
+                                ✅ Cumplida
+                                </a>
+
+                                <a href="/asesor/no_cumplio/{{ c.id }}"
+                                class="btn btn-reject">
+                                ❌ No Cumplida
+                                </a>
+
+                            {% endif %}
+
+                            <a href="/asesor/editar/{{ c.id }}"
+                            class="btn btn-edit">
+                            Editar
+                            </a>
+
                         </div>
+
                     </td>
                 </tr>
                 {% endfor %}
