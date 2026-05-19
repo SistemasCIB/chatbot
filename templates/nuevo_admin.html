@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CIB - {{ 'Editar' if admin else 'Nuevo' }} Administrador</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --bg:#f0f2f5;
+    --surface:#ffffff;
+    --border:#e4e7ec;
+
+    --text:#111827;
+    --muted:#6b7280;
+
+    --nav:#0f172a;
+
+    --blue:#1d4ed8;
+    --blue-soft:#eff6ff;
+
+    --green:#16a34a;
+
+    --red:#dc2626;
+    --red-soft:#fef2f2;
+
+    --purple:#7c3aed;
+
+    --radius:10px;
+
+    --shadow:
+        0 1px 3px rgba(0,0,0,.08);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'DM Sans',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+/* HEADER */
+
+header{
+    background:var(--nav);
+
+    padding:0 32px;
+
+    height:60px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.logo{
+    width:32px;
+    height:32px;
+
+    background:linear-gradient(
+        135deg,
+        var(--purple),
+        var(--blue)
+    );
+
+    border-radius:8px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-weight:700;
+    font-size:13px;
+
+    color:white;
+}
+
+.header-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.header-brand h1{
+    font-size:15px;
+    font-weight:600;
+    color:white;
+}
+
+.btn-nav{
+    padding:7px 14px;
+
+    border-radius:7px;
+
+    font-size:12px;
+    font-weight:600;
+
+    text-decoration:none;
+
+    background:rgba(255,255,255,.08);
+
+    color:#cbd5e1;
+
+    border:1px solid rgba(255,255,255,.1);
+}
+
+/* CONTENT */
+
+.content{
+    padding:40px 32px;
+
+    max-width:520px;
+
+    margin:0 auto;
+}
+
+/* CARD */
+
+.form-card{
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    overflow:hidden;
+}
+
+.form-card-header{
+    padding:20px 24px;
+
+    border-bottom:1px solid var(--border);
+
+    font-size:15px;
+    font-weight:600;
+}
+
+.form-card-body{
+    padding:24px;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:18px;
+}
+
+/* FIELDS */
+
+.field label{
+    display:block;
+
+    font-size:12px;
+    font-weight:600;
+
+    text-transform:uppercase;
+
+    letter-spacing:.06em;
+
+    color:var(--muted);
+
+    margin-bottom:6px;
+}
+
+.field input{
+    width:100%;
+
+    padding:10px 14px;
+
+    border:1px solid var(--border);
+
+    border-radius:8px;
+
+    font-size:14px;
+
+    font-family:inherit;
+
+    background:#fafafa;
+
+    transition:border-color .15s;
+
+    outline:none;
+}
+
+.field input:focus{
+    border-color:var(--blue);
+    background:white;
+}
+
+.field small{
+    font-size:11px;
+    color:var(--muted);
+
+    margin-top:4px;
+
+    display:block;
+}
+
+/* ERROR */
+
+.error{
+    background:var(--red-soft);
+
+    border:1px solid #fca5a5;
+
+    color:var(--red);
+
+    padding:10px 14px;
+
+    border-radius:8px;
+
+    font-size:13px;
+}
+
+/* ACTIONS */
+
+.form-actions{
+    display:flex;
+
+    gap:10px;
+
+    justify-content:flex-end;
+
+    margin-top:4px;
+}
+
+.btn-guardar{
+    padding:10px 24px;
+
+    background:var(--blue);
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    font-size:14px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    font-family:inherit;
+
+    transition:opacity .15s;
+}
+
+.btn-guardar:hover{
+    opacity:.88;
+}
+
+.btn-cancelar{
+    padding:10px 20px;
+
+    background:var(--bg);
+
+    color:var(--muted);
+
+    border:1px solid var(--border);
+
+    border-radius:8px;
+
+    font-size:14px;
+    font-weight:500;
+
+    text-decoration:none;
+
+    transition:opacity .15s;
+}
+
+.btn-cancelar:hover{
+    opacity:.8;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="header-brand">
+
+        <div class="logo">
+            A
+        </div>
+
+        <h1>
+            {{ 'Editar administrador' if admin else 'Nuevo administrador' }}
+        </h1>
+
+    </div>
+
+    <a href="/admin" class="btn-nav">
+        ← Volver
+    </a>
+
+</header>
+
+<div class="content">
+
+    <div class="form-card">
+
+        <div class="form-card-header">
+            {{ 'Editar datos del administrador' if admin else 'Crear nuevo administrador' }}
+        </div>
+
+        <form method="POST">
+
+            <div class="form-card-body">
+
+                {% if error %}
+                <div class="error">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="field">
+                    <label>Nombre completo</label>
+
+                    <input
+                        type="text"
+                        name="nombre"
+                        value="{{ admin.nombre if admin else '' }}"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Usuario</label>
+
+                    <input
+                        type="text"
+                        name="usuario"
+                        value="{{ admin.usuario if admin else '' }}"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Correo</label>
+
+                    <input
+                        type="email"
+                        name="correo"
+                        value="{{ admin.correo if admin else '' }}"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Contraseña</label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        {{ '' if admin else 'required' }}
+                    >
+
+                    {% if admin %}
+                    <small>
+                        Deja vacío para mantener la contraseña actual.
+                    </small>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions">
+
+                    <a href="/admin" class="btn-cancelar">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn-guardar">
+
+                        {{ 'Guardar cambios' if admin else 'Crear administrador' }}
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

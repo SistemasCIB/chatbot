@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CIB — Administradores</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --navy:#223A7F;
+    --navy-deep:#182B63;
+    --cyan:#2EA1DB;
+    --cyan-light:#E7F5FC;
+    --green:#8CBF45;
+    --green-dark:#6F9F32;
+    --green-soft:#EEF7E2;
+    --red:#DC2626;
+    --red-soft:#FDECEC;
+    --orange:#D97706;
+    --orange-soft:#FEF3E0;
+    --bg:#F7F9FC;
+    --surface:#FFFFFF;
+    --border:#E4EAF2;
+    --text:#1E293B;
+    --muted:#6B7280;
+    --sidebar-w:230px;
+    --radius:14px;
+
+    --shadow:
+        0 2px 10px rgba(34,58,127,.06),
+        0 1px 3px rgba(34,58,127,.04);
+
+    --shadow-md:
+        0 8px 24px rgba(34,58,127,.12);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Outfit',sans-serif;
+    background:linear-gradient(180deg,#F7F9FC 0%,#EEF3F9 100%);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:var(--sidebar-w);
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep) 100%);
+    min-height:100vh;
+    position:fixed;
+    left:0;
+    top:0;
+    display:flex;
+    flex-direction:column;
+}
+
+.sidebar-logo{
+    padding:26px 22px 18px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo-mark{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--cyan),#1C7FB2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:700;
+    font-size:18px;
+}
+
+.logo-text strong{
+    display:block;
+    color:white;
+    font-size:18px;
+    font-weight:700;
+}
+
+.logo-text small{
+    color:rgba(255,255,255,.65);
+    font-size:10px;
+}
+
+.nav{
+    flex:1;
+    padding:16px 12px;
+}
+
+.nav-label{
+    color:rgba(255,255,255,.28);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    font-weight:600;
+    margin:14px 10px 8px;
+}
+
+.nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    color:rgba(255,255,255,.72);
+    font-size:13px;
+    font-weight:500;
+    transition:.2s;
+}
+
+.nav-item:hover{
+    background:rgba(46,161,219,.14);
+    color:white;
+}
+
+.nav-item.active{
+    background:rgba(46,161,219,.18);
+    color:var(--cyan);
+}
+
+.nav-cta{
+    margin-top:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--green);
+    color:white;
+    padding:12px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:700;
+    font-size:13px;
+}
+
+.main{
+    margin-left:var(--sidebar-w);
+    flex:1;
+}
+
+.topbar{
+    height:70px;
+    background:white;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 28px;
+}
+
+.topbar-left h1{
+    color:var(--navy);
+    font-size:20px;
+    font-weight:700;
+}
+
+.topbar-left p{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:2px;
+}
+
+.page{
+    padding:26px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    padding:20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    box-shadow:var(--shadow);
+}
+
+.stat-icon{
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    background:var(--cyan-light);
+}
+
+.stat-info .label{
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    font-weight:600;
+}
+
+.stat-info .value{
+    font-size:28px;
+    font-weight:700;
+    margin-top:4px;
+    color:var(--navy);
+}
+
+.table-box{
+    background:white;
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+}
+
+.table-header{
+    padding:20px 22px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.table-header h2{
+    color:var(--navy);
+    font-size:15px;
+    font-weight:700;
+}
+
+.badge-count{
+    background:var(--cyan-light);
+    color:var(--navy);
+    padding:6px 12px;
+    border-radius:30px;
+    font-size:11px;
+    font-weight:700;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#F8FAFC;
+}
+
+th{
+    padding:14px;
+    text-align:left;
+    font-size:10px;
+    text-transform:uppercase;
+    color:var(--muted);
+    border-bottom:1px solid var(--border);
+}
+
+td{
+    padding:14px;
+    border-bottom:1px solid #EEF2F7;
+    font-size:13px;
+}
+
+tbody tr:hover{
+    background:#FAFCFF;
+}
+
+.pill{
+    display:inline-block;
+    padding:5px 10px;
+    border-radius:30px;
+    font-size:10px;
+    font-weight:700;
+}
+
+.pill.activo{
+    background:var(--green-soft);
+    color:var(--green-dark);
+}
+
+.pill.inactivo{
+    background:#ECECEC;
+    color:#6B7280;
+}
+
+.actions{
+    display:flex;
+    gap:6px;
+}
+
+.btn{
+    padding:6px 10px;
+    border-radius:8px;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:600;
+}
+
+.btn-edit{
+    background:var(--cyan-light);
+    color:#0F6F9E;
+}
+
+.btn-toggle-off{
+    background:var(--orange-soft);
+    color:var(--orange);
+}
+
+.btn-toggle-on{
+    background:var(--green-soft);
+    color:var(--green-dark);
+}
+
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="sidebar-logo">
+
+        <div class="logo-mark">
+            A
+        </div>
+
+        <div class="logo-text">
+            <strong>CIB</strong>
+            <small>Administradores</small>
+        </div>
+
+    </div>
+
+    <nav class="nav">
+
+        <div class="nav-label">
+            Administración
+        </div>
+
+        <a href="/admin" class="nav-item">
+            👥 Asesores
+        </a>
+
+        <a href="/admin/admins" class="nav-item active">
+            💼  Administradores
+        </a>
+
+        <a href="/admin/nuevo-admin" class="nav-cta">
+            ＋ Nuevo admin
+        </a>
+
+    </nav>
+
+</aside>
+
+<div class="main">
+
+    <div class="topbar">
+
+        <div class="topbar-left">
+            <h1>Administradores</h1>
+            <p>Gestión de administradores del sistema</p>
+        </div>
+
+    </div>
+
+    <div class="page">
+
+        <div class="stats">
+
+            <div class="stat-card">
+                <div class="stat-icon">💼 </div>
+                <div class="stat-info">
+                    <div class="label">Total admins</div>
+                    <div class="value">
+                        {{ admins|length }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <div class="label">Activos</div>
+                    <div class="value">
+                        {{ admins|selectattr('activo','equalto',True)|list|length }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-info">
+                    <div class="label">Inactivos</div>
+                    <div class="value">
+                        {{ admins|selectattr('activo','equalto',False)|list|length }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="table-box">
+
+            <div class="table-header">
+
+                <div>
+                    <h2>Administradores registrados</h2>
+                </div>
+
+                <span class="badge-count">
+                    {{ admins|length }} registros
+                </span>
+
+            </div>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Estado</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for a in admins %}
+
+                <tr>
+
+                    <td>{{ a.id }}</td>
+
+                    <td>
+                        <strong>
+                            {{ a.nombre }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ a.usuario }}
+                    </td>
+
+                    <td>
+                        <span class="pill {{ 'activo' if a.activo else 'inactivo' }}">
+                            {{ 'Activo' if a.activo else 'Inactivo' }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ a.creado_en.strftime('%d/%m/%Y') }}
+                    </td>
+
+                    <td>
+
+                        <div class="actions">
+
+                            <a href="/admin/editar/{{ a.id }}"
+                               class="btn btn-edit">
+                                Editar
+                            </a>
+
+                            <a href="/admin/toggle/{{ a.id }}"
+                               class="btn {{ 'btn-toggle-off' if a.activo else 'btn-toggle-on' }}">
+                                {{ 'Desactivar' if a.activo else 'Activar' }}
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -653,3 +653,65 @@ def eventos_calendario():
         })
 
     return jsonify(eventos)
+
+@asesor_bp.route('/asesor/cambiar-password')
+@login_requerido
+def vista_cambiar_password():
+
+    return render_template(
+        'cambiar_password.html',
+        asesor_nombre=session.get('asesor_nombre')
+    )
+
+@asesor_bp.route(
+    '/asesor/guardar-password',
+    methods=['POST']
+)
+@login_requerido
+def guardar_nueva_password():
+
+    asesor = Asesor.query.get(
+        session['asesor_id']
+    )
+
+    actual = request.form.get('actual')
+
+    nueva = request.form.get('nueva')
+
+    confirmar = request.form.get('confirmar')
+
+    # =====================================
+    # VALIDAR PASSWORD ACTUAL
+    # =====================================
+
+    if not asesor.check_password(actual):
+
+        flash('La contraseña actual es incorrecta')
+
+        return redirect(
+            url_for('asesor.vista_cambiar_password')
+        )
+
+    # =====================================
+    # VALIDAR COINCIDENCIA
+    # =====================================
+
+    if nueva != confirmar:
+
+        flash('Las contraseñas no coinciden')
+
+        return redirect(
+            url_for('asesor.vista_cambiar_password')
+        )
+
+    # =====================================
+    # ACTUALIZAR
+    # =====================================
+
+    asesor.set_password(nueva)
+
+    db.session.commit()
+
+    flash('Contraseña actualizada correctamente')
+
+    return redirect(url_for('asesor.panel'))

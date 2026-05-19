@@ -160,3 +160,80 @@ def historial_asesor(asesor_id):
         logs=logs,
         admin_nombre=session.get('admin_nombre')
     )
+
+@admin_bp.route('/admin/nuevo-admin', methods=['GET', 'POST'])
+@admin_requerido
+def nuevo_admin():
+
+    if request.method == 'POST':
+
+        nombre = request.form.get('nombre')
+        usuario = request.form.get('usuario')
+        password = request.form.get('password')
+
+        existe = Asesor.query.filter_by(
+            usuario=usuario
+        ).first()
+
+        if existe:
+            return render_template(
+                'nuevo_admin.html',
+                error='El usuario ya existe'
+            )
+
+        admin = Asesor(
+            nombre=nombre,
+            usuario=usuario,
+            rol='admin',
+            activo=True
+        )
+
+        admin.set_password(password)
+
+        db.session.add(admin)
+        db.session.commit()
+
+        return redirect(url_for('admin.panel'))
+
+    return render_template('nuevo_admin.html')
+
+# ==========================================
+# LISTADO ADMINS
+# ==========================================
+
+@admin_bp.route('/admin/admins')
+@admin_requerido
+def lista_admins():
+
+    admins = Asesor.query.filter_by(
+        rol='admin'
+    ).order_by(
+        Asesor.creado_en.desc()
+    ).all()
+
+    return render_template(
+        'admins.html',
+        admins=admins,
+        admin_nombre=session.get('admin_nombre')
+    )
+
+# ==========================================
+# ELIMINAR ADMIN
+# ==========================================
+
+@admin_bp.route('/admin/eliminar-admin/<int:admin_id>')
+@admin_requerido
+def eliminar_admin(admin_id):
+
+    admin = Asesor.query.filter_by(
+        id=admin_id,
+        rol='admin'
+    ).first()
+
+    if admin:
+        db.session.delete(admin)
+        db.session.commit()
+
+    return redirect(
+        url_for('admin.lista_admins')
+    )
