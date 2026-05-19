@@ -157,6 +157,23 @@ select{
         <!-- Campo oculto con agenda fija para el rol -->
         <input type="hidden" id="filtroAgenda" value="{{ agenda_fija }}">
         {% endif %}
+        <a href="/asesor/logout" style="
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:9px 16px;
+            background:#1a1a2e;
+            color:white;
+            border-radius:8px;
+            text-decoration:none;
+            font-size:13px;
+            font-weight:500;
+            transition:background .2s;
+        "
+        onmouseover="this.style.background='#2d2d4e'"
+        onmouseout="this.style.background='#1a1a2e'">
+            → Cerrar sesión
+        </a>        
 
     </div>
 
@@ -281,31 +298,28 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         dateClick: function(info) {
-            console.log("dateStr:", info.dateStr);
-            console.log("view:", info.view.type);
-            
+            const rol = "{{ asesor_rol }}";
+
+            // Micología y bacteriología solo ven, no crean citas
+            if (rol === 'micologia' || rol === 'bacteriologia') return;
+
             const fecha = info.dateStr.slice(0, 10);
             const hora  = info.view.type === 'timeGridWeek' || info.view.type === 'timeGridDay'
-                          ? info.date.toTimeString().slice(0, 5)
-                          : '';
-
+                        ? info.date.toTimeString().slice(0, 5)
+                        : '';
             let url = `/asesor/nueva?fecha=${fecha}`;
             if (hora) url += `&hora=${hora}`;
-
-            console.log("url:", url);
             window.location.href = url;
         },
 
-        /* =======================================
-           SELECCIÓN DE RANGO
-        ======================================= */
-
         select: function(info) {
+            const rol = "{{ asesor_rol }}";
+            if (rol === 'micologia' || rol === 'bacteriologia') return;
+
             const fecha = info.startStr.slice(0, 10);
             const hora  = info.start.toTimeString().slice(0, 5);
-
             window.location.href = `/asesor/nueva?fecha=${fecha}&hora=${hora}`;
-        },        
+        },     
 
     });
 

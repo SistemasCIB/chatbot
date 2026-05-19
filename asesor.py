@@ -777,3 +777,10 @@ def guardar_nueva_password():
     flash('Contraseña actualizada correctamente')
 
     return redirect(url_for('asesor.panel'))
+
+@asesor_bp.route('/asesor/logout')
+def logout():
+    session.pop('asesor_id', None)
+    session.pop('asesor_nombre', None)
+    session.pop('asesor_rol', None)        # ← limpiar el rol también
+    return redirect(url_for('asesor.login'))
