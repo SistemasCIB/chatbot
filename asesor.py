@@ -34,7 +34,7 @@ def login():
                 return redirect(url_for('asesor.calendario_bacteriologia'))
 
             else:  # asesor normal → calendario completo
-                return redirect(url_for('asesor.calendario'))
+                return redirect(url_for('asesor.panel'))
 
         return render_template('login.html', error='Usuario o contraseña incorrectos')
 
@@ -536,7 +536,6 @@ def liberar_chat(cita_id):
 # =====================================================
 # CALENDARIO
 # =====================================================
-
 @asesor_bp.route('/asesor/calendario')
 @asesor_bp.route('/asesor/calendario/<area>')
 @login_requerido
@@ -544,6 +543,8 @@ def calendario(area=None):
     return render_template(
         'asesor_calendario.html',
         asesor_nombre=session.get('asesor_nombre'),
+        asesor_rol=session.get('asesor_rol', 'asesor'),   # ← faltaba esto
+        agenda_fija=None,                                  # ← asesor ve todo
         area=area or ''
     )
 

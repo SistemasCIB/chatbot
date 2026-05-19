@@ -37,14 +37,12 @@ body {
     text-align:center;
 }
 
-.login-header .logo {
-    width:52px; height:52px;
-    background:rgba(255,255,255,.15);
-    border-radius:14px;
-    display:flex; align-items:center; justify-content:center;
-    font-weight:700; font-size:22px; color:white;
+.login-header .logo-img {
+    width:120px;
+    height:auto;
     margin:0 auto 14px;
-    backdrop-filter:blur(10px);
+    display:block;
+    filter: brightness(0) invert(1);
 }
 
 .login-header h1 { font-size:18px; font-weight:700; color:white; }
@@ -88,7 +86,11 @@ body {
 <div class="login-card">
 
     <div class="login-header">
-        <div class="logo">A</div>
+        <img
+            class="logo-img"
+            src="https://cib.org.co/wp-content/uploads/2021/09/logo-CIB-sin-fondo.webp"
+            alt="CIB Logo"
+        >
         <h1>Panel Administrador</h1>
         <p>Corporación para Investigaciones Biológicas</p>
     </div>
