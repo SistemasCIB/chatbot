@@ -24,7 +24,7 @@ def login():
         if asesor and asesor.check_password(password):
             session['asesor_id']     = asesor.id
             session['asesor_nombre'] = asesor.nombre
-            session['asesor_rol']    = asesor.rol          # ← guardar rol
+            session['asesor_rol']    = asesor.rol          # guardar rol
 
             # Redirigir según rol
             if asesor.rol == 'micologia':
@@ -33,7 +33,7 @@ def login():
             elif asesor.rol == 'bacteriologia':
                 return redirect(url_for('asesor.calendario_bacteriologia'))
 
-            else:  # asesor normal → calendario completo
+            else:  # asesor normal → ve todo
                 return redirect(url_for('asesor.panel'))
 
         return render_template('login.html', error='Usuario o contraseña incorrectos')
@@ -75,7 +75,7 @@ def panel():
 
     documento = request.args.get('documento', '').strip()
 
-    # 🔥 join con Paciente (OBLIGATORIO)
+    # join con Paciente (OBLIGATORIO)
     query = Cita.query.join(Paciente)
 
     if documento:
@@ -279,26 +279,62 @@ def trazabilidad():
         citas=citas,
         asesor_nombre=session.get('asesor_nombre')
     )  
-
 @asesor_bp.route('/asesor/exportar')
 @login_requerido
 def exportar_excel():
+
     citas = Cita.query.order_by(Cita.creada_en.desc()).all()
+
     output = io.StringIO()
-    writer = csv.writer(output, delimiter=';')
-    writer.writerow(['ID','Nombre','Documento','Telefono','Tipo','Orden Médica','Fecha','Hora','WhatsApp','Estado','Registrada'])
-    for c in citas:
-        writer.writerow([c.id, c.paciente.nombre, c.paciente.documento, c.paciente.telefono,
-                        c.tipo_cita, c.orden_medica, c.cobertura,c.aseguradora, c.fecha_cita,
-                        c.hora_cita, c.numero_whatsapp, c.estado,
-                        c.creada_en.strftime('%d/%m/%Y %H:%M')])
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype='text/csv',
-        headers={"Content-Disposition": "attachment;filename=citas_cib.csv"}
+
+    writer = csv.writer(
+        output,
+        delimiter=';',
+        quoting=csv.QUOTE_MINIMAL
     )
 
+    writer.writerow([
+        'ID',
+        'Nombre',
+        'Documento',
+        'Telefono',
+        'Tipo',
+        'Orden Médica',
+        'Área',
+        'Fecha',
+        'Hora',
+        'WhatsApp',
+        'Estado',
+        'Registrada'
+    ])
+
+    for c in citas:
+
+        writer.writerow([
+            c.id,
+            c.paciente.nombre,
+            str(c.paciente.documento),
+            str(c.paciente.telefono),
+            c.tipo_cita,
+            c.orden_medica or '',
+            c.area or '',
+            c.fecha_cita.strftime('%d/%m/%Y') if c.fecha_cita else '',
+            str(c.hora_cita),
+            str(c.numero_whatsapp),
+            c.estado,
+            c.creada_en.strftime('%d/%m/%Y %H:%M')
+        ])
+
+    csv_data = output.getvalue()
+    output.close()
+
+    return Response(
+        '\ufeff' + csv_data,  # Corrige tildes en Excel
+        mimetype='text/csv; charset=utf-8',
+        headers={
+            "Content-Disposition": "attachment; filename=citas_cib.csv"
+        }
+    )
 
 
 @asesor_bp.route('/asesor/nueva', methods=['GET', 'POST'])
