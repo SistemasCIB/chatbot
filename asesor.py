@@ -1,11 +1,10 @@
 from functools import wraps
 
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
-from flujos import get_config_horario
 from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente
 from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
-from config import HORARIO_INICIO, HORARIO_FIN
+from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario
 import io, csv, os
 from flask import Response
 from werkzeug.utils import secure_filename
@@ -98,20 +97,29 @@ def panel():
 @asesor_bp.route('/asesor/horario', methods=['POST'])
 @login_requerido
 def actualizar_horario():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
 
     config = get_config_horario()
-    config.horario_inicio = int(data['horario_inicio'])
-    config.horario_fin    = int(data['horario_fin'])
-    config.dias_activos   = ','.join(str(d) for d in sorted(data['dias_activos']))
 
-    # días bloqueados: reemplazar lista completa
-    DiasBloqueados.query.delete()
-    for item in data.get('dias_bloqueados', []):
-        db.session.add(DiasBloqueados(
-            fecha=date.fromisoformat(item['fecha']),
-            motivo=item.get('motivo', '')
-        ))
+    # Horas
+    if 'horario_inicio' in data:
+        config.horario_inicio = int(data['horario_inicio'])
+    if 'horario_fin' in data:
+        config.horario_fin = int(data['horario_fin'])
+
+    # Días activos — opcional, si no viene no se toca
+    if 'dias_activos' in data:
+        dias = [int(d) for d in data['dias_activos']]
+        config.dias_activos = ','.join(str(d) for d in sorted(dias))
+
+    # Días bloqueados — opcional
+    if 'dias_bloqueados' in data:
+        DiasBloqueados.query.delete()
+        for item in data['dias_bloqueados']:
+            db.session.add(DiasBloqueados(
+                fecha=date.fromisoformat(item['fecha']),
+                motivo=item.get('motivo', '')
+            ))
 
     db.session.commit()
     return jsonify({'ok': True})
