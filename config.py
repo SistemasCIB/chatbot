@@ -1,4 +1,9 @@
 #solo variables
+import datetime 
+
+from models import ConfigHorario, DiasBloqueados, db 
+ 
+
 TOKEN_ANDERCODE = "ANDERCODE"
 TOKEN_META = "EAAY5YGNZBIz8BRXwA8UTEa16UrRYq3UZAoinyvHxjyXzLsaGAfimXp6qWUD4ZBlMOMywI3nTV3Oet56Ov2L697IbfXA6l8FOwpNvUoXtM0iwS8INTFrq7mpEKBB9rLq3kJXgzRQlv9Ffd2q8ZCRZC8XVYR0opra2ydz68qEfHmCBs0F9ie4AcYtYEGEpDEQZDZD"
 PHONE_NUMBER_ID = "1112533955267866"
@@ -13,6 +18,74 @@ HORARIO_INICIO = 7
 HORARIO_FIN = 17
 DIAS_ACTIVOS = [0, 1, 2, 3, 4]   # 0=Lunes ... 4=Viernes
 DIAS_BLOQUEADOS = []              # e.g. [date(2025, 12, 25)]]
+
+# =====================================================
+# HORARIO
+# =====================================================
+def get_config_horario():
+
+    config = ConfigHorario.query.first()
+
+    if not config:
+
+        config = ConfigHorario(
+            horario_inicio=7,
+            horario_fin=17,
+            dias_activos="0,1,2,3,4"
+        )
+
+        db.session.add(config)
+        db.session.commit()
+
+    # reparar datos dañados
+    if not config.dias_activos:
+        config.dias_activos = "0,1,2,3,4"
+
+    if config.horario_inicio is None:
+        config.horario_inicio = 7
+
+    if config.horario_fin is None:
+        config.horario_fin = 17
+
+    db.session.commit()
+
+    return config
+
+def get_dias_bloqueados():
+    return {d.fecha for d in DiasBloqueados.query.all()}
+
+
+
+def dentro_de_horario():
+
+    ahora = datetime.utcnow() - datetime.timedelta(hours=5)
+
+    config = get_config_horario()
+
+    dias_activos = [
+        int(d)
+        for d in (config.dias_activos or "0,1,2,3,4").split(',')
+    ]
+
+    # validar día activo
+    if ahora.weekday() not in dias_activos:
+        return False
+
+    # validar días bloqueados
+    bloqueados = {
+        d.fecha
+        for d in DiasBloqueados.query.all()
+    }
+
+    if ahora.date() in bloqueados:
+        return False
+
+    # validar horario
+    return (
+        config.horario_inicio
+        <= ahora.hour
+        < config.horario_fin
+    )
 
 REQUISITOS = {
     "general": [

@@ -1,7 +1,7 @@
 import http.client
 import json
-from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS
-from flujos import get_config_horario
+from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS, get_config_horario
+
 from models import agregar_mensajes_log, db, Cita
 
 def enviar_request(data):

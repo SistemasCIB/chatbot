@@ -16,81 +16,12 @@ from mensajes import (
     enviar_botones_lista
 )
 
-from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL
+from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL, dentro_de_horario
 from datetime import datetime, timedelta
 
 sesiones = {}
 MODO_HUMANO_MINUTOS = 3
 
-
-# =====================================================
-# HORARIO
-# =====================================================
-
-def get_config_horario():
-
-    config = ConfigHorario.query.first()
-
-    if not config:
-
-        config = ConfigHorario(
-            horario_inicio=7,
-            horario_fin=17,
-            dias_activos="0,1,2,3,4"
-        )
-
-        db.session.add(config)
-        db.session.commit()
-
-    # reparar datos dañados
-    if not config.dias_activos:
-        config.dias_activos = "0,1,2,3,4"
-
-    if config.horario_inicio is None:
-        config.horario_inicio = 7
-
-    if config.horario_fin is None:
-        config.horario_fin = 17
-
-    db.session.commit()
-
-    return config
-
-def get_dias_bloqueados():
-    return {d.fecha for d in DiasBloqueados.query.all()}
-
-
-
-def dentro_de_horario():
-
-    ahora = datetime.utcnow() - timedelta(hours=5)
-
-    config = get_config_horario()
-
-    dias_activos = [
-        int(d)
-        for d in (config.dias_activos or "0,1,2,3,4").split(',')
-    ]
-
-    # validar día activo
-    if ahora.weekday() not in dias_activos:
-        return False
-
-    # validar días bloqueados
-    bloqueados = {
-        d.fecha
-        for d in DiasBloqueados.query.all()
-    }
-
-    if ahora.date() in bloqueados:
-        return False
-
-    # validar horario
-    return (
-        config.horario_inicio
-        <= ahora.hour
-        < config.horario_fin
-    )
 
 
 # =====================================================
