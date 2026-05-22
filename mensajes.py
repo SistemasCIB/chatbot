@@ -1,6 +1,7 @@
 import http.client
 import json
-from config import TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS
+from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS
+from flujos import get_config_horario
 from models import agregar_mensajes_log, db, Cita
 
 def enviar_request(data):
@@ -568,10 +569,38 @@ def enviar_tipo_documento(numero):
     enviar_request(data)
 
 def enviar_fuera_horario(numero):
+    from models import DiasBloqueados  # evitar import circular si aplica
+    
+    config = get_config_horario()
+    
+    dias_activos = [int(d) for d in (config.dias_activos or "0,1,2,3,4").split(',')]
+    nombres_dias = ["lunes", "martes", "miércoles", "jueves",
+                    "viernes", "sábado", "domingo"]
+    dias_str = ", ".join(nombres_dias[i] for i in dias_activos)
+
+    inicio = config.horario_inicio
+    fin    = config.horario_fin
+
+    sufijo_inicio = "am" if inicio < 12 else "pm"
+    sufijo_fin    = "am" if fin    < 12 else "pm"
+    h_inicio = inicio if inicio <= 12 else inicio - 12
+    h_fin    = fin    if fin    <= 12 else fin    - 12
+
+    # Verificar si hoy está bloqueado y agregar motivo
+    from datetime import date
+    hoy = date.today()
+    dia_bloqueado = DiasBloqueados.query.filter_by(fecha=hoy).first()
+
+    if dia_bloqueado and dia_bloqueado.motivo:
+        razon = f"Hoy no hay atención: {dia_bloqueado.motivo}.\n\n"
+    else:
+        razon = ""
+
     enviar_texto(numero,
-        f"Nuestros asesores estan disponibles de lunes a viernes "
-        f"de {HORARIO_INICIO}am a {HORARIO_FIN}pm.\n\n"
-        f"Por favor contactanos en ese horario. ¡Gracias!"
+        f"{razon}"
+        f"Nuestros asesores están disponibles los días {dias_str} "
+        f"de {h_inicio}{sufijo_inicio} a {h_fin}{sufijo_fin}.\n\n"
+        f"Por favor contáctanos en ese horario. ¡Gracias!"
     )
 
 
