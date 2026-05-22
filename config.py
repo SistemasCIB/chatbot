@@ -1,5 +1,7 @@
 #solo variables
-import datetime 
+
+
+from datetime import datetime, timedelta
 
 from models import ConfigHorario, DiasBloqueados, db 
  
@@ -58,7 +60,7 @@ def get_dias_bloqueados():
 
 def dentro_de_horario():
 
-    ahora = datetime.utcnow() - datetime.timedelta(hours=5)
+    ahora = datetime.utcnow() - timedelta(hours=5)
 
     config = get_config_horario()
 
