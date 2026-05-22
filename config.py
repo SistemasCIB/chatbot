@@ -9,8 +9,10 @@ URL_BASE = "https://python-2-zqc5.onrender.com"
 URL_RESULTADOS = "https://cib.org.co/resultados-de-laboratorio/"
 SECRET_KEY = "cib_secret_2025"
 
-HORARIO_INICIO = 7    # 7am
-HORARIO_FIN = 17      # 5pm
+HORARIO_INICIO = 7
+HORARIO_FIN = 17
+DIAS_ACTIVOS = [0, 1, 2, 3, 4]   # 0=Lunes ... 4=Viernes
+DIAS_BLOQUEADOS = []              # e.g. [date(2025, 12, 25)]]
 
 REQUISITOS = {
     "general": [

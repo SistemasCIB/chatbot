@@ -1,8 +1,9 @@
 from functools import wraps
 
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
-from models import db, Cita, Asesor, Auditoria, ChatActivo, Paciente
-from datetime import datetime, timedelta
+from flujos import get_config_horario
+from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente
+from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
 from config import HORARIO_INICIO, HORARIO_FIN
 import io, csv, os
@@ -72,26 +73,48 @@ def rol_requerido(*roles_permitidos):
 @asesor_bp.route('/asesor')
 @login_requerido
 def panel():
-
     documento = request.args.get('documento', '').strip()
-
-    # join con Paciente (OBLIGATORIO)
     query = Cita.query.join(Paciente)
 
     if documento:
         query = query.filter(Paciente.documento.ilike(f"%{documento}%"))
 
     citas = query.order_by(Cita.creada_en.desc()).all()
+    config = get_config_horario()
 
     return render_template(
         'asesor.html',
         citas=citas,
         asesor_nombre=session.get('asesor_nombre'),
-        horario_inicio=HORARIO_INICIO,
-        horario_fin=HORARIO_FIN,
+        horario_inicio=config.horario_inicio,
+        horario_fin=config.horario_fin,
+        dias_activos=[int(d) for d in config.dias_activos.split(',')],
+        dias_bloqueados=DiasBloqueados.query.order_by(DiasBloqueados.fecha).all(),
         documento_filtro=documento
     )
 
+
+
+@asesor_bp.route('/asesor/horario', methods=['POST'])
+@login_requerido
+def actualizar_horario():
+    data = request.get_json()
+
+    config = get_config_horario()
+    config.horario_inicio = int(data['horario_inicio'])
+    config.horario_fin    = int(data['horario_fin'])
+    config.dias_activos   = ','.join(str(d) for d in sorted(data['dias_activos']))
+
+    # días bloqueados: reemplazar lista completa
+    DiasBloqueados.query.delete()
+    for item in data.get('dias_bloqueados', []):
+        db.session.add(DiasBloqueados(
+            fecha=date.fromisoformat(item['fecha']),
+            motivo=item.get('motivo', '')
+        ))
+
+    db.session.commit()
+    return jsonify({'ok': True})
 
 @asesor_bp.route('/asesor/confirmar/<int:cita_id>')
 @login_requerido
@@ -427,7 +450,7 @@ def editar_cita(cita_id):
     if request.method == 'POST':
 
 
-        # =========================
+        # datos del paciente
         paciente.nombre = request.form['nombre']
         paciente.tipo_documento = request.form['tipo_documento']
         paciente.documento = request.form['documento']
@@ -436,7 +459,7 @@ def editar_cita(cita_id):
         paciente.direccion = request.form.get('direccion', '')
         paciente.numero_whatsapp = request.form['telefono']
 
-        # =========================
+        # datos de la cita
         cita.tipo_cita = request.form['tipo_cita']
         cita.direccion_domicilio = request.form.get('direccion_domicilio', '')
         cita.cobertura = request.form.get('cobertura', '')
@@ -444,6 +467,7 @@ def editar_cita(cita_id):
         cita.tipo_examen = request.form.get('tipo_examen', '')
         cita.tipo_muestra = request.form.get('tipo_muestra', '')
         cita.agenda_tipo = request.form.get('agenda_tipo', '')
+
         # =====================================================
         # CAMBIO:
         # clasificación automática
@@ -579,8 +603,8 @@ def calendario(area=None):
     return render_template(
         'asesor_calendario.html',
         asesor_nombre=session.get('asesor_nombre'),
-        asesor_rol=session.get('asesor_rol', 'asesor'),   # ← faltaba esto
-        agenda_fija=None,                                  # ← asesor ve todo
+        asesor_rol=session.get('asesor_rol', 'asesor'),   
+        agenda_fija=None,                                  # asesor ve todo
         area=area or ''
     )
 
@@ -751,7 +775,7 @@ def eventos_calendario():
 
     return jsonify(eventos)
 
-
+#Cambiar contraseña
 
 @asesor_bp.route('/asesor/cambiar-password')
 @login_requerido

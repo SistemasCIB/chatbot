@@ -1,4 +1,4 @@
-from models import db, Cita,Paciente, Consentimiento, agregar_mensajes_log
+from models import ConfigHorario, DiasBloqueados, db, Cita,Paciente, Consentimiento, agregar_mensajes_log
 from mensajes import (
     enviar_texto,
     enviar_menu,
@@ -16,7 +16,7 @@ from mensajes import (
     enviar_botones_lista
 )
 
-from config import LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL
+from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL
 from datetime import datetime, timedelta
 
 sesiones = {}
@@ -27,13 +27,70 @@ MODO_HUMANO_MINUTOS = 3
 # HORARIO
 # =====================================================
 
+def get_config_horario():
+
+    config = ConfigHorario.query.first()
+
+    if not config:
+
+        config = ConfigHorario(
+            horario_inicio=7,
+            horario_fin=17,
+            dias_activos="0,1,2,3,4"
+        )
+
+        db.session.add(config)
+        db.session.commit()
+
+    # reparar datos dañados
+    if not config.dias_activos:
+        config.dias_activos = "0,1,2,3,4"
+
+    if config.horario_inicio is None:
+        config.horario_inicio = 7
+
+    if config.horario_fin is None:
+        config.horario_fin = 17
+
+    db.session.commit()
+
+    return config
+
+def get_dias_bloqueados():
+    return {d.fecha for d in DiasBloqueados.query.all()}
+
+
+
 def dentro_de_horario():
+
     ahora = datetime.utcnow() - timedelta(hours=5)
 
-    if ahora.weekday() >= 5:
+    config = get_config_horario()
+
+    dias_activos = [
+        int(d)
+        for d in (config.dias_activos or "0,1,2,3,4").split(',')
+    ]
+
+    # validar día activo
+    if ahora.weekday() not in dias_activos:
         return False
 
-    return 7 <= ahora.hour < 17
+    # validar días bloqueados
+    bloqueados = {
+        d.fecha
+        for d in DiasBloqueados.query.all()
+    }
+
+    if ahora.date() in bloqueados:
+        return False
+
+    # validar horario
+    return (
+        config.horario_inicio
+        <= ahora.hour
+        < config.horario_fin
+    )
 
 
 # =====================================================
@@ -96,9 +153,11 @@ def enviar_confirmacion_datos(numero):
             {"id": "edit_telefono",        "title": "✏️ Cambiar teléfono"},
             {"id": "edit_correo",          "title": "✏️ Cambiar correo"},
             {"id": "edit_examen",          "title": "✏️ Cambiar examen"},
-            {"id": "edit_tipo_muestra",    "title": "✏️ Cambiar examen"},
+            {"id": "edit_tipo_muestra",    "title": "✏️ Cambiar tipo de muestra"},
             {"id": "edit_tipo_cita",       "title": "✏️ Cambiar tipo de cita"},
-            {"id": "edit_fecha",           "title": "✏️ Cambiar fecha"},
+            {"id": "edit_fecha",           "title": "✏️ Cambiar fecha"},   
+            {"id": "edit_direccion_domicilio", "title": "✏️ Cambiar dirección domicilio"}
+            
         ]
     )
     sesiones[numero]["paso"] = "confirmacion"

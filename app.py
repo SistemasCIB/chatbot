@@ -49,6 +49,7 @@ def shutdown_session(exception=None):
 def ordenar_registros_por_fecha(registros):
     return sorted(registros, key=lambda x: x.fecha_y_hora, reverse=True)
 
+#log de eventos y errores importantes para monitoreo 
 @app.route('/')
 @admin_requerido  
 def index():

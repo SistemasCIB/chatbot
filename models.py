@@ -4,6 +4,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+class ConfigHorario(db.Model):
+    __tablename__ = 'config_horario'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    horario_inicio  = db.Column(db.Integer, nullable=False, default=7)
+    horario_fin     = db.Column(db.Integer, nullable=False, default=17)
+    # días activos como string "0,1,2,3,4" → lunes a viernes
+    dias_activos    = db.Column(db.String(20), nullable=False, default="0,1,2,3,4")
+    actualizado_en  = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class DiasBloqueados(db.Model):
+    __tablename__ = 'dias_bloqueados'
+
+    id      = db.Column(db.Integer, primary_key=True)
+    fecha   = db.Column(db.Date, nullable=False, unique=True)
+    motivo  = db.Column(db.String(200), nullable=True)
+
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
@@ -70,40 +87,6 @@ def agregar_mensajes_log(texto):
     except Exception as e:
         db.session.rollback()
         print(f"Error log: {str(e)}")
-
-class Admin(db.Model):
-
-    __tablename__ = 'admins'
-
-    id = db.Column(db.Integer, primary_key=True)
-
-    nombre = db.Column(db.String(100), nullable=False)
-
-    usuario = db.Column(db.String(50), unique=True, nullable=False)
-
-    correo = db.Column(db.String(120), unique=True)
-
-    password_hash = db.Column(db.String(255), nullable=False)
-
-    activo = db.Column(db.Boolean, default=True)
-
-    creado_en = db.Column(
-        db.DateTime,
-        default=datetime.utcnow
-    )
-
-    # =====================================
-    # PASSWORD
-    # =====================================
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(
-            self.password_hash,
-            password
-        )        
 
 class Conversacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
