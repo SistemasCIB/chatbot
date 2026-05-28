@@ -446,14 +446,31 @@ def manejar_boton(numero, opcion_id):
     # CONFIRMACIÓN Y EDICIÓN DE DATOS
     # -----------------------------------
     elif opcion_id == "confirm_ok":
-        sesiones[numero]["paso"] = "orden"
-        enviar_texto(
-            numero,
-            "📄 Ahora adjunta la orden médica.\n\n"
-            "Puedes enviarla en PDF o foto.\n"
-            "Un asesor la revisará para confirmar tu cita."
-        )
-        return
+
+        cobertura = sesiones[numero].get("cobertura")
+
+        if cobertura == "Particular":
+            sesiones[numero]["orden"] = None
+            sesiones[numero]["tipo_archivo"] = None
+            confirmar_cita(numero)
+            return
+
+        elif cobertura == "Poliza":
+            sesiones[numero]["paso"] = "orden"
+            enviar_texto(
+                numero,
+                "📄 Ahora adjunta la orden médica.\n\n"
+                "Puedes enviarla en PDF o foto.\n"
+                "Un asesor la revisará para confirmar tu cita."
+            )
+            return
+
+        else:
+            # Sesión corrupta — reiniciar
+            enviar_texto(numero, "⚠️ Ocurrió un error. Por favor inicia de nuevo.")
+            del sesiones[numero]
+            enviar_menu(numero)
+            return
 
     elif opcion_id.startswith("edit_"):
         campo = opcion_id.replace("edit_", "")
@@ -792,8 +809,8 @@ def confirmar_cita(numero):
         # ---------------------------------
         # FECHA
         # ---------------------------------
-        fecha_texto = sesion.get("fecha_cita", "").strip()
-        hora_texto = sesion.get("hora_cita", "").strip()
+        fecha_texto = (sesion.get("fecha_cita") or "").strip() 
+        hora_texto  = (sesion.get("hora_cita") or "").strip()
 
         if hora_texto:
             fecha_real = datetime.strptime(
