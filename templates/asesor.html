@@ -173,6 +173,7 @@ body{
     padding:20px;display:flex;align-items:center;gap:14px;
     position:relative;overflow:hidden;box-shadow:var(--shadow);transition:.2s;
 }
+.stats { grid-template-columns: repeat(5, 1fr); }
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
 .s-total::after{background:var(--navy);}
@@ -190,6 +191,9 @@ body{
 .s-pend  .value{color:var(--cyan);}
 .s-conf  .value{color:var(--green);}
 .s-rech  .value{color:var(--gray);}
+.s-canc::after { background: var(--orange); }
+.s-canc .stat-icon { background: var(--orange-soft); }
+.s-canc .value { color: var(--orange); }
 
 /* TABLE */
 .table-box{
@@ -346,16 +350,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
         <div class="nav-label">Acciones</div>
         <a href="/asesor/nueva" class="nav-cta">＋ Nueva cita</a>
     </nav>
-    <div class="nav-label">Configuración</div>
 
-        <a href="#"
-           class="nav-item"
-           onclick="abrirHorario();return false;">
-
-            <span>⚙️</span>
-            Horario
-
-        </a>
     <div class="sidebar-footer">
         <div class="asesor-info">
             <div class="asesor-avatar">A</div>
@@ -427,7 +422,14 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                     <div class="value">{{ citas|selectattr('estado','equalto','rechazada')|list|length }}</div>
                 </div>
             </div>
-           
+            <div class="stat-card s-canc" onclick="filtrarEstado('cancelada')" style="cursor:pointer">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-info">
+                    <div class="label">Canceladas</div>
+                    <div class="value">{{ citas|selectattr('estado','equalto','cancelada')|list|length }}</div>
+                </div>
+            </div>            
+                    
         </div>        
         <div class="table-box">
             <div class="table-header">
@@ -452,7 +454,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                 </thead>
                 <tbody>
                 {% for c in citas %}
-                <tr>
+                <tr data-estado="{{ c.estado }}">
                     <td>{{ c.id }}</td>
                     <td>
                         <div class="nombre-cell">
@@ -542,238 +544,14 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
         </div>
     </div>
 </div>
-<!-- MODAL HORARIO -->
 
-<!-- MODAL HORARIO -->
-<div id="modal-horario"
-     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
-            z-index:200;align-items:center;justify-content:center;">
-
-  <div style="background:white;border-radius:18px;padding:28px;width:560px;
-              max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-
-    <!-- Cabecera -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-      <div>
-        <h2 style="color:var(--navy);font-size:17px;font-weight:700;">⚙️ Configurar horario</h2>
-        <p style="color:var(--muted);font-size:12px;margin-top:3px;">Cambios aplican inmediatamente al bot</p>
-      </div>
-      <button onclick="cerrarHorario()"
-              style="background:var(--gray-light);border:none;border-radius:8px;
-                     padding:8px 12px;cursor:pointer;font-size:13px;color:var(--gray);">✕</button>
-    </div>
-
-    <!-- Horas -->
-    <div style="background:#F8FAFC;border-radius:12px;padding:18px;margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:14px;">🕐 Horario de atención</p>
-
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--muted);min-width:70px;">Hora inicio</label>
-        <input type="range" id="sl-inicio" min="0" max="23"
-               value="{{ horario_inicio }}" step="1" style="flex:1;"
-               oninput="syncHora('inicio', this.value)">
-        <span id="lbl-inicio"
-              style="font-size:13px;font-weight:600;color:var(--navy);min-width:64px;text-align:right;">
-          {{ horario_inicio }}:00
-        </span>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:12px;">
-        <label style="font-size:12px;color:var(--muted);min-width:70px;">Hora fin</label>
-        <input type="range" id="sl-fin" min="0" max="23"
-               value="{{ horario_fin }}" step="1" style="flex:1;"
-               oninput="syncHora('fin', this.value)">
-        <span id="lbl-fin"
-              style="font-size:13px;font-weight:600;color:var(--navy);min-width:64px;text-align:right;">
-          {{ horario_fin }}:00
-        </span>
-      </div>
-    </div>
-
-    <!-- Días activos -->
-    <div style="background:#F8FAFC;border-radius:12px;padding:18px;margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:14px;">📅 Días de atención</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        {% set nombres_dias = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}
-        {% for i in range(7) %}
-        <label style="display:flex;flex-direction:column;align-items:center;gap:6px;
-                      cursor:pointer;padding:10px 14px;border-radius:10px;
-                      border:2px solid var(--border);transition:.2s;font-size:12px;
-                      font-weight:600;color:var(--navy);background:white;"
-               id="lbl-dia-{{ i }}"
-               onclick="toggleDia({{ i }})">
-          {{ nombres_dias[i] }}
-          <input type="checkbox" id="dia-{{ i }}"
-                 {% if i in dias_activos %}checked{% endif %}
-                 style="display:none;">
-          <span id="dot-{{ i }}"
-                style="width:8px;height:8px;border-radius:50%;
-                       background:{% if i in dias_activos %}var(--green){% else %}#CBD5E1{% endif %};">
-          </span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Días bloqueados -->
-    <div style="background:#F8FAFC;border-radius:12px;padding:18px;margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;">🚫 Días bloqueados</p>
-
-      <div id="lista-bloqueados" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-        {% for d in dias_bloqueados %}
-        <div class="dia-bloqueado-item"
-             style="display:flex;align-items:center;gap:8px;background:white;
-                    padding:10px 12px;border-radius:10px;border:1px solid var(--border);">
-          <input type="date" value="{{ d.fecha.isoformat() }}"
-                 style="border:none;font-family:'Outfit',sans-serif;font-size:13px;
-                        color:var(--navy);outline:none;flex:1;">
-          <input type="text" placeholder="Motivo (opcional)" value="{{ d.motivo }}"
-                 style="border:none;font-family:'Outfit',sans-serif;font-size:12px;
-                        color:var(--muted);outline:none;flex:2;">
-          <button onclick="this.closest('.dia-bloqueado-item').remove()"
-                  style="background:var(--red-soft);color:var(--red);border:none;
-                         border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12px;">✕</button>
-        </div>
-        {% endfor %}
-      </div>
-
-      <button onclick="agregarDiaBloqueado()"
-              style="width:100%;padding:10px;border-radius:10px;border:2px dashed var(--border);
-                     background:white;color:var(--muted);font-family:'Outfit',sans-serif;
-                     font-size:13px;font-weight:600;cursor:pointer;">
-        + Agregar día bloqueado
-      </button>
-    </div>
-
-    <!-- Botones -->
-    <div style="display:flex;gap:10px;">
-      <button onclick="cerrarHorario()"
-              style="flex:1;padding:12px;border-radius:10px;cursor:pointer;
-                     font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
-                     background:var(--gray-light);color:var(--gray);border:none;">
-        Cancelar
-      </button>
-      <button onclick="guardarHorario()"
-              style="flex:2;padding:12px;border-radius:10px;cursor:pointer;
-                     font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
-                     background:var(--navy);color:white;border:none;">
-        Guardar cambios
-      </button>
-    </div>
-
-    <p id="msg-horario" style="text-align:center;font-size:12px;margin-top:12px;min-height:18px;"></p>
-  </div>
-</div>
-
-<script>
-function abrirHorario()  { document.getElementById('modal-horario').style.display = 'flex'; }
-function cerrarHorario() { document.getElementById('modal-horario').style.display = 'none'; }
-
-function formatHora(h) {
-    h = parseInt(h);
-    if (h === 0)  return '12:00 am';
-    if (h < 12)   return h + ':00 am';
-    if (h === 12) return '12:00 pm';
-    return (h - 12) + ':00 pm';
-}
-
-function syncHora(tipo, val) {
-    document.getElementById('lbl-' + tipo).textContent = formatHora(val);
-}
-
-function toggleDia(i) {
-    const cb  = document.getElementById('dia-' + i);
-    const dot = document.getElementById('dot-' + i);
-    const lbl = document.getElementById('lbl-dia-' + i);
-    cb.checked = !cb.checked;
-    dot.style.background  = cb.checked ? 'var(--green)' : '#CBD5E1';
-    lbl.style.borderColor = cb.checked ? 'var(--green)' : 'var(--border)';
-}
-
-function agregarDiaBloqueado() {
-    const lista = document.getElementById('lista-bloqueados');
-    const div   = document.createElement('div');
-    div.className = 'dia-bloqueado-item';
-    div.style.cssText = 'display:flex;align-items:center;gap:8px;background:white;' +
-                        'padding:10px 12px;border-radius:10px;border:1px solid var(--border);';
-    div.innerHTML = `
-        <input type="date"
-               style="border:none;font-family:'Outfit',sans-serif;font-size:13px;
-                      color:var(--navy);outline:none;flex:1;">
-        <input type="text" placeholder="Motivo (opcional)"
-               style="border:none;font-family:'Outfit',sans-serif;font-size:12px;
-                      color:var(--muted);outline:none;flex:2;">
-        <button onclick="this.closest('.dia-bloqueado-item').remove()"
-                style="background:var(--red-soft);color:var(--red);border:none;
-                       border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12px;">✕</button>`;
-    lista.appendChild(div);
-}
-
-async function guardarHorario() {
-    const inicio = parseInt(document.getElementById('sl-inicio').value);
-    const fin    = parseInt(document.getElementById('sl-fin').value);
-    const msg    = document.getElementById('msg-horario');
-
-    // Validación básica
-    if (fin <= inicio) {
-        msg.textContent = '⚠️ La hora de fin debe ser mayor a la de inicio';
-        return;
-    }
-
-    // Días activos seleccionados
-    const diasActivos = [];
-    for (let i = 0; i < 7; i++) {
-        if (document.getElementById('dia-' + i).checked) diasActivos.push(i);
-    }
-    if (diasActivos.length === 0) {
-        msg.textContent = '⚠️ Selecciona al menos un día de atención';
-        return;
-    }
-
-    // Días bloqueados
-    const diasBloqueados = [];
-    document.querySelectorAll('.dia-bloqueado-item').forEach(item => {
-        const inputs = item.querySelectorAll('input');
-        const fecha  = inputs[0].value;
-        const motivo = inputs[1].value;
-        if (fecha) diasBloqueados.push({ fecha, motivo });
-    });
-
-    msg.textContent = 'Guardando...';
-
-    try {
-        const res = await fetch('/asesor/horario', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                horario_inicio:  inicio,
-                horario_fin:     fin,
-                dias_activos:    diasActivos,
-                dias_bloqueados: diasBloqueados
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.ok) {
-            msg.textContent = '✅ Guardado correctamente';
-            setTimeout(cerrarHorario, 1200);
-        } else {
-            msg.textContent = '❌ Error al guardar: ' + (data.error || 'intenta de nuevo');
-        }
-    } catch (e) {
-        msg.textContent = '❌ Error del servidor';
-    }
-}
-</script>
-</div>
 <script>
 function filtrarEstado(estado) {
     const filas   = document.querySelectorAll('tbody tr');
     const banner  = document.getElementById('filtro-activo');
     const texto   = document.getElementById('filtro-texto');
     const cards   = document.querySelectorAll('.stat-card');
-    const mapa    = { pendiente:'s-pend', confirmada:'s-conf', rechazada:'s-rech' };
+    const mapa    = { pendiente:'s-pend', confirmada:'s-conf', rechazada:'s-rech', cancelada:'s-canc' };
 
     if (estado === 'todos') {
         cards.forEach(c => { c.style.opacity='1'; c.style.outline='none'; });
@@ -797,16 +575,15 @@ function filtrarEstado(estado) {
             }
         });
         // Banner
-        const nombres = { pendiente:'Pendientes', confirmada:'Confirmadas', rechazada:'Rechazadas' };
+        const nombres = { pendiente:'Pendientes', confirmada:'Confirmadas', rechazada:'Rechazadas', cancelada:'Canceladas' };
         texto.textContent = 'Filtrando: ' + nombres[estado];
         banner.style.display = 'flex';
 
         // Filtrar filas
         let count = 0;
         filas.forEach(fila => {
-            const pill = fila.querySelector('.pill.pendiente, .pill.confirmada, .pill.rechazada');
-            const estadoFila = pill ? pill.classList[1] : '';
-            if (estadoFila === estado) { fila.style.display = ''; count++; }
+            const estadoFila = fila.dataset.estado || '';
+            if (estadoFila === estado) { fila.style.display=''; count++; }
             else fila.style.display = 'none';
         });
         document.querySelector('.badge-count').textContent = count + ' registros';

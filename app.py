@@ -1,5 +1,5 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for
-from models import db, Log, Cita, Consentimiento, Asesor
+from models import db, Log, Cita, Consentimiento, Asesor, seed_examen_config
 from webhook import webhook_bp
 from asesor import asesor_bp
 from config import SECRET_KEY, TOKEN_META
@@ -20,25 +20,30 @@ db.init_app(app)
 app.register_blueprint(webhook_bp)
 app.register_blueprint(asesor_bp)
 app.register_blueprint(admin_bp)
+
 with app.app_context():
     db.create_all()
-    # Crear asesor por defecto si no existe
-    with app.app_context():
-        db.create_all()
-        from sqlalchemy import text
-        with db.engine.connect() as conn:
-            try:
-                conn.execute(text('ALTER TABLE cita ADD COLUMN outlook_event_id VARCHAR(255)'))
-                conn.commit()
-                print("Columna outlook_event_id agregada")
-            except Exception:
-                pass  # Ya existe, ignorar   
+
+    # Migración columna outlook_event_id
+    from sqlalchemy import text
+    with db.engine.connect() as conn:
+        try:
+            conn.execute(text('ALTER TABLE cita ADD COLUMN outlook_event_id VARCHAR(255)'))
+            conn.commit()
+            print("Columna outlook_event_id agregada")
+        except Exception:
+            pass
+
+    # Asesor por defecto
     if not Asesor.query.filter_by(usuario='test').first():
         asesor = Asesor(usuario='test', nombre='asesor test')
         asesor.set_password('cib2025')
         db.session.add(asesor)
         db.session.commit()
         print("Asesor creado: test / cib2025")
+
+    # Config exámenes por defecto
+    seed_examen_config()
 
 
 

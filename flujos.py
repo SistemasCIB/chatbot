@@ -20,7 +20,7 @@ from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, H
 from datetime import datetime, timedelta
 
 sesiones = {}
-MODO_HUMANO_MINUTOS = 3
+MODO_HUMANO_MINUTOS = 3 # cambiar tiempo al solicitado
 
 
 
@@ -116,7 +116,17 @@ def manejar_boton(numero, opcion_id):
             "• Información sobre días y horarios de procedimientos de laboratorio\n"
             "• Entre otros similares\n\n"
             f"Deberán realizarse exclusivamente a través de nuestra línea de WhatsApp: \n{LINK_ASESOR}\n\n"
+            "ℹ️ Otros servicios\n\n"
+            "📚 Fondo editorial CIB\n"
+            f"📲 {LINK_EDITORIAL}\n"
+            "📧 gestorcomercial@cib.org.co\n\n"
+            "🥗 Programa ALIMENTATEC\n"
+            f"📲 {LINK_ALIMENTATEC}\n"
+            "📧 alimentatec@cib.org.co\n\n"
+            "📌 Generalidades\n"
+            "📧 comunicacionesymercadeo@cib.org.co\n\n"
             "Agradecemos su comprensión y colaboración para centralizar la atención y brindarles un mejor servicio."
+
         )
         return
 
@@ -164,7 +174,7 @@ def manejar_boton(numero, opcion_id):
         }
         enviar_texto(
             numero,
-            "📋 Para comenzar, escribe tu número de documento de identidad:"
+            "📋 Para comenzar, escribe tu número de documento de identidad sin puntos ni caracteres especiales para verificar si ya estás registrado:"
         )    
 
         return
@@ -181,25 +191,13 @@ def manejar_boton(numero, opcion_id):
         )
         enviar_menu(numero)
         return
-
-    elif opcion_id == "otros":
+   
+    elif opcion_id == "cancelar":
+        sesiones[numero] = {"flujo": "cancelar", "paso": "cancelar_documento"}
         enviar_texto(
-            numero, 
-            "ℹ️ Otros servicios\n\n"
-            "Si tu solicitud no es sobre citas o resultados, puedes comunicarte según corresponda :\n\n"
-            "📚 Fondo editorial CIB\n"
-            f"📲 {LINK_EDITORIAL}\n"
-            "📧 gestorcomercial@cib.org.co\n\n"
-            "🥗 Programa ALIMENTATEC\n"
-            f"📲 {LINK_ALIMENTATEC}\n"
-            "📧 alimentatec@cib.org.co\n\n"
-            "📌 Generalidades\n"
-            "📧 comunicacionesymercadeo@cib.org.co\n\n"
-            "Gracias por comunicarse con nosotros💙"
-
-
+            numero,
+             "Por favor escribe el número de documento asociado a la cita que deseas cancelar."
         )
-        enviar_menu(numero)
         return
 
     elif opcion_id == "terminar":
@@ -219,7 +217,7 @@ def manejar_boton(numero, opcion_id):
 
         enviar_texto(
             numero,
-            "Escribe tu número de documento:"
+            "Escribe tu número de documento sin puntos ni caracteres especiales:"
         )
         return
 
@@ -265,6 +263,7 @@ def manejar_boton(numero, opcion_id):
             "examen_cryptococcus": "Antigeno cryptococcus",
             "examen_serologia_inmuno": "Serologia hongos",
             "examen_serologia_complemento": "Serologia endemicos",
+            "examen_serologia_completa": "Serologia completa",
             "examen_igra": "IGRAs",
             "examen_ppd": "Tuberculina PPD"
         }
@@ -562,7 +561,7 @@ def manejar_texto(numero, texto):
 
         enviar_texto(
             numero,
-            "Escribe tus nombres y apellidos:"
+            "Escribe tus nombres y apellidos completos tal como aparecen en tu documento de identidad:"
         )
         return
 
@@ -575,7 +574,7 @@ def manejar_texto(numero, texto):
 
         enviar_texto(
             numero,
-            "Escribe tu número de teléfono:"
+            "Escribe tu número de teléfono :"
         )
         return
 
@@ -613,7 +612,90 @@ def manejar_texto(numero, texto):
         enviar_confirmacion_datos(numero)
         return
 
+    # -----------------------------------
+    # FLUJO CANCELAR CITA
+    # -----------------------------------
+    elif paso == "cancelar_documento":
+        documento = texto.strip()
+        paciente = Paciente.query.filter_by(documento=documento).first()
 
+        if not paciente:
+            enviar_texto(numero, "No encontré ninguna cita con ese documento. Verifica el número e intenta de nuevo.")
+            return
+
+        citas = Cita.query.filter_by(
+            paciente_id=paciente.id,
+            estado="pendiente"
+        ).order_by(Cita.fecha_cita).all()
+
+        if not citas:
+            enviar_texto(numero, "No tienes citas activas para cancelar.")
+            del sesiones[numero]
+            enviar_menu(numero)
+            return
+
+        if len(citas) == 1:
+            cita = citas[0]
+            sesiones[numero]["paso"]    = "cancelar_confirmar"
+            sesiones[numero]["cita_id"] = cita.id
+            fecha_str = cita.fecha_cita.strftime("%d/%m/%Y %H:%M") if cita.hora_cita else cita.fecha_cita.strftime("%d/%m/%Y")
+            enviar_texto(
+                numero,
+                f"Encontré tu cita:\n\n"
+                f"📅 *Fecha:* {fecha_str}\n"
+                f"🔬 *Examen:* {cita.tipo_examen}\n"
+                f"🏥 *Tipo:* {cita.tipo_cita}\n\n"
+                "¿Confirmas que deseas cancelarla?\n\n"
+                "Responde *sí* o *no*"
+            )
+        else:
+            sesiones[numero]["paso"]     = "cancelar_elegir"
+            sesiones[numero]["cita_ids"] = [c.id for c in citas]
+            lista = "\n".join(
+                f"{i+1}. {c.fecha_cita.strftime('%d/%m/%Y')} — {c.tipo_examen} ({c.tipo_cita})"
+                for i, c in enumerate(citas)
+            )
+            enviar_texto(numero, f"Tienes varias citas activas:\n\n{lista}\n\nEscribe el número de la que deseas cancelar.")
+        return
+
+    elif paso == "cancelar_elegir":
+        try:
+            idx      = int(texto.strip()) - 1
+            cita_ids = sesiones[numero]["cita_ids"]
+            cita     = Cita.query.get(cita_ids[idx])
+            sesiones[numero]["paso"]    = "cancelar_confirmar"
+            sesiones[numero]["cita_id"] = cita.id
+            fecha_str = cita.fecha_cita.strftime("%d/%m/%Y %H:%M") if cita.hora_cita else cita.fecha_cita.strftime("%d/%m/%Y")
+            enviar_texto(
+                numero,
+                f"Seleccionaste:\n\n"
+                f"📅 *Fecha:* {fecha_str}\n"
+                f"🔬 *Examen:* {cita.tipo_examen}\n\n"
+                "¿Confirmas que deseas cancelarla?\n\n"
+                "Responde *sí* o *no*"
+            )
+        except (ValueError, IndexError):
+            enviar_texto(numero, "Por favor escribe solo el número de la cita de la lista.")
+        return
+
+    elif paso == "cancelar_confirmar":
+        respuesta = texto.strip().lower()
+        if respuesta in ("sí", "si", "s"):
+            try:
+                cita = Cita.query.get(sesiones[numero]["cita_id"])
+                cita.estado = "cancelada"
+                db.session.commit()
+                enviar_texto(numero, "✅ Tu cita ha sido cancelada exitosamente.")
+            except Exception as e:
+                db.session.rollback()
+                agregar_mensajes_log(str(e))
+                enviar_texto(numero, "❌ Ocurrió un error al cancelar la cita. Intenta de nuevo.")
+        else:
+            enviar_texto(numero, "De acuerdo, tu cita no fue cancelada.")
+
+        del sesiones[numero]
+        enviar_menu(numero)
+        return
 
 
     # -----------------------------------
@@ -797,4 +879,3 @@ def confirmar_cita(numero):
         "modo": "humano",
         "modo_humano_inicio": datetime.utcnow()
     }
-

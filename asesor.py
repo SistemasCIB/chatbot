@@ -85,10 +85,6 @@ def panel():
         'asesor.html',
         citas=citas,
         asesor_nombre=session.get('asesor_nombre'),
-        horario_inicio=config.horario_inicio,
-        horario_fin=config.horario_fin,
-        dias_activos=[int(d) for d in config.dias_activos.split(',')],
-        dias_bloqueados=DiasBloqueados.query.order_by(DiasBloqueados.fecha).all(),
         documento_filtro=documento
     )
 

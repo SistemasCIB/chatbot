@@ -168,7 +168,10 @@ REQUISITOS = {
         "No requiere ayuno"
     ],
     "examen_serologia_complemento": [
-        "Requiere ayuno (única prueba de suero que lo exige)"
+        "Requiere ayuno "
+    ],
+    "examen_serologia_completa": [
+        "Requiere ayuno "
     ],
     "examen_igra": [
         "No requiere ayuno"

@@ -21,6 +21,48 @@ class DiasBloqueados(db.Model):
     fecha   = db.Column(db.Date, nullable=False, unique=True)
     motivo  = db.Column(db.String(200), nullable=True)
 
+class ExamenConfig(db.Model):
+    __tablename__ = 'examen_config'
+
+    id               = db.Column(db.Integer, primary_key=True)
+    examen_id        = db.Column(db.String(60), nullable=False, unique=True)
+    # días permitidos como "1,3,4" → martes, jueves, viernes (0=lunes)
+    dias_permitidos  = db.Column(db.String(20), nullable=False, default="1,2,3,4")
+    # mínimo de días de anticipación para agendar
+    min_anticipacion = db.Column(db.Integer, nullable=False, default=2)
+    # máx citas por día para este examen (0 = sin límite propio, usa el global)
+    max_por_dia      = db.Column(db.Integer, nullable=False, default=0)
+    actualizado_en   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def dias_lista(self):
+        return [int(d) for d in self.dias_permitidos.split(',') if d.strip()]
+    
+def seed_examen_config():
+    """Insertar configuración por defecto si no existe."""
+    defaults = {
+        # Micología — mar a vie
+        "examen_directo_hongos":      {"dias": "1,2,3,4", "anticip": 2},
+        "examen_directo_cultivo":     {"dias": "1,2,3,4", "anticip": 2},
+        "examen_galactomanano":       {"dias": "1,2,3,4", "anticip": 2},
+        "examen_cryptococcus":        {"dias": "1,2,3,4", "anticip": 2},
+        "examen_serologia_inmuno":    {"dias": "1,2,3,4", "anticip": 2},
+        "examen_serologia_complemento":{"dias":"1,2,3,4", "anticip": 2},
+        "examen_serologia_completa":  {"dias": "1,2,3,4", "anticip": 2},
+        # Bacteriología
+        "examen_igra":   {"dias": "1,2,3,4", "anticip": 2},
+        # Tuberculina PPD — solo lun, mar, vie (para que lectura 72h no caiga en finde)
+        "examen_ppd":    {"dias": "0,1,4",   "anticip": 2},
+        "examen_otro":   {"dias": "1,2,3,4", "anticip": 2},
+    }
+    for eid, cfg in defaults.items():
+        if not ExamenConfig.query.filter_by(examen_id=eid).first():
+            db.session.add(ExamenConfig(
+                examen_id=eid,
+                dias_permitidos=cfg["dias"],
+                min_anticipacion=cfg["anticip"]
+            ))
+    db.session.commit() 
+    
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
