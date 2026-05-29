@@ -287,12 +287,23 @@ def manejar_boton(numero, opcion_id):
             return
 
         sesiones[numero]["tipo_examen"] = examenes.get(opcion_id)
+
         # Clasificación automática por área
         bacteriologia = ["examen_igra", "examen_ppd"]
-        sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
-        sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"      
-        sesiones[numero]["agenda_tipo"] = "domicilio" 
-        sesiones[numero]["examen_id"]   = opcion_id
+
+        sesiones[numero]["area"] = (
+            "Bacteriología"
+            if opcion_id in bacteriologia
+            else "Micología"
+        )
+
+        sesiones[numero]["agenda_tipo"] = (
+            "bacteriologia"
+            if opcion_id in bacteriologia
+            else "micologia"
+        )
+
+        sesiones[numero]["examen_id"] = opcion_id
         # SOLO PARA HONGOS
         if opcion_id in [
             "examen_directo_hongos",
@@ -344,13 +355,16 @@ def manejar_boton(numero, opcion_id):
         if area == "Bacteriología":
             sesiones[numero]["tipo_cita"]   = "presencial"
             sesiones[numero]["agenda_tipo"] = "bacteriologia"
+        
             sesiones[numero]["paso"]        = "fecha"
             enviar_texto(
                 numero,
                 "ℹ️ Los exámenes de Bacteriología se realizan únicamente de forma presencial."
             )
             mostrar_fechas_disponibles(numero, sesiones)
+
         else:
+            sesiones[numero]["agenda_tipo"] = "micologia"
             sesiones[numero]["paso"] = "tipo_cita"
             enviar_tipo_cita(numero)
         return

@@ -796,8 +796,8 @@ def enviar_tipo_examen(numero):
                             },
                             {
                                 "id": "examen_directo_cultivo",
-                                "title": "fresco o KOH + Cultivo",
-                                "description": "Micosis superficiales y subcutáneas"
+                                "title": "Directo y cultivo para hongos",
+                                "description": "uñas, piel, cuero cabelludo, flujo vaginal"
                             },
                             {
                                 "id": "examen_galactomanano",
