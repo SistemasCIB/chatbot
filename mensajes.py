@@ -796,7 +796,7 @@ def enviar_tipo_examen(numero):
                             },
                             {
                                 "id": "examen_directo_cultivo",
-                                "title": "Directo y cultivo para hongos",
+                                "title": "Directo+Cultivo hongos",
                                 "description": "uñas, piel, cuero cabelludo, flujo vaginal"
                             },
                             {
