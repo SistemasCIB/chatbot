@@ -26,7 +26,7 @@ def _enviar_texto_simple(numero, mensaje):
         pass
     finally:
         connection.close()
-        
+
 def enviar_request(data, numero=None):
     headers = {
         'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ def enviar_texto(numero, mensaje):
         "type": "text",
         "text": {"preview_url": False, "body": mensaje}
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero) 
 
 def enviar_menu(numero):
     data = {
@@ -82,7 +82,7 @@ def enviar_menu(numero):
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero) 
 
 def enviar_bienvenida(numero):
     data = {
@@ -127,7 +127,7 @@ def enviar_bienvenida(numero):
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 def enviar_politica_datos(numero):
     from config import URL_BASE
@@ -171,7 +171,7 @@ def enviar_politica_datos(numero):
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 def enviar_tipo_cita(numero):
     data = {
@@ -213,7 +213,7 @@ Selecciona una opción 👇"""
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 def enviar_requisitos(numero, tipo, tipo_muestra=None):
 
@@ -268,7 +268,7 @@ def enviar_requisitos(numero, tipo, tipo_muestra=None):
         }
     }
 
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 def mostrar_fechas_disponibles(numero, sesiones):
     from datetime import datetime, timedelta
@@ -421,7 +421,7 @@ def mostrar_fechas_disponibles(numero, sesiones):
             "action": {"buttons": botones[:3]}
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero) 
 
 
 # ── Helpers privados ──────────────────────────────────────
@@ -593,7 +593,7 @@ def mostrar_horas_disponibles(numero, sesiones):
                 }
             }
         }
-        enviar_request(data)
+        enviar_request(data, numero=numero) 
 
     # Segundo mensaje: PM
     if rows_pm:
@@ -611,7 +611,7 @@ def mostrar_horas_disponibles(numero, sesiones):
                 }
             }
         }
-        enviar_request(data2)  
+        enviar_request(data2, numero=numero)
 
 def enviar_tipo_documento(numero):
     data = {
@@ -638,7 +638,7 @@ def enviar_tipo_documento(numero):
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 def enviar_fuera_horario(numero):
     from models import DiasBloqueados  # evitar import circular si aplica
@@ -715,7 +715,7 @@ def enviar_tipo_cobertura(numero):
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 
 def enviar_aseguradora(numero):
@@ -766,7 +766,7 @@ def enviar_aseguradora(numero):
             }
         }
     }
-    enviar_request(data)
+    enviar_request(data, numero=numero)
 
 
 def enviar_tipo_examen(numero):
@@ -797,7 +797,7 @@ def enviar_tipo_examen(numero):
                             {
                                 "id": "examen_directo_cultivo",
                                 "title": "fresco o KOH + Cultivo",
-                                "description": "Examen directo y cultivo para hongos de micosis superficiales y subcutáneas"
+                                "description": "Micosis superficiales y subcutáneas"
                             },
                             {
                                 "id": "examen_galactomanano",
@@ -847,7 +847,7 @@ def enviar_tipo_examen(numero):
             }
         }
     }
-    enviar_request(data)    
+    enviar_request(data, numero=numero)    
 
 def enviar_botones_lista(numero, texto, footer, opciones):
 
@@ -883,4 +883,4 @@ def enviar_botones_lista(numero, texto, footer, opciones):
         }
     }
 
-    enviar_request(data)
+    enviar_request(data, numero=numero)
