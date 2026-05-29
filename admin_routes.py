@@ -2,7 +2,7 @@ from datetime import date
 
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, session
 from config import get_config_horario
-from models import Cita, ConfigHorario, DiasBloqueados, Paciente, db, Asesor, Auditoria, ExamenConfig
+from models import Cita, ConfigHorario, DiasBloqueados, Paciente, db, Asesor, Auditoria, ExamenConfig, seed_examen_config
 from functools import wraps
 
 admin_bp = Blueprint('admin', __name__)
@@ -332,6 +332,8 @@ def actualizar_horario():
 @admin_bp.route('/admin/examenes')
 @admin_requerido
 def config_examenes():
+    seed_examen_config()         
+    db.session.commit()           
     configs = ExamenConfig.query.order_by(ExamenConfig.examen_id).all()
     return render_template(
         'admin_examenes.html',
@@ -357,6 +359,7 @@ def guardar_config_examenes():
         cfg.dias_permitidos  = ','.join(str(d) for d in dias) if dias else "1,2,3,4"
         cfg.min_anticipacion = max(1, int(item.get('min_anticipacion', 2)))
         cfg.max_por_dia      = max(0, int(item.get('max_por_dia', 0)))
-
+        cfg.hora_inicio      = item.get('hora_inicio', '07:30')  # ← nuevo
+        cfg.hora_fin         = item.get('hora_fin', '15:30')     # ← nue
     db.session.commit()
     return jsonify({'ok': True})
