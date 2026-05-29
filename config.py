@@ -191,8 +191,8 @@ REQUISITOS = {
 
     # ──── OTROS ────
     "examen_otro": [
-        "Traer orden médica",
-        "Consultar requisitos específicos con el laboratorio"
+        "Traer orden médica(Si aplica)",
+        "El asesor se comunicará con usted para confirmar los requisitos específicos de su examen"
     ],
     "domicilio": [
         "Documento de identidad vigente",

@@ -1,3 +1,4 @@
+from datetime import date
 import http.client
 import json
 from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS, get_config_horario
@@ -47,7 +48,7 @@ def enviar_menu(numero):
                     "rows": [
                         {"id": "agendar",    "title": "Agendar Cita",       "description": "Programa una nueva cita"},
                         {"id": "resultados", "title": "Ver Resultados",      "description": "Consulta el estado o entrega de tus resultados"},
-                        {"id": "otros",      "title": "Otros servicios",     "description": "Informacion sobre nuestros servicios"},
+                        {"id": "cancelar",   "title": "Cancelar Cita",      "description": "Cancelar una cita programada"},
                         {"id": "terminar",   "title": "Finalizar",           "description": "Terminar la conversacion"}
                     ]
                 }]
@@ -244,128 +245,133 @@ def enviar_requisitos(numero, tipo, tipo_muestra=None):
 
 def mostrar_fechas_disponibles(numero, sesiones):
     from datetime import datetime, timedelta
-    from models import Cita
+    from models import Cita, ExamenConfig
+    from festivos import es_festivo
 
-    DIAS_ES = [
-        "Lunes", "Martes", "Miércoles",
-        "Jueves", "Viernes", "Sábado", "Domingo"
-    ]
+    DIAS_ES = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
 
-    tipo = sesiones[numero]["tipo_cita"]
-    hoy = datetime.now()
+    sesion   = sesiones[numero]
+    tipo     = sesion["tipo_cita"]
+    examen_id = sesion.get("examen_id") or _examen_a_id(sesion.get("tipo_examen", ""))
+    hoy      = datetime.now().date()
 
-    dias = []
-    fechas_guardar = {}
+    # Cargar config del examen (o valores por defecto)
+    ecfg = ExamenConfig.query.filter_by(examen_id=examen_id).first()
+    if ecfg:
+        dias_permitidos  = ecfg.dias_lista()
+        min_anticipacion = ecfg.min_anticipacion
+    else:
+        dias_permitidos  = [1, 2, 3, 4]   # mar-vie
+        min_anticipacion = 2
 
-    # =====================================================
-    # 🏥 PRESENCIAL
-    # Máximo 17 citas de martes a viernes
-    # maximo 9 citas los viernes 
-    # Desde 2 días en adelante
-    # agendas independientes por área
-    # =====================================================
+    # Días bloqueados por admin (como conjunto de fechas)
+    from models import DiasBloqueados
+    bloqueados_admin = {
+        r.fecha for r in DiasBloqueados.query.all()
+    }
 
+    dias             = []
+    fechas_guardar   = {}
+
+    # ── PRESENCIAL ────────────────────────────────────────
     if tipo == "presencial":
-
-        area = sesiones[numero].get(
-            "area",
-            "Micología"
-        )
-
-        dia = hoy + timedelta(days=2)
+        area = sesion.get("area", "Micología")
+        dia  = hoy + timedelta(days=min_anticipacion)
 
         while len(dias) < 3:
+            wd = dia.weekday()
 
-            if 1 <= dia.weekday() <= 4:
+            # 1) Día de la semana permitido para este examen
+            if wd not in dias_permitidos:
+                dia += timedelta(days=1)
+                continue
 
-                es_viernes = (dia.weekday() == 4)
+            # 2) No es fin de semana (por si el admin habilitó sábado en otro examen)
+            if wd >= 5:
+                dia += timedelta(days=1)
+                continue
 
-                cupo_maximo = 9 if es_viernes else 17
+            # 3) No es festivo
+            if es_festivo(dia):
+                dia += timedelta(days=1)
+                continue
 
-                ocupadas = Cita.query.filter(
-                    db.func.date(Cita.fecha_cita) == dia.date(),
+            # 4) No está bloqueado por admin
+            if dia in bloqueados_admin:
+                dia += timedelta(days=1)
+                continue
 
-                    Cita.estado.in_([
-                        "pendiente",
-                        "confirmada"
-                    ]),
+            # 5) Validación especial tuberculina/PPD:
+            #    el día de lectura (dia + 3 días hábiles laborables) no debe
+            #    caer en festivo, fin de semana ni día bloqueado.
+            if examen_id == "examen_ppd":
+                lectura = _dia_lectura_ppd(dia, bloqueados_admin)
+                if lectura is None:
+                    dia += timedelta(days=1)
+                    continue
 
-                    Cita.tipo_cita == "presencial",
+            # 6) Cupos
+            es_viernes  = (wd == 4)
+            cupo_maximo = 9 if es_viernes else 17
+            ocupadas = Cita.query.filter(
+                db.func.date(Cita.fecha_cita) == dia,
+                Cita.estado.in_(["pendiente", "confirmada"]),
+                Cita.tipo_cita == "presencial",
+                Cita.area == area
+            ).count()
 
-                    # =====================================================
-                    # CAMBIO:
-                    # separar por área
-                    # =====================================================
-                    Cita.area == area
-
-                ).count()
-
-                if ocupadas < cupo_maximo:
-
-                    texto = (
-                        f"{DIAS_ES[dia.weekday()]} "
-                        f"{dia.strftime('%d/%m/%Y')}"
-                    )
-
-                    dias.append(texto)
-
-                    fechas_guardar[f"fecha_{len(dias)}"] = (
-                        dia.strftime("%d/%m/%Y")
-                    )
+            if ocupadas < cupo_maximo:
+                texto = f"{DIAS_ES[wd]} {dia.strftime('%d/%m/%Y')}"
+                dias.append(texto)
+                fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
 
             dia += timedelta(days=1)
 
-    # =====================================================
-    # 🏠 DOMICILIO
-    # Solo miércoles
-    # Máximo 6 por día
-    # Desde 8 días en adelante
-    # =====================================================
+    # ── DOMICILIO ─────────────────────────────────────────
     else:
-
         inicio = hoy + timedelta(days=8)
-        fin = hoy + timedelta(days=30)
-
-        dia = inicio
+        fin    = hoy + timedelta(days=30)
+        dia    = inicio
 
         while dia <= fin and len(dias) < 3:
+            wd = dia.weekday()
 
-            if dia.weekday() == 2:   # miércoles
+            if wd != 2:          # solo miércoles
+                dia += timedelta(days=1)
+                continue
 
-                ocupadas = Cita.query.filter(
-                    db.func.date(Cita.fecha_cita) == dia.date(),
-                    Cita.estado.in_(["pendiente", "confirmada"]),
-                    Cita.tipo_cita == "domicilio"
-                ).count()
+            if es_festivo(dia) or dia in bloqueados_admin:
+                dia += timedelta(days=1)
+                continue
 
-                if ocupadas < 6:
+            ocupadas = Cita.query.filter(
+                db.func.date(Cita.fecha_cita) == dia,
+                Cita.estado.in_(["pendiente", "confirmada"]),
+                Cita.tipo_cita == "domicilio"
+            ).count()
 
-                    texto = (
-                        f"{DIAS_ES[dia.weekday()]} "
-                        f"{dia.strftime('%d/%m/%Y')}"
-                    )
-
-                    dias.append(texto)
-                    fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
+            if ocupadas < 6:
+                texto = f"{DIAS_ES[wd]} {dia.strftime('%d/%m/%Y')}"
+                dias.append(texto)
+                fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
 
             dia += timedelta(days=1)
 
-    # =====================================================
-    # BOTONES WHATSAPP
-    # =====================================================
-    botones = []
-
-    for i, texto in enumerate(dias):
-
-        botones.append({
-            "type": "reply",
-            "reply": {
-                "id": f"fecha_{i+1}",
-                "title": texto[:20]
-            }
-        })
-
+    # ── Botones WhatsApp ──────────────────────────────────
     sesiones[numero]["fechas"] = fechas_guardar
+
+    if not dias:
+        enviar_texto(
+            numero,
+            "❌ No hay fechas disponibles en los próximos días. "
+            "Por favor contáctanos directamente."
+        )
+        return
+
+    botones = [
+        {"type": "reply", "reply": {"id": f"fecha_{i+1}", "title": t[:20]}}
+        for i, t in enumerate(dias)
+    ]
 
     data = {
         "messaging_product": "whatsapp",
@@ -374,16 +380,45 @@ def mostrar_fechas_disponibles(numero, sesiones):
         "type": "interactive",
         "interactive": {
             "type": "button",
-            "body": {
-                "text": "Selecciona una fecha disponible:"
-            },
-            "action": {
-                "buttons": botones[:3]
-            }
+            "body": {"text": "Selecciona una fecha disponible:"},
+            "action": {"buttons": botones[:3]}
         }
     }
-
     enviar_request(data)
+
+
+# ── Helpers privados ──────────────────────────────────────
+
+def _examen_a_id(nombre: str) -> str:
+    """Fallback: intenta mapear nombre legible → id."""
+    mapa = {
+        "Tuberculina PPD": "examen_ppd",
+        "IGRAs":           "examen_igra",
+    }
+    return mapa.get(nombre, "examen_otro")
+
+
+def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin) -> date | None:
+    """
+    Devuelve la fecha de lectura de la tuberculina (72 h ≈ 3 días hábiles
+    desde la aplicación), o None si esa fecha cae en festivo/bloqueado/finde.
+    Busca hasta 7 días hacia adelante para encontrar una lectura válida.
+    """
+    from festivos import es_festivo
+    from datetime import timedelta
+
+    # La lectura DEBE ser exactamente 72 h después (día + 3 calendario).
+    # Si ese día no es hábil, la cita NO es apta — no se ofrece.
+    lectura = fecha_aplicacion + timedelta(days=3)
+
+    if (
+        lectura.weekday() >= 5          # fin de semana
+        or es_festivo(lectura)
+        or lectura in bloqueados_admin
+    ):
+        return None
+
+    return lectura
 
 def mostrar_horas_disponibles(numero, sesiones):
     from models import Cita
@@ -618,7 +653,8 @@ def enviar_tipo_cobertura(numero):
                     "💳 Tipo de cobertura\n\n"
                     "Para tu cita indícanos:\n\n"
                     "🔹 Particular: Pagas directamente el valor del examen.\n"
-                    "🔹 Póliza: Atención por aseguradora.\n\n"
+                    "🔹 Aseguradora: Atención por Póliza/Prepagada\n\n"
+                    "Nota: no se tienen convenios con EPS/EAPB\n\n"
                     "Selecciona una opción:"
                 )
             },
@@ -635,7 +671,7 @@ def enviar_tipo_cobertura(numero):
                         "type": "reply",
                         "reply": {
                             "id": "cobertura_poliza",
-                            "title": "Poliza"
+                            "title": "Aseguradora"
                         }
                     }
                 ]
@@ -746,6 +782,13 @@ def enviar_tipo_examen(numero):
                                 "title": "Serologia endemicos",
                                 "description": "Fijación complemento"
                             },
+
+                            {
+                                "id": "examen_serologia_completa",
+                                "title": "Serologia completa",
+                                "description": "Prueba de serología completa"
+                            },
+
                             {
                                 "id": "examen_igra",
                                 "title": "IGRAs",

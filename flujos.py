@@ -52,9 +52,10 @@ def verificar_modo_humano(numero):
 # =====================================================
 def enviar_confirmacion_datos(numero):
     sesion = sesiones[numero]
-
     tipo_cita = sesion.get("tipo_cita", "")
-    hora_linea = f"\n📅 *Hora:* {sesion.get('hora_cita', '')}" if tipo_cita == "presencial" else ""
+    area      = sesion.get("area", "")
+
+    hora_linea      = f"\n📅 *Hora:* {sesion.get('hora_cita', '')}" if tipo_cita == "presencial" else ""
     domicilio_linea = f"\n🏠 *Dirección domicilio:* {sesion.get('direccion_domicilio', '')}" if tipo_cita == "domicilio" else ""
 
     enviar_texto(
@@ -62,10 +63,12 @@ def enviar_confirmacion_datos(numero):
         "📋 *Resumen de tu solicitud*\n\n"
         f"👤 *Nombre:* {sesion.get('nombre', '')}\n"
         f"🪪 *Documento:* {sesion.get('tipo_documento', '')} {sesion.get('documento', '')}\n"
+        f"🎂 *Fecha de nacimiento:* {sesion.get('fecha_nacimiento', '')}\n"
         f"📞 *Teléfono:* {sesion.get('telefono', '')}\n"
         f"📧 *Correo:* {sesion.get('correo', '')}\n"
+        f"📍 *Dirección:* {sesion.get('direccion', '')}\n"
         f"🔬 *Examen:* {sesion.get('tipo_examen', '')}\n"
-        f"🧪 *Tipo de muestra:*{sesion.get('tipo_muestra','')}\n"
+        f"🧪 *Tipo de muestra:* {sesion.get('tipo_muestra', '')}\n"
         f"🏥 *Tipo de cita:* {tipo_cita}\n"
         f"📆 *Fecha:* {sesion.get('fecha_cita', '')}"
         f"{hora_linea}"
@@ -73,24 +76,28 @@ def enviar_confirmacion_datos(numero):
         "¿Los datos son correctos?"
     )
 
-    enviar_botones_lista(
-        numero,
-        "Selecciona una opción:",
-        "Verificar datos",
-        [
-            {"id": "confirm_ok",           "title": "✅ Todo está correcto"},
-            {"id": "edit_nombre",          "title": "✏️ Cambiar nombre"},
-            {"id": "edit_documento",       "title": "✏️ Cambiar documento"},
-            {"id": "edit_telefono",        "title": "✏️ Cambiar teléfono"},
-            {"id": "edit_correo",          "title": "✏️ Cambiar correo"},
-            {"id": "edit_examen",          "title": "✏️ Cambiar examen"},
-            {"id": "edit_tipo_muestra",    "title": "✏️ Cambiar tipo de muestra"},
-            {"id": "edit_tipo_cita",       "title": "✏️ Cambiar tipo de cita"},
-            {"id": "edit_fecha",           "title": "✏️ Cambiar fecha"},   
-            {"id": "edit_direccion_domicilio", "title": "✏️ Cambiar dirección domicilio"}
-            
-        ]
-    )
+    botones = [
+        {"id": "confirm_ok",            "title": "✅ Todo está correcto"},
+        {"id": "edit_nombre",           "title": "✏️ Cambiar nombre"},
+        {"id": "edit_documento",        "title": "✏️ Cambiar documento"},
+        {"id": "edit_fecha_nacimiento", "title": "✏️ Cambiar fecha de nacimiento"},
+        {"id": "edit_telefono",         "title": "✏️ Cambiar teléfono"},
+        {"id": "edit_correo",           "title": "✏️ Cambiar correo"},
+        {"id": "edit_examen",           "title": "✏️ Cambiar examen"},
+        {"id": "edit_direccion",        "title": "✏️ Cambiar dirección"},
+        {"id": "edit_tipo_cita",        "title": "✏️ Cambiar tipo de cita"},
+        {"id": "edit_fecha_cita",       "title": "✏️ Cambiar fecha de cita"},
+    ]
+
+    # Solo Micología tiene tipo de muestra
+    if area == "Micología":
+        botones.append({"id": "edit_tipo_muestra", "title": "✏️ Cambiar tipo de muestra"})
+
+    # Solo domicilio tiene dirección de domicilio
+    if tipo_cita == "domicilio":
+        botones.append({"id": "edit_direccion_domicilio", "title": "✏️ Cambiar dirección domicilio"})
+
+    enviar_botones_lista(numero, "Selecciona una opción:", "Verificar datos", botones)
     sesiones[numero]["paso"] = "confirmacion"
 
 def manejar_boton(numero, opcion_id):
@@ -112,7 +119,7 @@ def manejar_boton(numero, opcion_id):
             "Les informamos que a partir de la fecha, todas las comunicaciones o solicitudes relacionadas con:\n"
             "• Estado de resultados\n"
             "• Dudas de remisiones\n"
-            "• Inquietudes sobre tipos y/o requisitos de muestrass\n"
+            "• Inquietudes sobre tipos y/o requisitos de muestras\n"
             "• Información sobre días y horarios de procedimientos de laboratorio\n"
             "• Entre otros similares\n\n"
             f"Deberán realizarse exclusivamente a través de nuestra línea de WhatsApp: \n{LINK_ASESOR}\n\n"
@@ -152,7 +159,7 @@ def manejar_boton(numero, opcion_id):
         enviar_texto(
             numero,
             "👋 Gracias por contactarnos.\n\n"
-            "Para poder atender tu solicitud es necesario aceptar nuestra política de tratamiento de datos.\n\n"
+            "Para poder atender su solicitud es necesario aceptar nuestra política de tratamiento de datos.\n\n"
             "Si en otro momento decides continuar, estaremos atentos para ayudarte\n\n"
             "¡Que tengas un buen día! 💙"
         )
@@ -258,7 +265,7 @@ def manejar_boton(numero, opcion_id):
 
         examenes = {
             "examen_directo_hongos": "Examen directo para hongos",
-            "examen_directo_cultivo": "Hongos + Cultivo",
+            "examen_directo_cultivo": "fresco o KOH + Cultivo",
             "examen_galactomanano": "Antigeno galactomanan",
             "examen_cryptococcus": "Antigeno cryptococcus",
             "examen_serologia_inmuno": "Serologia hongos",
@@ -270,6 +277,7 @@ def manejar_boton(numero, opcion_id):
 
         if opcion_id == "examen_otro":
             sesiones[numero]["area"] = "Por definir" 
+            sesiones[numero]["examen_id"] = "examen_otro"
             sesiones[numero]["paso"] = "examen_otro_texto"
 
             enviar_texto(
@@ -283,8 +291,7 @@ def manejar_boton(numero, opcion_id):
         bacteriologia = ["examen_igra", "examen_ppd"]
         sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
         sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"       
-        sesiones[numero]["agenda_tipo"] = "domicilio"
-
+        sesiones[numero]["examen_id"]   = opcion_id
         # SOLO PARA HONGOS
         if opcion_id in [
             "examen_directo_hongos",
@@ -330,12 +337,21 @@ def manejar_boton(numero, opcion_id):
 
     # -----------------------------------
     # PASO 4 - REQUISITOS: después de examen
-    # -----------------------------------
     elif opcion_id == "cumple_si":
-        # FLUJO: después de requisitos → tipo_cita
-        sesiones[numero]["paso"] = "tipo_cita"
+        area = sesiones[numero].get("area", "")
 
-        enviar_tipo_cita(numero)
+        if area == "Bacteriología":
+            sesiones[numero]["tipo_cita"]   = "presencial"
+            sesiones[numero]["agenda_tipo"] = "bacteriologia"
+            sesiones[numero]["paso"]        = "fecha"
+            enviar_texto(
+                numero,
+                "ℹ️ Los exámenes de Bacteriología se realizan únicamente de forma presencial."
+            )
+            mostrar_fechas_disponibles(numero, sesiones)
+        else:
+            sesiones[numero]["paso"] = "tipo_cita"
+            enviar_tipo_cita(numero)
         return
     elif opcion_id == "cumple_no":
         enviar_texto(
@@ -473,32 +489,54 @@ def manejar_boton(numero, opcion_id):
             return
 
     elif opcion_id.startswith("edit_"):
-        campo = opcion_id.replace("edit_", "")
+            campo = opcion_id.replace("edit_", "")
 
-        mensajes = {
-            "nombre":    "Escribe tus nombres y apellidos:",
-            "documento": "Escribe tu número de documento:",
-            "telefono":  "Escribe tu número de teléfono:",
-            "correo":    "Escribe tu correo electrónico:",
-        }
+            mensajes = {
+                "nombre":              "Escribe tus nombres y apellidos:",
+                "documento":           "Escribe tu número de documento:",
+                "fecha_nacimiento":    "Escribe tu fecha de nacimiento (DD/MM/AAAA):",
+                "telefono":            "Escribe tu número de teléfono:",
+                "correo":              "Escribe tu correo electrónico:",
+                "direccion":           "Escribe tu dirección completa:",
+                "direccion_domicilio": "Escribe la dirección completa para el domicilio:",
+            }
 
-        if campo in mensajes:
-            sesiones[numero]["paso"] = f"editar_{campo}"
-            enviar_texto(numero, mensajes[campo])
+            if campo in mensajes:
+                sesiones[numero]["paso"] = f"editar_{campo}"
+                enviar_texto(numero, mensajes[campo])
 
-        elif campo == "examen":
-            sesiones[numero]["paso"] = "tipo_examen"
-            enviar_tipo_examen(numero)
+            elif campo == "tipo_muestra":                    # ← NUEVO
+                sesiones[numero]["paso"] = "tipo_muestra"
+                enviar_botones_lista(
+                    numero,
+                    "🧪 ¿De qué tipo de muestra es el examen?",
+                    "Selecciona una opción",
+                    [
+                        {"id": "muestra_unas",  "title": "Uñas"},
+                        {"id": "muestra_piel",  "title": "Piel"},
+                        {"id": "muestra_cuero", "title": "Cuero cabelludo"},
+                        {"id": "muestra_flujo", "title": "Flujo vaginal"},
+                    ]
+                )
 
-        elif campo == "tipo_cita":
-            sesiones[numero]["paso"] = "tipo_cita"
-            enviar_tipo_cita(numero)
+            elif campo == "examen":
+                sesiones[numero]["paso"] = "tipo_examen"
+                enviar_tipo_examen(numero)
 
-        elif campo == "fecha":
-            sesiones[numero]["paso"] = "fecha"
-            mostrar_fechas_disponibles(numero, sesiones)
+            elif campo == "tipo_cita":                       # ← MODIFICADO
+                area = sesiones[numero].get("area", "")
+                if area == "Bacteriología":
+                    enviar_texto(numero, "ℹ️ Los exámenes de Bacteriología solo se realizan de forma presencial.")
+                    enviar_confirmacion_datos(numero)
+                else:
+                    sesiones[numero]["paso"] = "tipo_cita"
+                    enviar_tipo_cita(numero)
 
-        return    
+            elif campo == "fecha_cita":
+                sesiones[numero]["paso"] = "fecha"
+                mostrar_fechas_disponibles(numero, sesiones)
+
+            return   
 
 # =====================================================
 # MENSAJES TEXTO
@@ -540,8 +578,10 @@ def manejar_texto(numero, texto):
             sesiones[numero]["tipo_documento"] = paciente.tipo_documento
             sesiones[numero]["documento"]      = paciente.documento
             sesiones[numero]["nombre"]         = paciente.nombre
+            sesiones[numero]["fecha_nacimiento"] = paciente.fecha_nacimiento.strftime("%d/%m/%Y") if paciente.fecha_nacimiento else ""
             sesiones[numero]["telefono"]       = paciente.telefono
             sesiones[numero]["correo"]         = paciente.correo
+            sesiones[numero]["direccion"]      = paciente.direccion
             sesiones[numero]["paso"]           = "cobertura"
 
             enviar_texto(
@@ -587,14 +627,38 @@ def manejar_texto(numero, texto):
     # -----------------------------------
     elif paso == "nombre":
         sesiones[numero]["nombre"] = texto
-        sesiones[numero]["paso"] = "telefono"
+        sesiones[numero]["paso"] = "fecha_nacimiento"
 
         enviar_texto(
             numero,
-            "Escribe tu número de teléfono :"
+            "Escribe tu fecha de nacimiento (DD/MM/AAAA):"
         )
         return
 
+    # -----------------------------------
+    # DATOS PACIENTE: fecha de nacimiento
+    # -----------------------------------
+    elif paso == "fecha_nacimiento":
+
+        try:
+            fecha = datetime.strptime(texto.strip(), "%d/%m/%Y")
+
+            sesiones[numero]["fecha_nacimiento"] = fecha.strftime("%d/%m/%Y")
+            sesiones[numero]["paso"] = "telefono"
+
+            enviar_texto(
+                numero,
+                "Escribe tu número de teléfono:"
+            )
+
+        except ValueError:
+
+            enviar_texto(
+                numero,
+                "❌ Fecha inválida.\n\nUsa el formato DD/MM/AAAA.\nEjemplo: 25/12/1998"
+            )
+
+        return
     # -----------------------------------
     # DATOS PACIENTE: teléfono
     # -----------------------------------
@@ -612,14 +676,25 @@ def manejar_texto(numero, texto):
     # DATOS PACIENTE: correo
     # -----------------------------------
     elif paso == "correo":
+
         sesiones[numero]["correo"] = texto
+        sesiones[numero]["paso"] = "direccion"
+
+        enviar_texto(
+            numero,
+            "📍 Por favor escribe la dirección del paciente."
+            
+        )
+        return
+
+    elif paso == "direccion":
+
+        sesiones[numero]["direccion"] = texto
         sesiones[numero]["paso"] = "cobertura"
 
         enviar_tipo_cobertura(numero)
         return
-
- 
-   
+    
     # -----------------------------------
     #DIRECION DOMICILIO
     # -----------------------------------
@@ -811,7 +886,7 @@ def confirmar_cita(numero):
         # ---------------------------------
         fecha_texto = (sesion.get("fecha_cita") or "").strip() 
         hora_texto  = (sesion.get("hora_cita") or "").strip()
-
+      
         if hora_texto:
             fecha_real = datetime.strptime(
                 f"{fecha_texto} {hora_texto}",
@@ -823,6 +898,21 @@ def confirmar_cita(numero):
                 "%d/%m/%Y"
             )
 
+        fecha_nacimiento_texto = (sesion.get("fecha_nacimiento") or "").strip()
+
+        fecha_nacimiento = None
+        if fecha_nacimiento_texto:
+            try:
+                fecha_nacimiento = datetime.strptime(
+                    fecha_nacimiento_texto,
+                    "%d/%m/%Y"
+                ).date()
+            except ValueError:
+                enviar_texto(
+                    numero,
+                    "❌ Fecha de nacimiento inválida. Usa el formato DD/MM/AAAA."
+                )
+                return
         # ---------------------------------
         # PACIENTE — busca o crea
         # ---------------------------------
@@ -835,13 +925,19 @@ def confirmar_cita(numero):
                 tipo_documento=sesion.get("tipo_documento", ""),
                 documento=sesion.get("documento", ""),
                 nombre=sesion.get("nombre", ""),
+                fecha_nacimiento=fecha_nacimiento,
                 telefono=sesion.get("telefono", ""),
                 correo=sesion.get("correo", ""),
+                direccion=sesion.get("direccion", ""),
                 numero_whatsapp=numero
             )
             db.session.add(paciente)
             db.session.flush()  # obtiene paciente.id sin commit
-
+        else:
+            # ← agregar esto
+            paciente.telefono  = sesion.get("telefono", paciente.telefono)
+            paciente.correo    = sesion.get("correo", paciente.correo)
+            paciente.direccion = sesion.get("direccion", paciente.direccion)
         # ---------------------------------
         # CITA
         # ---------------------------------

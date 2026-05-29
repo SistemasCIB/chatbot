@@ -62,7 +62,7 @@ def seed_examen_config():
                 min_anticipacion=cfg["anticip"]
             ))
     db.session.commit() 
-    
+
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
@@ -73,8 +73,10 @@ class Paciente(db.Model):
     tipo_documento = db.Column(db.String(20))
     documento = db.Column(db.String(50), unique=True, index=True)
     nombre = db.Column(db.String(100))
+    fecha_nacimiento = db.Column(db.Date)
     telefono = db.Column(db.String(20))
     correo = db.Column(db.String(100))
+    direccion = db.Column(db.String(300))
     numero_whatsapp = db.Column(db.String(20))
     creado_en = db.Column(db.DateTime, default=datetime.utcnow)
 
