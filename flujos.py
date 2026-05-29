@@ -20,7 +20,7 @@ from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, H
 from datetime import datetime, timedelta
 
 sesiones = {}
-MODO_HUMANO_MINUTOS = 3 # cambiar tiempo al solicitado
+MODO_HUMANO_MINUTOS = 1# cambiar tiempo al solicitado
 
 
 
@@ -290,7 +290,8 @@ def manejar_boton(numero, opcion_id):
         # Clasificación automática por área
         bacteriologia = ["examen_igra", "examen_ppd"]
         sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
-        sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"       
+        sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"      
+        sesiones[numero]["agenda_tipo"] = "domicilio" 
         sesiones[numero]["examen_id"]   = opcion_id
         # SOLO PARA HONGOS
         if opcion_id in [
@@ -558,18 +559,35 @@ def manejar_texto(numero, texto):
     # EDICIÓN DESDE CONFIRMACIÓN
     # -----------------------------------
     if paso and paso.startswith("editar_"):
+
         campo = paso.replace("editar_", "")
-        sesiones[numero][campo] = texto
+
+        if campo == "fecha_nacimiento":
+
+            try:
+                fecha = datetime.strptime(texto.strip(), "%d/%m/%Y")
+                sesiones[numero][campo] = fecha.strftime("%d/%m/%Y")
+
+            except ValueError:
+                enviar_texto(
+                    numero,
+                    "❌ Fecha inválida.\nUsa DD/MM/AAAA"
+                )
+                return
+
+        else:
+            sesiones[numero][campo] = texto
+
         sesiones[numero]["paso"] = "confirmacion"
-        enviar_texto(numero, f"✅ Dato actualizado correctamente.")
+
+        enviar_texto(numero, "✅ Dato actualizado correctamente.")
         enviar_confirmacion_datos(numero)
-        return    
+        return 
 
     # -----------------------------------
     # BUSCAR PACIENTE POR DOCUMENTO
     # -----------------------------------
     if paso == "buscar_documento":
-        from models import Paciente
 
         paciente = Paciente.query.filter_by(documento=texto.strip()).first()
 
@@ -659,6 +677,7 @@ def manejar_texto(numero, texto):
             )
 
         return
+
     # -----------------------------------
     # DATOS PACIENTE: teléfono
     # -----------------------------------
@@ -938,6 +957,7 @@ def confirmar_cita(numero):
             paciente.telefono  = sesion.get("telefono", paciente.telefono)
             paciente.correo    = sesion.get("correo", paciente.correo)
             paciente.direccion = sesion.get("direccion", paciente.direccion)
+            paciente.fecha_nacimiento = fecha_nacimiento or paciente.fecha_nacimiento
         # ---------------------------------
         # CITA
         # ---------------------------------

@@ -40,7 +40,7 @@ def enviar_menu(numero):
         "type": "interactive",
         "interactive": {
             "type": "list",
-            "body": {"text": "En que podemos ayudarte hoy?"},
+            "body": {"text": "¿En qué te podemos ayudar?"},
             "action": {
                 "button": "Ver opciones",
                 "sections": [{
@@ -158,7 +158,7 @@ def enviar_tipo_cita(numero):
                 "text": """¿Qué tipo de cita necesitas?
 
 🏥 *Presencial*
-🗓️ Martes a jueves: 7:30 a.m. a 3:30 p.m.
+🗓️ lunes a jueves: 7:30 a.m. a 3:30 p.m.
 🗓️ Viernes: 7:30 a.m. a 11:30 a.m.
 
 🏠 *Domicilio*
@@ -261,7 +261,7 @@ def mostrar_fechas_disponibles(numero, sesiones):
         dias_permitidos  = ecfg.dias_lista()
         min_anticipacion = ecfg.min_anticipacion
     else:
-        dias_permitidos  = [1, 2, 3, 4]   # mar-vie
+        dias_permitidos  = [0, 1, 2, 3, 4]   # lunes-vie
         min_anticipacion = 2
 
     # Días bloqueados por admin (como conjunto de fechas)
@@ -277,6 +277,16 @@ def mostrar_fechas_disponibles(numero, sesiones):
     if tipo == "presencial":
         area = sesion.get("area", "Micología")
         dia  = hoy + timedelta(days=min_anticipacion)
+
+        #  después de calcular dia:
+        if dia.weekday() == 5:          # sábado → lunes
+            dia += timedelta(days=2)
+        elif dia.weekday() == 6:        # domingo → lunes
+            dia += timedelta(days=1)
+
+        if hoy.weekday() == 4:          # hoy es viernes → mínimo miércoles
+            while dia.weekday() < 2:    # saltar lunes(0) y martes(1)
+                dia += timedelta(days=1)
 
         while len(dias) < 3:
             wd = dia.weekday()
@@ -759,8 +769,8 @@ def enviar_tipo_examen(numero):
                             },
                             {
                                 "id": "examen_directo_cultivo",
-                                "title": "Hongos + Cultivo",
-                                "description": "Micosis superficiales y subcutaneas"
+                                "title": "fresco o KOH + Cultivo",
+                                "description": "Examen directo y cultivo para hongos de micosis superficiales y subcutáneas"
                             },
                             {
                                 "id": "examen_galactomanano",
