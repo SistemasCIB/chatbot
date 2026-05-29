@@ -973,9 +973,15 @@ def confirmar_cita(numero):
             paciente.correo    = sesion.get("correo", paciente.correo)
             paciente.direccion = sesion.get("direccion", paciente.direccion)
             paciente.fecha_nacimiento = fecha_nacimiento or paciente.fecha_nacimiento
+
         # ---------------------------------
         # CITA
         # ---------------------------------
+        agregar_mensajes_log(
+            f"DEBUG confirmar_cita | area={sesion.get('area')} | "
+            f"agenda_tipo={sesion.get('agenda_tipo')} | "
+            f"examen={sesion.get('tipo_examen')}"
+        )
         cita = Cita(
             paciente_id=paciente.id,
             tipo_cita=sesion.get("tipo_cita", ""),
