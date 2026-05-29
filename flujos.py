@@ -290,20 +290,10 @@ def manejar_boton(numero, opcion_id):
 
         # Clasificación automática por área
         bacteriologia = ["examen_igra", "examen_ppd"]
+        sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
+        sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"       
+        sesiones[numero]["examen_id"]   = opcion_id
 
-        sesiones[numero]["area"] = (
-            "Bacteriología"
-            if opcion_id in bacteriologia
-            else "Micología"
-        )
-
-        sesiones[numero]["agenda_tipo"] = (
-            "bacteriologia"
-            if opcion_id in bacteriologia
-            else "micologia"
-        )
-
-        sesiones[numero]["examen_id"] = opcion_id
         # SOLO PARA HONGOS
         if opcion_id in [
             "examen_directo_hongos",
@@ -365,10 +355,10 @@ def manejar_boton(numero, opcion_id):
             return 
 
         else:
-            sesiones[numero]["agenda_tipo"] = "micologia"
+           
             sesiones[numero]["paso"] = "tipo_cita"
             enviar_tipo_cita(numero)
-        return
+            return
     elif opcion_id == "cumple_no":
         enviar_texto(
             numero,
