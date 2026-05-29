@@ -44,7 +44,7 @@ with app.app_context():
 
     # Config exámenes por defecto
     seed_examen_config()
-
+    db.session.commit()
 
 
 @app.teardown_appcontext

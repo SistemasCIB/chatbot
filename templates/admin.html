@@ -933,6 +933,9 @@ tbody tr:last-child td{ border-bottom:none; }
             <th>Jue</th>
             <th>Vie</th>
             <th>Anticipación</th>
+            <th>Cupos/día</th>      <!-- ← nuevo -->
+            <th>Hora inicio</th>    <!-- ← nuevo -->
+            <th>Hora fin</th>    <!-- ← nuevo -->           
           </tr>
         </thead>
 
@@ -976,7 +979,24 @@ tbody tr:last-child td{ border-bottom:none; }
                      ">
 
             </td>
-
+            <td>
+                <input type="number" class="max-input"
+                        value="{{ cfg.max_por_dia }}" min="0" max="99"
+                        style="width:70px;padding:8px;border-radius:8px;
+                                border:1px solid var(--border);font-family:'Outfit',sans-serif;">
+            </td>
+            <td>
+                <input type="time" class="hora-inicio-input"
+                        value="{{ cfg.hora_inicio }}"
+                        style="padding:8px;border-radius:8px;
+                                border:1px solid var(--border);font-family:'Outfit',sans-serif;">
+            </td>
+            <td>
+                <input type="time" class="hora-fin-input"
+                        value="{{ cfg.hora_fin }}"
+                        style="padding:8px;border-radius:8px;
+                                border:1px solid var(--border);font-family:'Outfit',sans-serif;">
+            </td>
           </tr>
           {% endfor %}
 
@@ -1192,8 +1212,10 @@ async function guardarExamenes() {
             .map(c => parseInt(c.value)),
 
         min_anticipacion:
-            parseInt(row.querySelector('.anticip-input').value)
-
+            parseInt(row.querySelector('.anticip-input').value),
+        max_por_dia:      parseInt(row.querySelector('.max-input').value) || 0,      // ← nuevo
+        hora_inicio:      row.querySelector('.hora-inicio-input').value || '07:30',  // ← nuevo
+        hora_fin:         row.querySelector('.hora-fin-input').value    || '15:30',  // ← nuevo
     }));
 
     msg.textContent = 'Guardando...';

@@ -342,14 +342,17 @@ def mostrar_fechas_disponibles(numero, sesiones):
             #    el día de lectura (dia + 3 días hábiles laborables) no debe
             #    caer en festivo, fin de semana ni día bloqueado.
             if examen_id == "examen_ppd":
-                lectura = _dia_lectura_ppd(dia, bloqueados_admin)
+                lectura = _dia_lectura_ppd(dia, bloqueados_admin, dias_permitidos)
                 if lectura is None:
                     dia += timedelta(days=1)
                     continue
 
             # 6) Cupos
             es_viernes  = (wd == 4)
-            cupo_maximo = 9 if es_viernes else 17
+            if ecfg and ecfg.max_por_dia > 0:
+                cupo_maximo = ecfg.max_por_dia
+            else:
+                cupo_maximo = 17 if es_viernes else 9
             ocupadas = Cita.query.filter(
                 db.func.date(Cita.fecha_cita) == dia,
                 Cita.estado.in_(["pendiente", "confirmada"]),
@@ -435,21 +438,16 @@ def _examen_a_id(nombre: str) -> str:
     return mapa.get(nombre, "examen_otro")
 
 
-def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin) -> date | None:
-    """
-    Devuelve la fecha de lectura de la tuberculina (72 h ≈ 3 días hábiles
-    desde la aplicación), o None si esa fecha cae en festivo/bloqueado/finde.
-    Busca hasta 7 días hacia adelante para encontrar una lectura válida.
-    """
+def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin, dias_permitidos) -> date | None:
     from festivos import es_festivo
     from datetime import timedelta
 
-    # La lectura DEBE ser exactamente 72 h después (día + 3 calendario).
-    # Si ese día no es hábil, la cita NO es apta — no se ofrece.
+    # Lectura exacta: aplicación + 3 días calendario
     lectura = fecha_aplicacion + timedelta(days=3)
 
     if (
-        lectura.weekday() >= 5          # fin de semana
+        lectura.weekday() >= 5            # fin de semana
+        or lectura.weekday() not in dias_permitidos  # ← día no habilitado por admin
         or es_festivo(lectura)
         or lectura in bloqueados_admin
     ):
@@ -458,85 +456,44 @@ def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin) -> date | None:
     return lectura
 
 def mostrar_horas_disponibles(numero, sesiones):
-    from models import Cita
+    from models import Cita, ExamenConfig
     from datetime import datetime
 
-    fecha = sesiones[numero]["fecha_cita"]
-    fecha_dt = datetime.strptime(fecha, "%d/%m/%Y")
-
+    fecha     = sesiones[numero]["fecha_cita"]
+    fecha_dt  = datetime.strptime(fecha, "%d/%m/%Y")
     es_viernes = (fecha_dt.weekday() == 4)
-    # horas los viernes
+    area      = sesiones[numero].get("area", "Micología")
+    examen_id = sesiones[numero].get("examen_id") or _examen_a_id(sesiones[numero].get("tipo_examen", ""))
+
+    # Cargar config del examen
+    ecfg = ExamenConfig.query.filter_by(examen_id=examen_id).first()
+    h_ini = ecfg.hora_inicio if ecfg else "07:30"
+    h_fin = ecfg.hora_fin    if ecfg else "15:30"
+
+    # Generar todas las horas en intervalos de 30 min dentro del rango
+    todas = []
+    t = datetime.strptime(h_ini, "%H:%M")
+    tope = datetime.strptime(h_fin, "%H:%M")
+    while t <= tope:
+        todas.append(t.strftime("%H:%M"))
+        t = t.replace(minute=t.minute + 30) if t.minute == 0 else t.replace(hour=t.hour + 1, minute=0)
+
+    # Viernes: solo hasta 11:30 si el rango lo permite
     if es_viernes:
-        horas = [
-            "07:30",
-            "08:00",
-            "08:30",
-            "09:00",
-            "09:30",
-            "10:00",
-            "10:30",
-            "11:00",
-            "11:30"
-        ]
-    else:
-        horas = [
-            "07:30",
-            "08:00",
-            "08:30",
-            "09:00",
-            "09:30",
-            "10:00",
-            "10:30",
-            "11:00",
-            "11:30",
-            "12:00",
-            "12:30",
-            "13:00",
-            "13:30",
-            "14:00",            
-            "14:30",
-            "15:00",    
-            "15:30"   
-        ]
+        tope_viernes = datetime.strptime("11:30", "%H:%M")
+        todas = [h for h in todas if datetime.strptime(h, "%H:%M") <= tope_viernes]
 
-    # -----------------------------------
-    # Horas ocupadas (pendiente o confirmada)
-    # CAMBIO:
-    # horas ocupadas SOLO para la misma área
-    # =====================================================
-
-    area = sesiones[numero].get(
-        "area",
-        "Micología"
-    )
-
-    ocupadas = db.session.query(
-        Cita.hora_cita
-    ).filter(
-
+    # Horas ocupadas para esta fecha y área
+    ocupadas = db.session.query(Cita.hora_cita).filter(
         db.func.date(Cita.fecha_cita) == fecha_dt.date(),
-
         Cita.tipo_cita == "presencial",
-
-        # =====================================================
-        # CAMBIO:
-        # separar horarios por área
-        # =====================================================
         Cita.area == area,
-
-        Cita.estado.in_([
-            "pendiente",
-            "confirmada"
-        ])
-
+        Cita.estado.in_(["pendiente", "confirmada"])
     ).all()
-
     ocupadas = [h[0] for h in ocupadas]
 
-    # -----------------------------------
-    # Solo libres
-    # -----------------------------------
-    libres = [h for h in horas if h not in ocupadas]
+    libres = [h for h in todas if h not in ocupadas]
+    # ... resto igual
 
     if not libres:
         enviar_texto(

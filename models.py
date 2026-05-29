@@ -32,6 +32,8 @@ class ExamenConfig(db.Model):
     min_anticipacion = db.Column(db.Integer, nullable=False, default=2)
     # máx citas por día para este examen (0 = sin límite propio, usa el global)
     max_por_dia      = db.Column(db.Integer, nullable=False, default=0)
+    hora_inicio      = db.Column(db.String(5), nullable=False, default="07:30")  # ← nuevo
+    hora_fin         = db.Column(db.String(5), nullable=False, default="15:30")  # ← nuevo    
     actualizado_en   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def dias_lista(self):
@@ -40,28 +42,28 @@ class ExamenConfig(db.Model):
 def seed_examen_config():
     """Insertar configuración por defecto si no existe."""
     defaults = {
-        # Micología — mar a vie
-        "examen_directo_hongos":      {"dias": "1,2,3,4", "anticip": 2},
-        "examen_directo_cultivo":     {"dias": "1,2,3,4", "anticip": 2},
-        "examen_galactomanano":       {"dias": "1,2,3,4", "anticip": 2},
-        "examen_cryptococcus":        {"dias": "1,2,3,4", "anticip": 2},
-        "examen_serologia_inmuno":    {"dias": "1,2,3,4", "anticip": 2},
-        "examen_serologia_complemento":{"dias":"1,2,3,4", "anticip": 2},
-        "examen_serologia_completa":  {"dias": "1,2,3,4", "anticip": 2},
-        # Bacteriología
-        "examen_igra":   {"dias": "1,2,3,4", "anticip": 2},
-        # Tuberculina PPD — solo lun, mar, vie (para que lectura 72h no caiga en finde)
-        "examen_ppd":    {"dias": "0,1,4",   "anticip": 2},
-        "examen_otro":   {"dias": "1,2,3,4", "anticip": 2},
+        "examen_directo_hongos":       {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_directo_cultivo":      {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_galactomanano":        {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_cryptococcus":         {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_serologia_inmuno":     {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_serologia_complemento":{"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_serologia_completa":   {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
+        "examen_igra":                 {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "10:00"},  # bacteriología AM
+        "examen_ppd":                  {"dias": "0,1,4",   "anticip": 2, "h_ini": "07:30", "h_fin": "10:00"},  # bacteriología AM
+        "examen_otro":                 {"dias": "1,2,3,4", "anticip": 2, "h_ini": "07:30", "h_fin": "15:30"},
     }
+
     for eid, cfg in defaults.items():
         if not ExamenConfig.query.filter_by(examen_id=eid).first():
             db.session.add(ExamenConfig(
                 examen_id=eid,
                 dias_permitidos=cfg["dias"],
-                min_anticipacion=cfg["anticip"]
+                min_anticipacion=cfg["anticip"],
+                max_por_dia=0, 
+                hora_inicio=cfg["h_ini"],
+                hora_fin=cfg["h_fin"]
             ))
-    db.session.commit() 
 
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -362,6 +362,7 @@ def manejar_boton(numero, opcion_id):
                 "ℹ️ Los exámenes de Bacteriología se realizan únicamente de forma presencial."
             )
             mostrar_fechas_disponibles(numero, sesiones)
+            return 
 
         else:
             sesiones[numero]["agenda_tipo"] = "micologia"
