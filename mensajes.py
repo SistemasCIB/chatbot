@@ -5,7 +5,29 @@ from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORAR
 
 from models import agregar_mensajes_log, db, Cita
 
-def enviar_request(data):
+def _enviar_texto_simple(numero, mensaje):
+    """Envío de emergencia — no llama a enviar_request para evitar recursión."""
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {TOKEN_META}'
+    }
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": numero,
+        "type": "text",
+        "text": {"preview_url": False, "body": mensaje}
+    }
+    connection = http.client.HTTPSConnection('graph.facebook.com')
+    try:
+        connection.request('POST', f'/v25.0/{PHONE_NUMBER_ID}/messages', json.dumps(data), headers)
+        connection.getresponse().read()
+    except:
+        pass
+    finally:
+        connection.close()
+        
+def enviar_request(data, numero=None):
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {TOKEN_META}'
@@ -17,6 +39,11 @@ def enviar_request(data):
         body = response.read()
         if response.status != 200:
             agregar_mensajes_log(f"Error envio | {response.status} {response.reason} | {body.decode('utf-8', errors='replace')}")
+
+            # ── NUEVO: avisar al usuario si tenemos su número ──
+            if numero:
+                _enviar_texto_simple(numero, "⚠️ Ocurrió un error técnico. Por favor escribe *hola* para reiniciar.")
+
     except Exception as e:
         agregar_mensajes_log(f"Error envio: {str(e)}")
     finally:
@@ -716,7 +743,7 @@ def enviar_aseguradora(numero):
                             {
                                 "id": "seg_sura",
                                 "title": "Poliza Sura",
-                                "description": "No incluye plan complementario"
+                                "description": "Sin complementario"
                             },
                             {
                                 "id": "seg_coomeva",

@@ -216,7 +216,14 @@
                     <input type="text" name="telefono" id="telefono"
                         value="{{ cita.paciente.telefono if cita else '' }}" required>
                 </div>
-
+                <div class="campo">
+                    <label>Fecha de nacimiento</label>
+                    <input 
+                        type="date" 
+                        name="fecha_nacimiento"
+                        value="{% if cita and cita.paciente.fecha_nacimiento %}{{ cita.paciente.fecha_nacimiento.strftime('%Y-%m-%d') }}{% endif %}"
+                    >
+                </div>
                 <div class="campo campo-full">
                     <label>Correo</label>
                     <input type="email" name="correo"
