@@ -445,7 +445,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
             <table>
                 <thead>
                     <tr>
-                        <th>#</th><th>Paciente</th><th>Documento</th><th>Teléfono</th>
+                        <th>#</th><th>Paciente</th><th>Documento</th><th>Fecha de nacimiento</th><th>Teléfono</th>
                         <th>Tipo cita</th><th>Dirección domicilio</th><th>Orden</th>
                         <th>Fecha</th><th>Hora</th><th>Cobertura</th><th>Póliza</th>
                         <th>Examen</th><th>Área</th><th>Muestra</th><th>Estado</th>
@@ -463,6 +463,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                         </div>
                     </td>
                     <td>{{ c.paciente.documento }}</td>
+                    <td>{{ c.paciente.fecha_nacimiento.strftime('%d/%m/%Y') if c.paciente.fecha_nacimiento else '—' }}</td>
                     <td>{{ c.paciente.telefono }}</td>
                     <td><span class="pill {{ c.tipo_cita }}">{{ c.tipo_cita.capitalize() }}</span></td>
                     <td style="max-width:180px;font-size:11.5px;color:var(--muted)">
