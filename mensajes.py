@@ -229,10 +229,7 @@ def enviar_requisitos(numero, tipo, tipo_muestra=None):
 
     lista = "\n".join([f"- {r}" for r in requisitos])
 
-    horario = (
-        f"Horario de atencion: "
-        f"Lunes a viernes de {HORARIO_INICIO}am a {HORARIO_FIN}pm"
-    )
+
 
     data = {
         "messaging_product": "whatsapp",
@@ -700,7 +697,7 @@ def enviar_aseguradora(numero):
                             {
                                 "id": "seg_sura",
                                 "title": "Poliza Sura",
-                                "description": "Sin complementario"
+                                "description": "Sin plan complementario"
                             },
                             {
                                 "id": "seg_coomeva",
