@@ -615,6 +615,11 @@ def manejar_texto(numero, texto):
             enviar_tipo_cobertura(numero)
 
         else:
+            enviar_texto(
+                numero,
+                "📋 No encontramos tu documento en nuestro sistema.\n"
+                "Vamos a registrar tus datos."
+            )
             # Paciente nuevo — pedir datos completos
             sesiones[numero]["paso"] = "tipo_documento"
             enviar_tipo_documento(numero)

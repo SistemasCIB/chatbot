@@ -212,7 +212,7 @@
                 <tbody>
                     {% for c in citas %}
                     <tr>
-                        <td><strong>{{ c.nombre }}</strong></td>
+                        <td><strong>{{ c.paciente.nombre }}</strong></td>
                         <td>{{ c.paciente.documento }}</td>
                         <td>{{ c.paciente.telefono }}</td>
                         <td>{{ c.fecha_cita }}</td>
