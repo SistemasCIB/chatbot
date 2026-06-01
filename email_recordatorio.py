@@ -58,6 +58,10 @@ def enviar_recordatorio(correo_destino, nombre_paciente, fecha_cita, tipo_examen
                     🧪 <strong>Examen:</strong>
                     {tipo_examen}
                 </p>
+                <p style="margin:8px 0;"> 
+                   📍 <strong>Dirección:</strong>
+                   <br> Carrera 72A No. 78B - 141 
+                </p>                
             </div>
 
             <p style="line-height:1.6;">

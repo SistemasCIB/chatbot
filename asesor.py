@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from recaptcha import verificar_recaptcha
 from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
 from recaptcha import verificar_recaptcha
+from models import ChatActivo
 
 asesor_bp = Blueprint('asesor', __name__)
 
@@ -88,6 +89,10 @@ def panel():
     citas = query.order_by(Cita.creada_en.desc()).all()
     config = get_config_horario()
 
+    chats_activos = {chat.numero for chat in ChatActivo.query.filter_by(activo=True).all()}
+    for cita in citas:
+        cita.chat_activo = cita.numero_whatsapp in chats_activos
+        
     return render_template(
         'asesor.html',
         citas=citas,
@@ -567,9 +572,7 @@ def buscar_paciente():
 @asesor_bp.route('/asesor/tomar_chat/<int:cita_id>')
 @login_requerido
 def tomar_chat(cita_id):
-
     cita = Cita.query.get_or_404(cita_id)
-
     chat = ChatActivo.query.filter_by(numero=cita.numero_whatsapp).first()
 
     if not chat:
@@ -578,7 +581,8 @@ def tomar_chat(cita_id):
             asesor_id=session['asesor_id'],
             asesor_nombre=session['asesor_nombre'],
             activo=True,
-            vence_en=datetime.utcnow() + timedelta(hours=24)
+            vence_en=datetime.utcnow() + timedelta(hours=24),
+            primer_mensaje_asesor=datetime.utcnow()  # ← timer arranca aquí
         )
         db.session.add(chat)
     else:
@@ -586,9 +590,9 @@ def tomar_chat(cita_id):
         chat.asesor_id = session['asesor_id']
         chat.asesor_nombre = session['asesor_nombre']
         chat.vence_en = datetime.utcnow() + timedelta(hours=24)
+        chat.primer_mensaje_asesor = datetime.utcnow()  # ← timer arranca aquí
 
     db.session.commit()
-
     return redirect(url_for('asesor.panel'))
 
 @asesor_bp.route('/asesor/liberar_chat/<int:cita_id>')

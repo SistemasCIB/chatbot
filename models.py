@@ -159,3 +159,6 @@ class ChatActivo(db.Model):
     activo = db.Column(db.Boolean, default=True)
     creado_en = db.Column(db.DateTime, default=datetime.utcnow)
     vence_en = db.Column(db.DateTime)
+    recordatorios_enviados = db.Column(db.Integer, default=0)
+    ultimo_mensaje_paciente = db.Column(db.DateTime, nullable=True)
+    primer_mensaje_asesor   = db.Column(db.DateTime, nullable=True)

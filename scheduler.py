@@ -1,9 +1,16 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 
+MENSAJES_RECORDATORIO = [
+    "Hola, nuestro asesor sigue en línea esperando tu respuesta. 😊",
+    "¿Sigues ahí? El asesor continúa disponible para ayudarte.",
+    "Último aviso, el asesor está esperando tu respuesta.",
+]
+
 def iniciar_scheduler(app):
     scheduler = BackgroundScheduler(timezone='America/Bogota')
 
+    # ── Job 1: recordatorio de citas por correo ──────────────────────
     def verificar_recordatorios():
         with app.app_context():
             from models import Cita, Paciente
@@ -12,7 +19,6 @@ def iniciar_scheduler(app):
             ahora = datetime.now()
 
             for dias in [1, 2]:
-                inicio = ahora + timedelta(days=dias)
                 inicio = (ahora + timedelta(days=dias)).replace(hour=0, minute=0, second=0, microsecond=0)
                 fin    = inicio.replace(hour=23, minute=59, second=59)
 
@@ -33,16 +39,55 @@ def iniciar_scheduler(app):
                             dias_antes      = dias
                         )
 
-    # Ejecuta todos los días a las 8:00 AM
-    scheduler.add_job(verificar_recordatorios, 'cron', hour=8, minute=0)
+    # ── Job 2: chats inactivos con asesor ────────────────────────────
+    def verificar_chats_inactivos():
+        with app.app_context():
+            from models import ChatActivo, db
+            from mensajes import enviar_texto 
+
+            ahora = datetime.utcnow()
+            chats = ChatActivo.query.filter_by(activo=True).all()
+
+            for chat in chats:
+                # No iniciar hasta que el asesor haya enviado el primer mensaje
+                if not chat.primer_mensaje_asesor:
+                    continue
+
+                referencia      = chat.ultimo_mensaje_paciente or chat.primer_mensaje_asesor
+                minutos_inactivo = (ahora - referencia).total_seconds() / 60
+                umbral           = 30 * (chat.recordatorios_enviados + 1)
+
+                if minutos_inactivo < umbral:
+                    continue
+
+                if chat.recordatorios_enviados < 3:
+                    enviar_texto(
+                        chat.numero,
+                        MENSAJES_RECORDATORIO[chat.recordatorios_enviados]
+                    )
+                    chat.recordatorios_enviados += 1
+                    db.session.commit()
+                else:
+                    enviar_texto(
+                        chat.numero,
+                        "La sesión con el asesor ha finalizado. El asistente automático retomará la conversación."
+                    )
+                    db.session.delete(chat)
+                    db.session.commit()
+
+    scheduler.add_job(verificar_recordatorios,   'cron',     hour=8, minute=0)
+    scheduler.add_job(verificar_chats_inactivos, 'interval', minutes=5)
+
     scheduler.start()
-    print("Scheduler de recordatorios iniciado")
+    print("Scheduler iniciado")
     return scheduler
+
+
+# ── Manual (para pruebas) ────────────────────────────────────────────
 def verificar_recordatorios_manual(app):
     with app.app_context():
         from models import Cita, Paciente
         from email_recordatorio import enviar_recordatorio
-        from datetime import datetime, timedelta
 
         ahora = datetime.now()
 

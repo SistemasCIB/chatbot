@@ -527,6 +527,11 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                             class="btn btn-edit">
                             Editar
                             </a>
+                            {% if c.chat_activo %}
+                                <a href="/asesor/liberar_chat/{{ c.id }}" class="btn btn-reject">🔴 Liberar Chat</a>
+                            {% else %}
+                                <a href="/asesor/tomar_chat/{{ c.id }}" class="btn btn-confirm">💬 Tomar Chat</a>
+                            {% endif %}
 
                         </div>
 
