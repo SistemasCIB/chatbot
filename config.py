@@ -2,10 +2,12 @@
 
 
 from datetime import datetime, timedelta
+import os
 
 from models import ConfigHorario, DiasBloqueados, db 
  
-
+RECAPTCHA_SITE_KEY   = os.getenv('RECAPTCHA_SITE_KEY', '6LeFVwctAAAAAP0P9ObzjCIOgMwljAsnK4Icvxfw')
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LeFVwctAAAAAHOxGyREIDQcBd8oHfcOpjAIWdaA')
 TOKEN_ANDERCODE = "ANDERCODE"
 TOKEN_META = "EAAY5YGNZBIz8BRXwA8UTEa16UrRYq3UZAoinyvHxjyXzLsaGAfimXp6qWUD4ZBlMOMywI3nTV3Oet56Ov2L697IbfXA6l8FOwpNvUoXtM0iwS8INTFrq7mpEKBB9rLq3kJXgzRQlv9Ffd2q8ZCRZC8XVYR0opra2ydz68qEfHmCBs0F9ie4AcYtYEGEpDEQZDZD"
 PHONE_NUMBER_ID = "1112533955267866"
@@ -15,6 +17,12 @@ LINK_ALIMENTATEC ="https://wa.me/573235865867"
 URL_BASE = "https://python-2-zqc5.onrender.com"
 URL_RESULTADOS = "https://cib.org.co/resultados-de-laboratorio/"
 SECRET_KEY = "cib_secret_2025"
+
+OUTLOOK_EMAIL    = os.getenv('OUTLOOK_EMAIL', 'aprendizti@cib.org.co')
+OUTLOOK_PASSWORD = os.getenv('OUTLOOK_PASSWORD', 'higuita_29')
+
+
+
 
 HORARIO_INICIO = 7
 HORARIO_FIN = 17

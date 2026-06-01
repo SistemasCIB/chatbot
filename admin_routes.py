@@ -1,10 +1,10 @@
 from datetime import date
 
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, session
-from config import get_config_horario
+from config import get_config_horario, RECAPTCHA_SITE_KEY
 from models import Cita, ConfigHorario, DiasBloqueados, Paciente, db, Asesor, Auditoria, ExamenConfig, seed_examen_config
 from functools import wraps
-
+from recaptcha import verificar_recaptcha
 admin_bp = Blueprint('admin', __name__)
 
 
@@ -27,10 +27,15 @@ def admin_requerido(f):
 def login():
     error = None
     if request.method == 'POST':
+        # Verificar reCAPTCHA primero
+        token = request.form.get('g-recaptcha-response')
+        if not verificar_recaptcha(token):
+            error = "Verificación de seguridad fallida. Intenta de nuevo."
+            return render_template('admin_login.html', error=error,
+                                   site_key=RECAPTCHA_SITE_KEY)
+
         usuario  = request.form.get('usuario')
         password = request.form.get('password')
-
-        # Admin tiene un usuario especial con rol='admin' en la tabla Asesor
         admin = Asesor.query.filter_by(usuario=usuario, rol='admin').first()
 
         if admin and admin.check_password(password):
@@ -40,7 +45,8 @@ def login():
 
         error = "Credenciales incorrectas"
 
-    return render_template('admin_login.html', error=error)
+    return render_template('admin_login.html', error=error,
+                           site_key=RECAPTCHA_SITE_KEY)
 
 
 @admin_bp.route('/admin/logout')

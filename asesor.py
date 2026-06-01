@@ -4,11 +4,13 @@ from flask import Blueprint, flash, render_template, request, redirect, url_for,
 from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente
 from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
-from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario
+from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario,RECAPTCHA_SITE_KEY
 import io, csv, os
 from flask import Response
 from werkzeug.utils import secure_filename
+from recaptcha import verificar_recaptcha
 from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
+from recaptcha import verificar_recaptcha
 
 asesor_bp = Blueprint('asesor', __name__)
 
@@ -16,29 +18,34 @@ asesor_bp = Blueprint('asesor', __name__)
 @asesor_bp.route('/asesor/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        # Verificar reCAPTCHA primero
+        token = request.form.get('g-recaptcha-response')
+        if not verificar_recaptcha(token):
+            return render_template('login.html',
+                                   error='Verificación de seguridad fallida.',
+                                   site_key=RECAPTCHA_SITE_KEY)
+
         usuario  = request.form.get('usuario', '').strip()
         password = request.form.get('password', '').strip()
-
         asesor = Asesor.query.filter_by(usuario=usuario, activo=True).first()
 
         if asesor and asesor.check_password(password):
             session['asesor_id']     = asesor.id
             session['asesor_nombre'] = asesor.nombre
-            session['asesor_rol']    = asesor.rol          # guardar rol
+            session['asesor_rol']    = asesor.rol
 
-            # Redirigir según rol
             if asesor.rol == 'micologia':
                 return redirect(url_for('asesor.calendario_micologia'))
-
             elif asesor.rol == 'bacteriologia':
                 return redirect(url_for('asesor.calendario_bacteriologia'))
-
-            else:  # asesor normal → ve todo
+            else:
                 return redirect(url_for('asesor.panel'))
 
-        return render_template('login.html', error='Usuario o contraseña incorrectos')
+        return render_template('login.html',
+                               error='Usuario o contraseña incorrectos',
+                               site_key=RECAPTCHA_SITE_KEY)
 
-    return render_template('login.html')
+    return render_template('login.html', site_key=RECAPTCHA_SITE_KEY)
 
 def login_requerido(f):
     from functools import wraps
@@ -390,6 +397,7 @@ def nueva_cita():
                 nombre=request.form['nombre'],
                 tipo_documento=request.form['tipo_documento'],
                 documento=request.form['documento'],
+                fecha_nacimiento=datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d') if request.form.get('fecha_nacimiento') else None,
                 telefono=request.form['telefono'],
                 correo=request.form.get('correo', ''),
             )
@@ -458,6 +466,7 @@ def editar_cita(cita_id):
         paciente.nombre = request.form['nombre']
         paciente.tipo_documento = request.form['tipo_documento']
         paciente.documento = request.form['documento']
+        paciente.fecha_nacimiento = datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d') if request.form.get('fecha_nacimiento') else None
         paciente.telefono = request.form['telefono']
         paciente.correo = request.form.get('correo', '')
         paciente.direccion = request.form.get('direccion', '')

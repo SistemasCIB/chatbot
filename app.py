@@ -1,5 +1,6 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for
 from models import db, Log, Cita, Consentimiento, Asesor, seed_examen_config
+from scheduler import iniciar_scheduler
 from webhook import webhook_bp
 from asesor import asesor_bp
 from config import SECRET_KEY, TOKEN_META
@@ -125,6 +126,9 @@ def ver_orden(cita_id):
 def citas_count():
     total = Cita.query.count()
     return {"total": total}
+
+
+iniciar_scheduler(app)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

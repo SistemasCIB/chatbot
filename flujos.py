@@ -739,9 +739,9 @@ def manejar_texto(numero, texto):
             enviar_texto(numero, "No encontré ninguna cita con ese documento. Verifica el número e intenta de nuevo.")
             return
 
-        citas = Cita.query.filter_by(
-            paciente_id=paciente.id,
-            estado="pendiente"
+        citas = Cita.query.filter(
+            Cita.paciente_id == paciente.id,
+            Cita.estado.in_(["pendiente", "confirmada"])
         ).order_by(Cita.fecha_cita).all()
 
         if not citas:
