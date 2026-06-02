@@ -127,6 +127,11 @@ def citas_count():
     total = Cita.query.count()
     return {"total": total}
 
+#@app.route('/test-recordatorio')
+#def test_recordatorio():
+#    from scheduler import verificar_recordatorios_manual
+#    verificar_recordatorios_manual(app)
+#    return "Recordatorios enviados, revisa la consola"
 
 iniciar_scheduler(app)
 
