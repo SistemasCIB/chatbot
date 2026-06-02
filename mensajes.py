@@ -349,7 +349,7 @@ def mostrar_fechas_disponibles(numero, sesiones):
             if ecfg and ecfg.max_por_dia > 0:
                 cupo_maximo = ecfg.max_por_dia
             else:
-                cupo_maximo = 17 if es_viernes else 9
+                cupo_maximo = 9 if es_viernes else 17
             ocupadas = Cita.query.filter(
                 db.func.date(Cita.fecha_cita) == dia,
                 Cita.estado.in_(["pendiente", "confirmada"]),
