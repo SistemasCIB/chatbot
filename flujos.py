@@ -463,7 +463,7 @@ def manejar_boton(numero, opcion_id):
             return
         else:    
         ## Si es domicilio no pide hora
-           sesiones[numero]["hora_cita"] = None
+           sesiones[numero]["hora_cita"] = "Por asignar"
            sesiones[numero]["paso"] = "direccion_domicilio"
 
         enviar_texto(
