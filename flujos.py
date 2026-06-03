@@ -270,12 +270,18 @@ def manejar_boton(numero, opcion_id):
     # -----------------------------------
     elif opcion_id.startswith("seg_"):
 
-        sesiones[numero]["aseguradora"] = opcion_id
+        aseguradoras = {
+            "seg_sura":     "Poliza Sura",
+            "seg_coomeva":  "Coomeva",
+            "seg_medplus":  "Medplus",
+            "seg_bolivar":  "Seguros Bolivar",
+        }
+
+        sesiones[numero]["aseguradora"] = aseguradoras.get(opcion_id, opcion_id)
         sesiones[numero]["paso"] = "tipo_examen"
 
         enviar_tipo_examen(numero)
         return
-
 
     # -----------------------------------
     # PASO 3 - TIPO EXAMEN: después de cobertura
@@ -283,15 +289,16 @@ def manejar_boton(numero, opcion_id):
     elif opcion_id.startswith("examen_"):
 
         examenes = {
-            "examen_directo_hongos": "Examen directo para hongos",
-            "examen_directo_cultivo": "fresco o KOH + Cultivo",
-            "examen_galactomanano": "Antigeno galactomanan",
-            "examen_cryptococcus": "Antigeno cryptococcus",
-            "examen_serologia_inmuno": "Serologia hongos",
+            "examen_directo_hongos":        "Directo hongos",
+            "examen_directo_cultivo":       "Hongos + Cultivo",
+            "examen_galactomanano":         "Galactomanan",
+            "examen_cryptococcus":          "Cryptococcus",
+            "examen_serologia_inmuno":      "Serologia hongos",
             "examen_serologia_complemento": "Serologia endemicos",
-            "examen_serologia_completa": "Serologia completa",
-            "examen_igra": "IGRAs",
-            "examen_ppd": "Tuberculina PPD"
+            "examen_serologia_completa":    "Serologia completa",
+            "examen_igra":                  "IGRAs",
+            "examen_ppd":                   "Tuberculina PPD",
+            "examen_otro":                  "Otro examen",
         }
 
         if opcion_id == "examen_otro":

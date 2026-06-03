@@ -184,7 +184,7 @@ def enviar_tipo_cita(numero):
             "body": {
                 "text": """¿Qué tipo de cita necesitas?
 
-🏥 * Atención presencial*
+🏥 *Atención presencial*
 🗓️ Martes a jueves: 7:30 a.m. a 3:30 p.m.
 🗓️ Viernes: 7:30 a.m. a 11:30 a.m.
 ❌ No se atiende fines de semana ni festivos.

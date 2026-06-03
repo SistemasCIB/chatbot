@@ -287,10 +287,10 @@
                 <div class="campo">
                     <label>Póliza / Aseguradora</label>
                     <select name="aseguradora">
-                        <option value=""              {% if cita and not cita.aseguradora              %}selected{% endif %}>N/A</option>
-                        <option value="Poliza sura"   {% if cita and cita.aseguradora == 'Poliza sura'   %}selected{% endif %}>Póliza Sura</option>
-                        <option value="Coomeva"       {% if cita and cita.aseguradora == 'Coomeva'       %}selected{% endif %}>Coomeva</option>
-                        <option value="Medplus"       {% if cita and cita.aseguradora == 'Medplus'       %}selected{% endif %}>Medplus</option>
+                        <option value="">N/A</option>
+                        <option value="Poliza Sura"     {% if cita and cita.aseguradora == 'Poliza Sura'     %}selected{% endif %}>Póliza Sura</option>
+                        <option value="Coomeva"         {% if cita and cita.aseguradora == 'Coomeva'         %}selected{% endif %}>Coomeva</option>
+                        <option value="Medplus"         {% if cita and cita.aseguradora == 'Medplus'         %}selected{% endif %}>Medplus</option>
                         <option value="Seguros Bolivar" {% if cita and cita.aseguradora == 'Seguros Bolivar' %}selected{% endif %}>Seguros Bolívar</option>
                     </select>
                 </div>
@@ -327,10 +327,10 @@
                     <label>Tipo de muestra</label>
                     <select name="tipo_muestra">
                         <option value="">Seleccionar</option>
-                        <option value="uñas"           {% if cita and cita.tipo_muestra == 'uñas'           %}selected{% endif %}>Uñas</option>
-                        <option value="piel"           {% if cita and cita.tipo_muestra == 'piel'           %}selected{% endif %}>Piel</option>
-                        <option value="cuero cabelludo" {% if cita and cita.tipo_muestra == 'cuero cabelludo' %}selected{% endif %}>Cuero cabelludo</option>
-                        <option value="flujo vaginal"  {% if cita and cita.tipo_muestra == 'flujo vaginal'  %}selected{% endif %}>Flujo vaginal</option>
+                        <option value="Uñas"            {% if cita and cita.tipo_muestra == 'Uñas'            %}selected{% endif %}>Uñas</option>
+                        <option value="Piel"            {% if cita and cita.tipo_muestra == 'Piel'            %}selected{% endif %}>Piel</option>
+                        <option value="Cuero cabelludo" {% if cita and cita.tipo_muestra == 'Cuero cabelludo' %}selected{% endif %}>Cuero cabelludo</option>
+                        <option value="Flujo vaginal"   {% if cita and cita.tipo_muestra == 'Flujo vaginal'   %}selected{% endif %}>Flujo vaginal</option>
                     </select>
                 </div>
 
