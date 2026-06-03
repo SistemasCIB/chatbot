@@ -94,15 +94,15 @@ def enviar_bienvenida(numero):
             "type": "button",
             "body": {
                 "text": (
-                    "👋 ¡Bienvenido(a) a la Corporación para Investigaciones Biológicas (CIB)!\n\n"
-                    "Somos un laboratorio especializado en diagnóstico, investigación y servicios en salud 🧪\n\n"
-                    "Podemos ayudarte con:\n"
-                    "- Agendar citas\n"
-                    "- Consulta de resultados\n"
-                    "- Información sobre nuestros servicios\n\n"
-                    "📌 Sigue las opciones que te indicaremos a continuación.\n\n"
+                    "👋¡Bienvenido(a) a la Corporación para Investigaciones Biológicas (CIB)!\n\n"
+                    "Somos un laboratorio especializado en diagnóstico, investigación, servicios en salud y otros servicios 🧪\n\n"
+                    "Estamos aquí para ayudarte con:\n"
+                    "• Agendamiento de citas\n"
+                    "• Consulta de resultados\n"
+                    "• Información sobre nuestros servicios\n\n"
+                    "📌 Para brindarte una mejor atención, sigue las opciones que te indicaremos a continuación.\n\n"
                     "¡Gracias por confiar en nosotros! 💙\n\n"
-                    "Por favor indícanos quién eres:\n\n"
+                    "Por favor, elige una opción e indícanos si eres:\n\n"
                     "🔹 Paciente: persona que necesita un examen, agendar cita o consultar resultados para sí mismo o un familiar.\n\n"
                     "🔹 Cliente: empresa o profesional (IPS, médico, laboratorio, aseguradora) con convenio o solicitud institucional."
                 )
@@ -184,14 +184,16 @@ def enviar_tipo_cita(numero):
             "body": {
                 "text": """¿Qué tipo de cita necesitas?
 
-🏥 *Presencial*
-🗓️ lunes a jueves: 7:30 a.m. a 3:30 p.m.
+🏥 * Atención presencial*
+🗓️ Martes a jueves: 7:30 a.m. a 3:30 p.m.
 🗓️ Viernes: 7:30 a.m. a 11:30 a.m.
+❌ No se atiende fines de semana ni festivos.
 
-🏠 *Domicilio*
-🗓️ Solo miércoles: 7:30 a.m. a 1:00 p.m.
+🏠 *Atención a domicilio*
+🗓️ Este servicio se realiza únicamente los días miércoles en el horario  7:30 a.m. a 1:00 p.m.
+📌 Ten en cuenta: la toma de muestra puede realizarse en cualquier momento dentro de este rango y se verifica cobertura.
 
-Selecciona una opción 👇"""
+¿Cómo deseas tu cita?👇"""
             },
             "action": {
                 "buttons": [
@@ -242,6 +244,11 @@ def enviar_requisitos(numero, tipo, tipo_muestra=None):
                 "text":
                     f"RECUERDE:\n\n"
                     f"{lista}\n\n"
+                    f"⚠️ Confirmación de requisitos\n"
+                    f"Es muy importante que respondas correctamente para evitar errores o perder la cita.\n"
+                    f"Si no cumples con los requisitos anteriormente mencionados."
+                    f"(ayuno, documento de identidad, orden médica u otros que apliquen),"
+                    f"no se podrá tomar la muestra el día de la cita.\n\n"
                     f"¿Cumples con estos requisitos?"
             },
             "action": {
@@ -671,6 +678,38 @@ def enviar_tipo_cobertura(numero):
     }
     enviar_request(data, numero=numero)
 
+def enviar_pregunta_orden(numero):
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": numero,
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {
+                "text": "📋 ¿Tienes orden médica?\n\nIndícanos si cuentas con una orden para adjuntarla."
+            },
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "orden_si",
+                            "title": "Sí, tengo orden"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "orden_no",
+                            "title": "No tengo orden"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    enviar_request(data, numero=numero)
 
 def enviar_aseguradora(numero):
     data = {
@@ -682,7 +721,7 @@ def enviar_aseguradora(numero):
             "type": "list",
             "body": {
                 "text": (
-                    "🏥 Seleccione su aseguradora:\n\n"
+                    "🏥 Selecciona tu aseguradora:\n\n"
                     "💳 Importante:\n"
                     "Según tu tipo de cobertura, es posible que debas "
                     "realizar un copago al momento del servicio."

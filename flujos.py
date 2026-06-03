@@ -10,6 +10,7 @@ from mensajes import (
     enviar_fuera_horario,
     enviar_politica_datos,
     enviar_tipo_cobertura,
+    enviar_pregunta_orden,
     enviar_aseguradora,
     enviar_tipo_examen,
     mostrar_horas_disponibles,
@@ -123,6 +124,7 @@ def manejar_boton(numero, opcion_id):
             "• Información sobre días y horarios de procedimientos de laboratorio\n"
             "• Entre otros similares\n\n"
             f"Deberán realizarse exclusivamente a través de nuestra línea de WhatsApp: \n{LINK_ASESOR}\n\n"
+            "Agradecemos su comprensión y colaboración para centralizar la atención y brindarles un mejor servicio.\n\n"
             "ℹ️ Otros servicios\n\n"
             "📚 Fondo editorial CIB\n"
             f"📲 {LINK_EDITORIAL}\n"
@@ -132,7 +134,7 @@ def manejar_boton(numero, opcion_id):
             "📧 alimentatec@cib.org.co\n\n"
             "📌 Generalidades\n"
             "📧 comunicacionesymercadeo@cib.org.co\n\n"
-            "Agradecemos su comprensión y colaboración para centralizar la atención y brindarles un mejor servicio."
+            "Gracias por comunicarte con nosotros💙"
 
         )
         return
@@ -159,7 +161,7 @@ def manejar_boton(numero, opcion_id):
         enviar_texto(
             numero,
             "👋 Gracias por contactarnos.\n\n"
-            "Para poder atender su solicitud es necesario aceptar nuestra política de tratamiento de datos.\n\n"
+            "Para poder atender tu solicitud es necesario aceptar nuestra política de tratamiento de datos.\n\n"
             "Si en otro momento decides continuar, estaremos atentos para ayudarte\n\n"
             "¡Que tengas un buen día! 💙"
         )
@@ -189,10 +191,10 @@ def manejar_boton(numero, opcion_id):
     elif opcion_id == "resultados":
         enviar_texto(
             numero,
-            "Paso a paso para la consulta de resultados de Laboratorio:\n\n"
-            f"1. Ingresa en el siguiente enlace directo para la consulta de su resultado: \n{URL_RESULTADOS}\n\n"
-            "2. Ingresa a RESULTADOS LABCORE.\n"
-            "3. Ingresa en usuario: el número de identificación y en contraseña: los ultimos cuatro digitos del número de identificación.\n"
+            "Paso a paso para la consulta de resultados de Laboratorio\n\n"
+            f"1.Ingresa en el siguiente enlace directo para la consulta de tu resultado:  \n{URL_RESULTADOS}\n\n"
+            "2.Ingresa a RESULTADOS LABCORE.\n"
+            "3.Ingresa en usuario: el número de identificación y en contraseña: los últimos cuatro dígitos del número de identificación\n"
             "Presiona el botón DESCARGAR RESULTADO.\n\n"
             "Muchas gracias por confiar en nosotros."
         )
@@ -235,7 +237,6 @@ def manejar_boton(numero, opcion_id):
 
         sesiones[numero]["cobertura"] = "Particular"
         sesiones[numero]["paso"] = "tipo_examen"
-
         enviar_tipo_examen(numero)
         return
 
@@ -246,7 +247,24 @@ def manejar_boton(numero, opcion_id):
 
         enviar_aseguradora(numero)
         return
+    # -----------------------------------
+    # tiene orden médica? - para particulares
+    # -----------------------------------
+    elif opcion_id == "orden_si":
+        sesiones[numero]["paso"] = "orden"
+        enviar_texto(
+            numero,
+            "📄 Adjunta la orden médica.\n\n"
+            "Puedes enviarla en PDF o foto.\n"
+            "Un asesor la revisará para confirmar tu cita."
+        )
+        return
 
+    elif opcion_id == "orden_no":
+        sesiones[numero]["orden"] = None
+        sesiones[numero]["tipo_archivo"] = None
+        confirmar_cita(numero)
+        return
     # -----------------------------------
     # ASEGURADORA
     # -----------------------------------
@@ -257,6 +275,7 @@ def manejar_boton(numero, opcion_id):
 
         enviar_tipo_examen(numero)
         return
+
 
     # -----------------------------------
     # PASO 3 - TIPO EXAMEN: después de cobertura
@@ -472,9 +491,8 @@ def manejar_boton(numero, opcion_id):
         cobertura = sesiones[numero].get("cobertura")
 
         if cobertura == "Particular":
-            sesiones[numero]["orden"] = None
-            sesiones[numero]["tipo_archivo"] = None
-            confirmar_cita(numero)
+            sesiones[numero]["paso"] = "tiene_orden"
+            enviar_pregunta_orden(numero)
             return
 
         elif cobertura == "Poliza":
@@ -1002,9 +1020,9 @@ def confirmar_cita(numero):
             numero,
             "✅ Tu solicitud fue enviada correctamente.\n\n"
             "Tu solicitud será revisada antes de confirmar la cita.\n\n"
-            "Agendar y terminar este proceso no garantiza la cita inmediata.\n"
+            "❗ Agendar y terminar este proceso no garantiza la asignación de tu cita.\n"
             "Recibirás confirmación por este medio.\n\n"
-            " 🕘 Horario de atención: 9:00 AM - 12:00 PM\n\n"
+            "🕘 Horario de atención para las confirmaciones: 9:00 AM - 12:00 PM\n\n"
             "Gracias por confiar en nosotros💙\n\n"
 
             "¿Deseas agendar otra cita?(es necesario seleccionar una opción)\n\n"

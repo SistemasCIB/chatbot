@@ -161,7 +161,7 @@ def confirmar_cita(cita_id):
         db.session.commit()
 
         enviar_texto(cita.numero_whatsapp,
-            f"✅ Cita confirmada!\n\n"
+            f"✅ Cita confirmada\n\n"
             f"Hola {cita.paciente.nombre}\n"
             f"Hemos recibido y verificado toda tu información.\n"
             f"Tu cita ha sido confirmada y programada de la siguiente manera:\n"
@@ -174,6 +174,7 @@ def confirmar_cita(cita_id):
             f"• Llegar 15 minutos antes de la cita\n\n"
             f"⚠️ Muy importante:\n"
             f"Debes cumplir con todos los requisitos del examen.\n\n"
+            f"De lo contrario, no será posible tomar la muestra y deberás reagendar tu cita.\n\n"
             f"Te esperamos y agradecemos por confiar en nosotros 💙"
         )
     return redirect(url_for('asesor.panel'))
@@ -208,7 +209,7 @@ def rechazar_cita(cita_id):
         enviar_texto(cita.numero_whatsapp,
             f"👋 Gracias por comunicarte con nosotros.\n\n"
             f"En este momento no fue posible continuar con tu solicitud de cita.\n\n"
-            f"Si más adelante deseas retomarla, estaremos atentos.\n\n"
+            f"Si más adelante deseas retomarla o completar la información, estaremos atentos para ayudarte por este medio\n\n"
             f"¡Que tengas un buen día! 💙"
         )
     return redirect(url_for('asesor.panel'))
