@@ -476,9 +476,13 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                     <td class="hora-cell">{{ c.hora_cita or 'Por asignar' }}</td>
                     <td>{{ c.cobertura or '—' }}</td>
                     <td>
-                        {% if c.cobertura and c.cobertura|lower == 'poliza' %}{{ c.aseguradora or '—' }}{% else %}<span class="dash">—</span>{% endif %}
+                        {% if c.cobertura and c.cobertura|lower ==  'poliza' %}{{ c.aseguradora or '—' }}{% else %}<span class="dash">—</span>{% endif %}
                     </td>
-                    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ c.tipo_examen }}">{{ c.tipo_examen or '—' }}</td>
+                    <td>
+                        <div style="max-width:160px; word-break:break-word; white-space:normal; line-height:1.3">
+                            {{ c.tipo_examen or '—' }}
+                        </div>
+                    </td>
                     <td>
                         {% if c.area %}
                             <span class="pill {{ 'bacteriologia' if c.area == 'Bacteriología' else 'micologia' }}">

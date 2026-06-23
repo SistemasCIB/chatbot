@@ -12,8 +12,21 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import Response, stream_with_context
 from admin_routes import admin_requerido
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cib.db'
+
+#----------------------------------------------------
+# Conexión a base de datos
+#----------------------------------------------------
+
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///cib.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
 
@@ -24,16 +37,6 @@ app.register_blueprint(admin_bp)
 
 with app.app_context():
     db.create_all()
-
-    # Migración columna outlook_event_id
-    from sqlalchemy import text
-    with db.engine.connect() as conn:
-        try:
-            conn.execute(text('ALTER TABLE cita ADD COLUMN outlook_event_id VARCHAR(255)'))
-            conn.commit()
-            print("Columna outlook_event_id agregada")
-        except Exception:
-            pass
 
     # Asesor por defecto
     if not Asesor.query.filter_by(usuario='test').first():

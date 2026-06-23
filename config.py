@@ -194,7 +194,8 @@ REQUISITOS = {
         "No tener una infección por TB muy antigua",
         "No tener menos de seis meses de edad",
         "No tener infecciones virales activas (sarampión, varicela)",
-        "Informar si está recibiendo corticoesteroides o inmunosupresores (pueden alterar el resultado)"
+        "Informar si está recibiendo corticoesteroides o inmunosupresores (pueden alterar el resultado)",
+        "IMPORTANTE: Tener presente que para esta prueba se debe regresar deforma presencial a las 72 horas para su lectura"
     ],
 
     # ──── OTROS ────
