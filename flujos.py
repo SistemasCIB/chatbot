@@ -32,8 +32,8 @@ MODO_HUMANO_MINUTOS = 1# cambiar tiempo al solicitado
 def verificar_modo_humano(numero):
     from models import ChatActivo
     
-    # Primero verificar en BD (fuente de verdad)
     chat = ChatActivo.query.filter_by(numero=numero, activo=True).first()
+    agregar_mensajes_log(f"MODO_HUMANO | {numero} | activo={chat is not None}")  # ← agrega esto
     if chat:
         return True
     
