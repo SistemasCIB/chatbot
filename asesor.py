@@ -891,3 +891,92 @@ def chat_mensajes_count(cita_id):
     cita = Cita.query.get_or_404(cita_id)
     total = Mensaje.query.filter_by(numero_whatsapp=cita.numero_whatsapp).count()
     return jsonify({'total': total})
+
+@asesor_bp.route('/asesor/media/<media_id>')
+@login_requerido
+def ver_media(media_id):
+    from config import TOKEN_META
+    import requests as req_lib
+    from flask import Response
+
+    headers = {"Authorization": f"Bearer {TOKEN_META}"}
+
+    # 1. Obtener URL del archivo
+    r = req_lib.get(f"https://graph.facebook.com/v25.0/{media_id}", headers=headers)
+    if r.status_code != 200:
+        return "Error obteniendo archivo", 500
+
+    url_archivo = r.json().get("url")
+    mime_type = r.json().get("mime_type", "application/octet-stream")
+
+    if not url_archivo:
+        return "URL no disponible", 500
+
+    # 2. Descargar y servir
+    archivo = req_lib.get(url_archivo, headers=headers)
+    return Response(
+        archivo.content,
+        mimetype=mime_type,
+        headers={"Content-Disposition": f"inline; filename={media_id}"}
+    )
+
+@asesor_bp.route('/asesor/chat/<int:cita_id>/enviar_media', methods=['POST'])
+@login_requerido
+def enviar_media(cita_id):
+    from config import TOKEN_META, PHONE_NUMBER_ID
+    import requests as req_lib
+
+    cita = Cita.query.get_or_404(cita_id)
+    numero = cita.numero_whatsapp
+    archivo = request.files.get('archivo')
+
+    if not archivo:
+        return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
+
+    mime_type = archivo.mimetype
+
+    # 1. Subir archivo a Meta
+    headers = {"Authorization": f"Bearer {TOKEN_META}"}
+    upload = req_lib.post(
+        f"https://graph.facebook.com/v25.0/{PHONE_NUMBER_ID}/media",
+        headers=headers,
+        files={"file": (archivo.filename, archivo.read(), mime_type)},
+        data={"messaging_product": "whatsapp", "type": mime_type}
+    )
+
+    if upload.status_code != 200:
+        agregar_mensajes_log(f"Error subiendo media: {upload.text}")
+        return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
+
+    media_id = upload.json().get("id")
+
+    # 2. Determinar tipo para WhatsApp API
+    if 'image' in mime_type:
+        tipo_wa = 'image'
+    elif 'audio' in mime_type:
+        tipo_wa = 'audio'
+    elif 'video' in mime_type:
+        tipo_wa = 'video'
+    else:
+        tipo_wa = 'document'
+
+    # 3. Enviar mensaje con archivo
+    from mensajes import enviar_request
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": numero,
+        "type": tipo_wa,
+        tipo_wa: {"id": media_id}
+    }
+    enviar_request(payload, numero=numero)
+
+    # 4. Guardar en BD
+    db.session.add(Mensaje(
+        numero_whatsapp=numero,
+        origen='asesor',
+        texto=f'[Archivo] {mime_type} | {media_id}'
+    ))
+    db.session.commit()
+
+    return redirect(url_for('asesor.ver_chat', cita_id=cita_id))

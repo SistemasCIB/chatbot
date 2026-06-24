@@ -119,7 +119,41 @@
         <div class="origen-label">{{ 'Paciente' if m.origen == 'cliente' else 'Bot' }}</div>
         {% endif %}
         <div class="burbuja">
-            {{ m.texto }}
+            {% if m.texto.startswith('[Archivo]') %}
+                {% set partes = m.texto.replace('[Archivo] ', '').split(' | ') %}
+                {% set mime = partes[0] %}
+                {% set media_id = partes[1] %}
+                {% set url = '/asesor/media/' + media_id %}
+
+                {% if 'image' in mime %}
+                    <img src="{{ url }}" style="max-width:100%; border-radius:8px; display:block;">
+                {% elif 'audio' in mime %}
+                    <audio controls style="width:100%;">
+                        <source src="{{ url }}" type="audio/ogg; codecs=opus">
+                        <source src="{{ url }}" type="{{ mime }}">
+                    </audio>
+                {% elif 'video' in mime %}
+                    <video controls style="max-width:100%; border-radius:8px;">
+                        <source src="{{ url }}" type="{{ mime }}">
+                    </video>
+                {% elif 'pdf' in mime %}
+                    <a href="{{ url }}" target="_blank" style="
+                        display:flex; align-items:center; gap:8px;
+                        background:#f0f0f0; padding:8px 12px; border-radius:8px;
+                        text-decoration:none; color:#333; font-size:13px;">
+                        📄 Ver PDF
+                    </a>
+                {% else %}
+                    <a href="{{ url }}" target="_blank" style="
+                        display:flex; align-items:center; gap:8px;
+                        background:#f0f0f0; padding:8px 12px; border-radius:8px;
+                        text-decoration:none; color:#333; font-size:13px;">
+                        📎 Ver archivo
+                    </a>
+                {% endif %}
+            {% else %}
+                {{ m.texto }}
+            {% endif %}
             <div class="hora">{{ m.fecha.strftime('%H:%M') }}</div>
         </div>
     </div>
@@ -129,14 +163,37 @@
 </div>
 
 <!-- Input -->
-<form method="POST" class="input-area">
-    <input type="text" name="mensaje" placeholder="Escribe un mensaje..." autocomplete="off" required id="inputMensaje">
-    <button type="submit" aria-label="Enviar">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-        </svg>
+<!-- Reemplaza el form actual por este -->
+<div class="input-area">
+    <button onclick="document.getElementById('input-archivo').click()" 
+            type="button"
+            style="width:44px;height:44px;border-radius:50%;background:#128C7E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">
+        📎
     </button>
+    <form method="POST" style="flex:1;display:flex;gap:8px;">
+        <input type="text" name="mensaje" placeholder="Escribe un mensaje..." autocomplete="off" id="inputMensaje">
+        <button type="submit" aria-label="Enviar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+            </svg>
+        </button>
+    </form>
+</div>
+
+<form method="POST" action="{{ url_for('asesor.enviar_media', cita_id=cita.id) }}" 
+      enctype="multipart/form-data" id="form-media" style="display:none;">
+    <input type="file" name="archivo" id="input-archivo" 
+           accept="image/*,audio/*,video/*,.pdf,.doc,.docx">
 </form>
+
+<script>
+    document.getElementById('input-archivo').addEventListener('change', function() {
+        if (this.files.length > 0) {
+            document.getElementById('form-media').submit();
+        }
+    });
+</script>
+
 
 <script>
     const enIframe = window.self !== window.top;
