@@ -580,13 +580,8 @@ def manejar_boton(numero, opcion_id):
 
 def manejar_texto(numero, texto):
 
-    def verificar_modo_humano(numero):
-        from models import ChatActivo
-        
-        chat = ChatActivo.query.filter_by(numero=numero, activo=True).first()
-        agregar_mensajes_log(f"verificar_modo_humano | {numero} | chat_activo={chat is not None}")
-        if chat:
-            return True
+    if verificar_modo_humano(numero):
+        return
 
     if numero not in sesiones:
         enviar_bienvenida(numero)
