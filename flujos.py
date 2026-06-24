@@ -30,13 +30,19 @@ MODO_HUMANO_MINUTOS = 1# cambiar tiempo al solicitado
 # =====================================================
 
 def verificar_modo_humano(numero):
+    from models import ChatActivo
+    
+    # Primero verificar en BD (fuente de verdad)
+    chat = ChatActivo.query.filter_by(numero=numero, activo=True).first()
+    if chat:
+        return True
+    
+    # Fallback al diccionario en memoria
     sesion = sesiones.get(numero, {})
-
     if sesion.get("modo") != "humano":
         return False
 
     inicio = sesion.get("modo_humano_inicio")
-
     if not inicio:
         sesiones[numero]["modo_humano_inicio"] = datetime.utcnow()
         return True
@@ -46,7 +52,6 @@ def verificar_modo_humano(numero):
         return False
 
     return True
-
 
 # =====================================================
 # BOTONES
@@ -575,8 +580,13 @@ def manejar_boton(numero, opcion_id):
 
 def manejar_texto(numero, texto):
 
-    if verificar_modo_humano(numero):
-        return
+    def verificar_modo_humano(numero):
+        from models import ChatActivo
+        
+        chat = ChatActivo.query.filter_by(numero=numero, activo=True).first()
+        agregar_mensajes_log(f"verificar_modo_humano | {numero} | chat_activo={chat is not None}")
+        if chat:
+            return True
 
     if numero not in sesiones:
         enviar_bienvenida(numero)

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, Log, agregar_mensajes_log
+from models import db, Log, agregar_mensajes_log, Mensaje
 from flujos import manejar_boton, manejar_texto, manejar_archivo
 from config import TOKEN_ANDERCODE
 import json
@@ -51,6 +51,8 @@ def recibir_mensaje(req):
                     titulo = mensaje.get('interactive', {}).get('button_reply', {}).get('title', '')
 
                 agregar_mensajes_log(f"Boton presionado | {numero} | {titulo}")
+                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=titulo))
+                db.session.commit()
                 manejar_boton(numero, opcion_id)
 
             elif tipo == 'text':
@@ -61,6 +63,8 @@ def recibir_mensaje(req):
                 nombre = contactos[0].get('profile', {}).get('name', 'Desconocido') if contactos else 'Desconocido'
                # log limpio
                 agregar_mensajes_log(f"Mensaje | {nombre} | {numero} | {texto}")
+                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=texto))
+                db.session.commit()
                 manejar_texto(numero, texto)
 
             elif tipo in ['image', 'document']:
@@ -68,6 +72,8 @@ def recibir_mensaje(req):
                 media_id = media.get('id', '')
                 tipo_mime = media.get('mime_type', tipo)
                 agregar_mensajes_log(f"Archivo recibido | {numero} | Tipo: {tipo_mime} | Media ID: {media_id}")
+                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=f'[Archivo] {tipo_mime} | {media_id}'))
+                db.session.commit()
                 manejar_archivo(numero, media_id, tipo_mime)
                
 

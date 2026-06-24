@@ -1,7 +1,7 @@
 from functools import wraps
 
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
-from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente
+from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente, Mensaje
 from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
 from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario,RECAPTCHA_SITE_KEY
@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 from recaptcha import verificar_recaptcha
 from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
 from recaptcha import verificar_recaptcha
-from models import ChatActivo
+
 
 asesor_bp = Blueprint('asesor', __name__)
 
@@ -594,7 +594,7 @@ def tomar_chat(cita_id):
         chat.primer_mensaje_asesor = datetime.utcnow()  # ← timer arranca aquí
 
     db.session.commit()
-    return redirect(url_for('asesor.panel'))
+    return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
 
 @asesor_bp.route('/asesor/liberar_chat/<int:cita_id>')
 @login_requerido
@@ -863,3 +863,31 @@ def logout():
     session.pop('asesor_nombre', None)
     session.pop('asesor_rol', None)        # ← limpiar el rol también
     return redirect(url_for('asesor.login'))
+
+
+@asesor_bp.route('/asesor/chat/<int:cita_id>', methods=['GET', 'POST'])
+@login_requerido
+def ver_chat(cita_id):
+    cita = Cita.query.get_or_404(cita_id)
+    numero = cita.numero_whatsapp
+
+    if request.method == 'POST':
+        texto = request.form.get('mensaje', '').strip()
+        if texto:
+            # 1. Enviar por WhatsApp
+            enviar_texto(numero, texto, origen='asesor')
+     
+
+        return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
+
+    mensajes = Mensaje.query.filter_by(numero_whatsapp=numero)\
+                            .order_by(Mensaje.fecha.asc()).all()
+
+    return render_template('chat.html', cita=cita, mensajes=mensajes)
+
+@asesor_bp.route('/asesor/chat_mensajes_count/<int:cita_id>')
+@login_requerido
+def chat_mensajes_count(cita_id):
+    cita = Cita.query.get_or_404(cita_id)
+    total = Mensaje.query.filter_by(numero_whatsapp=cita.numero_whatsapp).count()
+    return jsonify({'total': total})

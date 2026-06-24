@@ -3,7 +3,7 @@ import http.client
 import json
 from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS, get_config_horario
 
-from models import agregar_mensajes_log, db, Cita
+from models import agregar_mensajes_log, db, Cita, Mensaje 
 
 def _enviar_texto_simple(numero, mensaje):
     """Envío de emergencia — no llama a enviar_request para evitar recursión."""
@@ -49,7 +49,7 @@ def enviar_request(data, numero=None):
     finally:
         connection.close()
 
-def enviar_texto(numero, mensaje):
+def enviar_texto(numero, mensaje, origen='bot'):  
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
@@ -57,7 +57,15 @@ def enviar_texto(numero, mensaje):
         "type": "text",
         "text": {"preview_url": False, "body": mensaje}
     }
-    enviar_request(data, numero=numero) 
+    enviar_request(data, numero=numero)
+    
+    try:
+        db.session.add(Mensaje(numero_whatsapp=numero, origen=origen, texto=mensaje))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        agregar_mensajes_log(f"Error guardando mensaje: {str(e)}")
+
 
 def enviar_menu(numero):
     data = {

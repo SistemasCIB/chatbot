@@ -162,3 +162,10 @@ class ChatActivo(db.Model):
     recordatorios_enviados = db.Column(db.Integer, default=0)
     ultimo_mensaje_paciente = db.Column(db.DateTime, nullable=True)
     primer_mensaje_asesor   = db.Column(db.DateTime, nullable=True)
+
+class Mensaje(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    numero_whatsapp = db.Column(db.String(20), nullable=False)
+    origen = db.Column(db.String(10), nullable=False)  # 'cliente', 'bot', 'asesor'
+    texto = db.Column(db.TEXT, nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
