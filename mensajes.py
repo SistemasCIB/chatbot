@@ -471,12 +471,20 @@ def mostrar_horas_disponibles(numero, sesiones):
     from models import Cita, ExamenConfig
     from datetime import datetime
 
-    fecha     = sesiones[numero]["fecha_cita"]
-    fecha_dt  = datetime.strptime(fecha, "%d/%m/%Y")
-    es_viernes = (fecha_dt.weekday() == 4)
-    area      = sesiones[numero].get("area", "Micología")
-    examen_id = sesiones[numero].get("examen_id") or _examen_a_id(sesiones[numero].get("tipo_examen", ""))
+    fecha = sesiones[numero].get("fecha_cita")
 
+    agregar_mensajes_log(
+        f"DEBUG mostrar_horas_disponibles | fecha_cita={repr(fecha)}"
+    )
+
+    fecha_dt = datetime.strptime(fecha, "%d/%m/%Y")
+
+    es_viernes = (fecha_dt.weekday() == 4)
+    area = sesiones[numero].get("area", "Micología")
+    examen_id = sesiones[numero].get("examen_id") or _examen_a_id(
+        sesiones[numero].get("tipo_examen", "")
+    )
+    
     # Cargar config del examen
     ecfg = ExamenConfig.query.filter_by(examen_id=examen_id).first()
     h_ini = ecfg.hora_inicio if ecfg else "07:30"
