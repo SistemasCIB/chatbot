@@ -3,6 +3,7 @@ from models import db, Log, agregar_mensajes_log, Mensaje
 from flujos import manejar_boton, manejar_texto, manejar_archivo
 from config import TOKEN_ANDERCODE
 import json
+import traceback
 
 webhook_bp = Blueprint('webhook', __name__)
 
@@ -83,5 +84,5 @@ def recibir_mensaje(req):
 
         return jsonify({'message': 'EVENT_RECEIVED'})
     except Exception as e:
-        agregar_mensajes_log(f"Error: {str(e)}")
+        agregar_mensajes_log(f"Error: {str(e)}\n{traceback.format_exc()}")
         return jsonify({'message': 'EVENT_RECEIVED'})
