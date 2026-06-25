@@ -1,4 +1,4 @@
-from models import ConfigHorario, DiasBloqueados, db, Cita, Paciente, Consentimiento, agregar_mensajes_log
+from models import ConfigHorario, DiasBloqueados, db, Cita,Paciente, Consentimiento, agregar_mensajes_log
 from mensajes import (
     enviar_texto,
     enviar_menu,
@@ -20,9 +20,9 @@ from mensajes import (
 from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL, dentro_de_horario
 from datetime import datetime, timedelta
 
-from sesiones_db import SesionesDB
-sesiones = SesionesDB()
-MODO_HUMANO_MINUTOS = 1  # cambiar tiempo al solicitado
+sesiones = {}
+MODO_HUMANO_MINUTOS = 1# cambiar tiempo al solicitado
+
 
 
 # =====================================================
@@ -31,25 +31,21 @@ MODO_HUMANO_MINUTOS = 1  # cambiar tiempo al solicitado
 
 def verificar_modo_humano(numero):
     from models import ChatActivo
-
+    
     chat = ChatActivo.query.filter_by(numero=numero, activo=True).first()
-    agregar_mensajes_log(f"MODO_HUMANO | {numero} | activo={chat is not None}")
+    agregar_mensajes_log(f"MODO_HUMANO | {numero} | activo={chat is not None}")  # ← agrega esto
     if chat:
         return True
-
+    
+    # Fallback al diccionario en memoria
     sesion = sesiones.get(numero, {})
     if sesion.get("modo") != "humano":
         return False
 
     inicio = sesion.get("modo_humano_inicio")
     if not inicio:
-        sesion["modo_humano_inicio"] = datetime.utcnow().isoformat()
-        sesiones[numero] = sesion
+        sesiones[numero]["modo_humano_inicio"] = datetime.utcnow()
         return True
-
-    # modo_humano_inicio se guarda como string ISO en DB
-    if isinstance(inicio, str):
-        inicio = datetime.fromisoformat(inicio)
 
     if datetime.utcnow() - inicio >= timedelta(minutes=MODO_HUMANO_MINUTOS):
         del sesiones[numero]
@@ -57,13 +53,11 @@ def verificar_modo_humano(numero):
 
     return True
 
-
 # =====================================================
-# CONFIRMACION DATOS
+# BOTONES
 # =====================================================
-
 def enviar_confirmacion_datos(numero):
-    sesion = sesiones.get(numero) or {}
+    sesion = sesiones[numero]
     tipo_cita = sesion.get("tipo_cita", "")
     area      = sesion.get("area", "")
 
@@ -101,20 +95,16 @@ def enviar_confirmacion_datos(numero):
         {"id": "edit_fecha_cita",       "title": "✏️ Cambiar fecha de cita"},
     ]
 
+    # Solo Micología tiene tipo de muestra
     if area == "Micología":
         botones.append({"id": "edit_tipo_muestra", "title": "✏️ Cambiar tipo de muestra"})
+
+    # Solo domicilio tiene dirección de domicilio
     if tipo_cita == "domicilio":
         botones.append({"id": "edit_direccion_domicilio", "title": "✏️ Cambiar dirección domicilio"})
 
     enviar_botones_lista(numero, "Selecciona una opción:", "Verificar datos", botones)
-
-    sesion["paso"] = "confirmacion"
-    sesiones[numero] = sesion
-
-
-# =====================================================
-# BOTONES
-# =====================================================
+    sesiones[numero]["paso"] = "confirmacion"
 
 def manejar_boton(numero, opcion_id):
 
@@ -150,6 +140,7 @@ def manejar_boton(numero, opcion_id):
             "📌 Generalidades\n"
             "📧 comunicacionesymercadeo@cib.org.co\n\n"
             "Gracias por comunicarte con nosotros💙"
+
         )
         return
 
@@ -164,6 +155,7 @@ def manejar_boton(numero, opcion_id):
             )
             db.session.add(consentimiento)
             db.session.commit()
+
         except:
             db.session.rollback()
 
@@ -184,15 +176,21 @@ def manejar_boton(numero, opcion_id):
     # MENU
     # -----------------------------------
     elif opcion_id == "agendar":
+
         if not dentro_de_horario():
             enviar_fuera_horario(numero)
             return
 
-        sesiones[numero] = {"flujo": "agendar", "paso": "buscar_documento"}
+        #primero busca si ya es un paciente existente
+        sesiones[numero] = {
+            "flujo": "agendar",
+            "paso": "buscar_documento"
+        }
         enviar_texto(
             numero,
             "📋 Para comenzar, escribe tu número de documento de identidad sin puntos ni caracteres especiales para verificar si ya estás registrado:"
-        )
+        )    
+
         return
 
     elif opcion_id == "resultados":
@@ -207,29 +205,30 @@ def manejar_boton(numero, opcion_id):
         )
         enviar_menu(numero)
         return
-
+   
     elif opcion_id == "cancelar":
         sesiones[numero] = {"flujo": "cancelar", "paso": "cancelar_documento"}
         enviar_texto(
             numero,
-            "Por favor escribe el número de documento asociado a la cita que deseas cancelar."
+             "Por favor escribe el número de documento asociado a la cita que deseas cancelar."
         )
         return
 
     elif opcion_id == "terminar":
         if numero in sesiones:
             del sesiones[numero]
+
         enviar_texto(numero, "Gracias por contactarnos.")
         return
 
     # -----------------------------------
-    # TIPO DOCUMENTO
+    # PASO 1 - DATOS PACIENTE: tipo documento
     # -----------------------------------
     elif opcion_id.startswith("tdoc_"):
-        sesion = sesiones.get(numero) or {}
-        sesion["tipo_documento"] = opcion_id.replace("tdoc_", "")
-        sesion["paso"] = "documento"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["tipo_documento"] = opcion_id.replace("tdoc_", "")
+        sesiones[numero]["paso"] = "documento"
+
         enviar_texto(
             numero,
             "Escribe tu número de documento sin puntos ni caracteres especiales:"
@@ -237,31 +236,27 @@ def manejar_boton(numero, opcion_id):
         return
 
     # -----------------------------------
-    # COBERTURA
+    # PASO 2 - COBERTURA: después de correo
     # -----------------------------------
     elif opcion_id == "cobertura_particular":
-        sesion = sesiones.get(numero) or {}
-        sesion["cobertura"] = "Particular"
-        sesion["paso"] = "tipo_examen"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["cobertura"] = "Particular"
+        sesiones[numero]["paso"] = "tipo_examen"
         enviar_tipo_examen(numero)
         return
 
     elif opcion_id == "cobertura_poliza":
-        sesion = sesiones.get(numero) or {}
-        sesion["cobertura"] = "Poliza"
-        sesion["paso"] = "aseguradora"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["cobertura"] = "Poliza"
+        sesiones[numero]["paso"] = "aseguradora"
+
         enviar_aseguradora(numero)
         return
-
     # -----------------------------------
-    # ORDEN MÉDICA
+    # tiene orden médica? - para particulares
     # -----------------------------------
     elif opcion_id == "orden_si":
-        sesion = sesiones.get(numero) or {}
-        sesion["paso"] = "orden"
-        sesiones[numero] = sesion
+        sesiones[numero]["paso"] = "orden"
         enviar_texto(
             numero,
             "📄 Adjunta la orden médica.\n\n"
@@ -271,35 +266,32 @@ def manejar_boton(numero, opcion_id):
         return
 
     elif opcion_id == "orden_no":
-        sesion = sesiones.get(numero) or {}
-        sesion["orden"] = None
-        sesion["tipo_archivo"] = None
-        sesiones[numero] = sesion
+        sesiones[numero]["orden"] = None
+        sesiones[numero]["tipo_archivo"] = None
         confirmar_cita(numero)
         return
-
     # -----------------------------------
     # ASEGURADORA
     # -----------------------------------
     elif opcion_id.startswith("seg_"):
+
         aseguradoras = {
             "seg_sura":     "Poliza Sura",
             "seg_coomeva":  "Coomeva",
             "seg_medplus":  "Medplus",
             "seg_bolivar":  "Seguros Bolivar",
         }
-        sesion = sesiones.get(numero) or {}
-        sesion["aseguradora"] = aseguradoras.get(opcion_id, opcion_id)
-        sesion["paso"] = "tipo_examen"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["aseguradora"] = aseguradoras.get(opcion_id, opcion_id)
+        sesiones[numero]["paso"] = "tipo_examen"
+
         enviar_tipo_examen(numero)
         return
 
     # -----------------------------------
-    # TIPO EXAMEN
+    # PASO 3 - TIPO EXAMEN: después de cobertura
     # -----------------------------------
     elif opcion_id.startswith("examen_"):
-        sesion = sesiones.get(numero) or {}
 
         examenes = {
             "examen_directo_hongos":        "Directo hongos",
@@ -315,232 +307,272 @@ def manejar_boton(numero, opcion_id):
         }
 
         if opcion_id == "examen_otro":
-            sesion["area"] = "Por definir"
-            sesion["examen_id"] = "examen_otro"
-            sesion["paso"] = "examen_otro_texto"
-            sesiones[numero] = sesion
-            enviar_texto(numero, "Escribe el nombre completo del examen:")
+            sesiones[numero]["area"] = "Por definir" 
+            sesiones[numero]["examen_id"] = "examen_otro"
+            sesiones[numero]["paso"] = "examen_otro_texto"
+
+            enviar_texto(
+                numero,
+                "Escribe el nombre completo del examen:"
+            )
             return
 
-        sesion["tipo_examen"] = examenes.get(opcion_id)
+        sesiones[numero]["tipo_examen"] = examenes.get(opcion_id)
 
+        # Clasificación automática por área
         bacteriologia = ["examen_igra", "examen_ppd"]
-        sesion["area"]        = "Bacteriología" if opcion_id in bacteriologia else "Micología"
-        sesion["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"
-        sesion["examen_id"]   = opcion_id
+        sesiones[numero]["area"] = "Bacteriología" if opcion_id in bacteriologia else "Micología" 
+        sesiones[numero]["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"       
+        sesiones[numero]["examen_id"]   = opcion_id
 
-        if opcion_id in ["examen_directo_hongos", "examen_directo_cultivo"]:
-            sesion["paso"] = "tipo_muestra"
-            sesiones[numero] = sesion
+        # SOLO PARA HONGOS
+        if opcion_id in [
+            "examen_directo_hongos",
+            "examen_directo_cultivo"
+        ]:
+
+            sesiones[numero]["examen_id"] = opcion_id
+            sesiones[numero]["paso"] = "tipo_muestra"
+
             enviar_botones_lista(
                 numero,
                 "🧪 ¿De qué tipo de muestra es el examen?",
                 "Selecciona una opción",
                 [
-                    {"id": "muestra_unas",  "title": "Uñas"},
-                    {"id": "muestra_piel",  "title": "Piel"},
-                    {"id": "muestra_cuero", "title": "Cuero cabelludo"},
-                    {"id": "muestra_flujo", "title": "Flujo vaginal"},
+                    {
+                        "id": "muestra_unas",
+                        "title": "Uñas"
+                    },
+                    {
+                        "id": "muestra_piel",
+                        "title": "Piel"
+                    },
+                    {
+                        "id": "muestra_cuero",
+                        "title": "Cuero cabelludo"
+                    },
+                    {
+                        "id": "muestra_flujo",
+                        "title": "Flujo vaginal"
+                    }
                 ]
             )
+
             return
 
-        sesion["paso"] = "requisitos"
-        sesiones[numero] = sesion
+
+        # RESTO DE EXÁMENES → flujo normal
+        sesiones[numero]["paso"] = "requisitos"
+
         enviar_requisitos(numero, opcion_id, tipo_muestra=None)
+
         return
 
     # -----------------------------------
-    # REQUISITOS
-    # -----------------------------------
+    # PASO 4 - REQUISITOS: después de examen
     elif opcion_id == "cumple_si":
-        sesion = sesiones.get(numero) or {}
-        area = sesion.get("area", "")
+        area = sesiones[numero].get("area", "")
 
         if area == "Bacteriología":
-            sesion["tipo_cita"]   = "presencial"
-            sesion["agenda_tipo"] = "bacteriologia"
-            sesion["paso"]        = "fecha"
-            sesiones[numero] = sesion
-            enviar_texto(numero, "ℹ️ Los exámenes de Bacteriología se realizan únicamente de forma presencial.")
+            sesiones[numero]["tipo_cita"]   = "presencial"
+            sesiones[numero]["agenda_tipo"] = "bacteriologia"
+        
+            sesiones[numero]["paso"]        = "fecha"
+            enviar_texto(
+                numero,
+                "ℹ️ Los exámenes de Bacteriología se realizan únicamente de forma presencial."
+            )
             mostrar_fechas_disponibles(numero, sesiones)
-        else:
-            sesion["paso"] = "tipo_cita"
-            sesiones[numero] = sesion
-            enviar_tipo_cita(numero)
-        return
+            return 
 
+        else:
+           
+            sesiones[numero]["paso"] = "tipo_cita"
+            enviar_tipo_cita(numero)
+            return
     elif opcion_id == "cumple_no":
-        enviar_texto(numero, "Cuando cumplas requisitos podremos ayudarte.")
+        enviar_texto(
+            numero,
+            "Cuando cumplas requisitos podremos ayudarte."
+        )
         enviar_menu(numero)
         return
-
+   
     # -----------------------------------
     # TIPO DE MUESTRA
     # -----------------------------------
     elif opcion_id.startswith("muestra_"):
+
         muestras = {
-            "muestra_unas":  "Uñas",
-            "muestra_piel":  "Piel",
+            "muestra_unas": "Uñas",
+            "muestra_piel": "Piel",
             "muestra_cuero": "Cuero cabelludo",
-            "muestra_flujo": "Flujo vaginal",
+            "muestra_flujo": "Flujo vaginal"
         }
-        sesion = sesiones.get(numero) or {}
-        sesion["tipo_muestra"] = muestras.get(opcion_id)
-        sesion["agenda_tipo"]  = "micologia"
-        sesion["area"]         = "Micología"
-        sesion["paso"]         = "requisitos"
-        sesiones[numero] = sesion
-        enviar_requisitos(numero, sesion["examen_id"], sesion["tipo_muestra"])
+
+        sesiones[numero]["tipo_muestra"] = muestras.get(opcion_id)
+
+        # =========================================
+        # CAMBIO NUEVO
+        # AGENDA AUTOMÁTICA MICOLÓGICA
+        # =========================================
+
+        sesiones[numero]["agenda_tipo"] = "micologia"
+
+        sesiones[numero]["area"] = "Micología"
+
+        sesiones[numero]["paso"] = "requisitos"
+
+        enviar_requisitos(
+            numero,
+            sesiones[numero]["examen_id"],
+            sesiones[numero]["tipo_muestra"]
+        )
+
         return
 
     # -----------------------------------
-    # TIPO CITA
+    # PASO 5 - TIPO CITA: después de requisitos
     # -----------------------------------
     elif opcion_id == "tipo_presencial":
-        sesion = sesiones.get(numero) or {}
-        sesion["tipo_cita"] = "presencial"
-        sesion["paso"]      = "fecha"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["tipo_cita"] = "presencial"
+        # FLUJO: después de tipo_cita → fecha
+        sesiones[numero]["paso"] = "fecha"
+
         mostrar_fechas_disponibles(numero, sesiones)
         return
 
     elif opcion_id == "tipo_domicilio":
-        sesion = sesiones.get(numero) or {}
-        sesion["tipo_cita"]   = "domicilio"
-        sesion["paso"]        = "fecha"
-        sesion["agenda_tipo"] = "domicilio"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["tipo_cita"] = "domicilio"
+        # FLUJO: después de tipo_cita → fecha
+        sesiones[numero]["paso"] = "fecha"
+        sesiones[numero]["agenda_tipo"] = "domicilio"
+
         mostrar_fechas_disponibles(numero, sesiones)
         return
 
     # -----------------------------------
-    # FECHA
+    # PASO 6 - FECHA: después de tipo_cita
     # -----------------------------------
     elif opcion_id.startswith("fecha_"):
-        sesion = sesiones.get(numero) or {}
-        fecha = sesion.get("fechas", {}).get(opcion_id)
-        sesion["fecha_cita"] = fecha
 
-        if sesion.get("tipo_cita") == "presencial":
-            sesion["paso"] = "hora"
-            sesiones[numero] = sesion
+        fecha = sesiones[numero]["fechas"].get(opcion_id)
+
+        sesiones[numero]["fecha_cita"] = fecha
+        if sesiones[numero]["tipo_cita"] == "presencial":
+            sesiones[numero]["paso"] = "hora"
             mostrar_horas_disponibles(numero, sesiones)
-        else:
-            sesion["hora_cita"] = "Por asignar"
-            sesion["paso"]      = "direccion_domicilio"
-            sesiones[numero] = sesion
-            enviar_texto(
-                numero,
-                "🏠 *Dirección para domicilio*\n\n"
-                "Por favor envíanos la dirección completa para la toma de la muestra:\n\n"
-                "• Dirección exacta\n"
-                "• Barrio\n"
-                "• Municipio\n"
-                "• Punto de referencia (ej: cerca a…, edificio, apartamento, casa, local…)\n"
-                "• Número de teléfono de contacto"
-            )
-        return
+           
+            return
+        else:    
+        ## Si es domicilio no pide hora
+           sesiones[numero]["hora_cita"] = "Por asignar"
+           sesiones[numero]["paso"] = "direccion_domicilio"
 
+        enviar_texto(
+            numero,
+            "🏠 *Dirección para domicilio*\n\n"
+            "Por favor envíanos la dirección completa para la toma de la muestra:\n\n"
+            "• Dirección exacta\n"
+            "• Barrio\n"
+            "• Municipio\n"
+            "• Punto de referencia (ej: cerca a…, edificio, apartamento, casa, local…)\n"
+            "• Número de teléfono de contacto"
+        )
+        return
     # -----------------------------------
-    # HORA
+    # PASO 7 - HORA
     # -----------------------------------
     elif opcion_id.startswith("hora_"):
-        sesion = sesiones.get(numero) or {}
-        hora = sesion.get("horas", {}).get(opcion_id)
-        sesion["hora_cita"] = hora
-        sesion["paso"]      = "confirmacion"
-        sesiones[numero] = sesion
-        enviar_confirmacion_datos(numero)
-        return
 
+        hora = sesiones[numero]["horas"].get(opcion_id)
+
+        sesiones[numero]["hora_cita"] = hora
+        sesiones[numero]["paso"] = "confirmacion"
+
+        enviar_confirmacion_datos(numero)
+
+        return
     # -----------------------------------
-    # CONFIRMACIÓN
+    # CONFIRMACIÓN Y EDICIÓN DE DATOS
     # -----------------------------------
     elif opcion_id == "confirm_ok":
-        sesion = sesiones.get(numero) or {}
-        cobertura = sesion.get("cobertura")
+
+        cobertura = sesiones[numero].get("cobertura")
 
         if cobertura == "Particular":
-            sesion["paso"] = "tiene_orden"
-            sesiones[numero] = sesion
+            sesiones[numero]["paso"] = "tiene_orden"
             enviar_pregunta_orden(numero)
+            return
 
         elif cobertura == "Poliza":
-            sesion["paso"] = "orden"
-            sesiones[numero] = sesion
+            sesiones[numero]["paso"] = "orden"
             enviar_texto(
                 numero,
                 "📄 Ahora adjunta la orden médica.\n\n"
                 "Puedes enviarla en PDF o foto.\n"
                 "Un asesor la revisará para confirmar tu cita."
             )
+            return
 
         else:
+            # Sesión corrupta — reiniciar
             enviar_texto(numero, "⚠️ Ocurrió un error. Por favor inicia de nuevo.")
             del sesiones[numero]
             enviar_menu(numero)
-        return
+            return
 
-    # -----------------------------------
-    # EDICIÓN DE CAMPOS
-    # -----------------------------------
     elif opcion_id.startswith("edit_"):
-        sesion = sesiones.get(numero) or {}
-        campo = opcion_id.replace("edit_", "")
+            campo = opcion_id.replace("edit_", "")
 
-        mensajes = {
-            "nombre":              "Escribe tus nombres y apellidos:",
-            "documento":           "Escribe tu número de documento:",
-            "fecha_nacimiento":    "Escribe tu fecha de nacimiento (DD/MM/AAAA):",
-            "telefono":            "Escribe tu número de teléfono:",
-            "correo":              "Escribe tu correo electrónico:",
-            "direccion":           "Escribe tu dirección completa:",
-            "direccion_domicilio": "Escribe la dirección completa para el domicilio:",
-        }
+            mensajes = {
+                "nombre":              "Escribe tus nombres y apellidos:",
+                "documento":           "Escribe tu número de documento:",
+                "fecha_nacimiento":    "Escribe tu fecha de nacimiento (DD/MM/AAAA):",
+                "telefono":            "Escribe tu número de teléfono:",
+                "correo":              "Escribe tu correo electrónico:",
+                "direccion":           "Escribe tu dirección completa:",
+                "direccion_domicilio": "Escribe la dirección completa para el domicilio:",
+            }
 
-        if campo in mensajes:
-            sesion["paso"] = f"editar_{campo}"
-            sesiones[numero] = sesion
-            enviar_texto(numero, mensajes[campo])
+            if campo in mensajes:
+                sesiones[numero]["paso"] = f"editar_{campo}"
+                enviar_texto(numero, mensajes[campo])
 
-        elif campo == "tipo_muestra":
-            sesion["paso"] = "tipo_muestra"
-            sesiones[numero] = sesion
-            enviar_botones_lista(
-                numero,
-                "🧪 ¿De qué tipo de muestra es el examen?",
-                "Selecciona una opción",
-                [
-                    {"id": "muestra_unas",  "title": "Uñas"},
-                    {"id": "muestra_piel",  "title": "Piel"},
-                    {"id": "muestra_cuero", "title": "Cuero cabelludo"},
-                    {"id": "muestra_flujo", "title": "Flujo vaginal"},
-                ]
-            )
+            elif campo == "tipo_muestra":                    # ← NUEVO
+                sesiones[numero]["paso"] = "tipo_muestra"
+                enviar_botones_lista(
+                    numero,
+                    "🧪 ¿De qué tipo de muestra es el examen?",
+                    "Selecciona una opción",
+                    [
+                        {"id": "muestra_unas",  "title": "Uñas"},
+                        {"id": "muestra_piel",  "title": "Piel"},
+                        {"id": "muestra_cuero", "title": "Cuero cabelludo"},
+                        {"id": "muestra_flujo", "title": "Flujo vaginal"},
+                    ]
+                )
 
-        elif campo == "examen":
-            sesion["paso"] = "tipo_examen"
-            sesiones[numero] = sesion
-            enviar_tipo_examen(numero)
+            elif campo == "examen":
+                sesiones[numero]["paso"] = "tipo_examen"
+                enviar_tipo_examen(numero)
 
-        elif campo == "tipo_cita":
-            area = sesion.get("area", "")
-            if area == "Bacteriología":
-                enviar_texto(numero, "ℹ️ Los exámenes de Bacteriología solo se realizan de forma presencial.")
-                enviar_confirmacion_datos(numero)
-            else:
-                sesion["paso"] = "tipo_cita"
-                sesiones[numero] = sesion
-                enviar_tipo_cita(numero)
+            elif campo == "tipo_cita":                       # ← MODIFICADO
+                area = sesiones[numero].get("area", "")
+                if area == "Bacteriología":
+                    enviar_texto(numero, "ℹ️ Los exámenes de Bacteriología solo se realizan de forma presencial.")
+                    enviar_confirmacion_datos(numero)
+                else:
+                    sesiones[numero]["paso"] = "tipo_cita"
+                    enviar_tipo_cita(numero)
 
-        elif campo == "fecha_cita":
-            sesion["paso"] = "fecha"
-            sesiones[numero] = sesion
-            mostrar_fechas_disponibles(numero, sesiones)
+            elif campo == "fecha_cita":
+                sesiones[numero]["paso"] = "fecha"
+                mostrar_fechas_disponibles(numero, sesiones)
 
-        return
-
+            return   
 
 # =====================================================
 # MENSAJES TEXTO
@@ -555,136 +587,179 @@ def manejar_texto(numero, texto):
         enviar_bienvenida(numero)
         return
 
-    sesion = sesiones.get(numero) or {}   # ← leer UNA VEZ
+    sesion = sesiones[numero]
     paso = sesion.get("paso")
 
     # -----------------------------------
     # EDICIÓN DESDE CONFIRMACIÓN
     # -----------------------------------
     if paso and paso.startswith("editar_"):
+
         campo = paso.replace("editar_", "")
 
         if campo == "fecha_nacimiento":
+
             try:
                 fecha = datetime.strptime(texto.strip(), "%d/%m/%Y")
-                sesion[campo] = fecha.strftime("%d/%m/%Y")
-            except ValueError:
-                enviar_texto(numero, "❌ Fecha inválida.\nUsa DD/MM/AAAA")
-                return
-        else:
-            sesion[campo] = texto
+                sesiones[numero][campo] = fecha.strftime("%d/%m/%Y")
 
-        sesion["paso"] = "confirmacion"
-        sesiones[numero] = sesion
+            except ValueError:
+                enviar_texto(
+                    numero,
+                    "❌ Fecha inválida.\nUsa DD/MM/AAAA"
+                )
+                return
+
+        else:
+            sesiones[numero][campo] = texto
+
+        sesiones[numero]["paso"] = "confirmacion"
+
         enviar_texto(numero, "✅ Dato actualizado correctamente.")
         enviar_confirmacion_datos(numero)
-        return
+        return 
 
     # -----------------------------------
     # BUSCAR PACIENTE POR DOCUMENTO
     # -----------------------------------
     if paso == "buscar_documento":
+
         paciente = Paciente.query.filter_by(documento=texto.strip()).first()
 
         if paciente:
-            sesion["tipo_documento"]   = paciente.tipo_documento
-            sesion["documento"]        = paciente.documento
-            sesion["nombre"]           = paciente.nombre
-            sesion["fecha_nacimiento"] = paciente.fecha_nacimiento.strftime("%d/%m/%Y") if paciente.fecha_nacimiento else ""
-            sesion["telefono"]         = paciente.telefono
-            sesion["correo"]           = paciente.correo
-            sesion["direccion"]        = paciente.direccion
-            sesion["paso"]             = "cobertura"
-            sesiones[numero] = sesion
+            # Paciente encontrado — cargar datos y saltar al flujo
+            sesiones[numero]["tipo_documento"] = paciente.tipo_documento
+            sesiones[numero]["documento"]      = paciente.documento
+            sesiones[numero]["nombre"]         = paciente.nombre
+            sesiones[numero]["fecha_nacimiento"] = paciente.fecha_nacimiento.strftime("%d/%m/%Y") if paciente.fecha_nacimiento else ""
+            sesiones[numero]["telefono"]       = paciente.telefono
+            sesiones[numero]["correo"]         = paciente.correo
+            sesiones[numero]["direccion"]      = paciente.direccion
+            sesiones[numero]["paso"]           = "cobertura"
+
             enviar_texto(
                 numero,
                 f"👤 Bienvenido de nuevo, *{paciente.nombre}*.\n"
-                "Usaremos tus datos registrados."
+                f"Usaremos tus datos registrados."
             )
             enviar_tipo_cobertura(numero)
+
         else:
-            sesion["paso"] = "tipo_documento"
-            sesiones[numero] = sesion
             enviar_texto(
                 numero,
                 "📋 No encontramos tu documento en nuestro sistema.\n"
                 "Vamos a registrar tus datos."
             )
+            # Paciente nuevo — pedir datos completos
+            sesiones[numero]["paso"] = "tipo_documento"
             enviar_tipo_documento(numero)
+
         return
 
     # -----------------------------------
     # EXAMEN OTRO
     # -----------------------------------
     if paso == "examen_otro_texto":
-        sesion["tipo_examen"] = texto
-        sesion["paso"]        = "requisitos"
-        sesiones[numero] = sesion
+        sesiones[numero]["tipo_examen"] = texto
+        # FLUJO: después de examen otro → requisitos
+        sesiones[numero]["paso"] = "requisitos"       
+
         enviar_requisitos(numero, "examen_otro")
         return
 
     # -----------------------------------
-    # DATOS PACIENTE
+    # DATOS PACIENTE: número de documento
     # -----------------------------------
     elif paso == "documento":
-        sesion["documento"] = texto
-        sesion["paso"]      = "nombre"
-        sesiones[numero] = sesion
+        sesiones[numero]["documento"] = texto
+        sesiones[numero]["paso"] = "nombre"
+
         enviar_texto(
             numero,
             "Escribe tus nombres y apellidos completos tal como aparecen en tu documento de identidad:"
         )
         return
 
+    # -----------------------------------
+    # DATOS PACIENTE: nombre
+    # -----------------------------------
     elif paso == "nombre":
-        sesion["nombre"] = texto
-        sesion["paso"]   = "fecha_nacimiento"
-        sesiones[numero] = sesion
-        enviar_texto(numero, "Escribe tu fecha de nacimiento (DD/MM/AAAA):")
+        sesiones[numero]["nombre"] = texto
+        sesiones[numero]["paso"] = "fecha_nacimiento"
+
+        enviar_texto(
+            numero,
+            "Escribe tu fecha de nacimiento (DD/MM/AAAA):"
+        )
         return
 
+    # -----------------------------------
+    # DATOS PACIENTE: fecha de nacimiento
+    # -----------------------------------
     elif paso == "fecha_nacimiento":
+
         try:
             fecha = datetime.strptime(texto.strip(), "%d/%m/%Y")
-            sesion["fecha_nacimiento"] = fecha.strftime("%d/%m/%Y")
-            sesion["paso"]             = "telefono"
-            sesiones[numero] = sesion
-            enviar_texto(numero, "Escribe tu número de teléfono:")
+
+            sesiones[numero]["fecha_nacimiento"] = fecha.strftime("%d/%m/%Y")
+            sesiones[numero]["paso"] = "telefono"
+
+            enviar_texto(
+                numero,
+                "Escribe tu número de teléfono:"
+            )
+
         except ValueError:
+
             enviar_texto(
                 numero,
                 "❌ Fecha inválida.\n\nUsa el formato DD/MM/AAAA.\nEjemplo: 25/12/1998"
             )
+
         return
 
+    # -----------------------------------
+    # DATOS PACIENTE: teléfono
+    # -----------------------------------
     elif paso == "telefono":
-        sesion["telefono"] = texto
-        sesion["paso"]     = "correo"
-        sesiones[numero] = sesion
-        enviar_texto(numero, "Escribe tu correo electrónico:")
+        sesiones[numero]["telefono"] = texto
+        sesiones[numero]["paso"] = "correo"
+
+        enviar_texto(
+            numero,
+            "Escribe tu correo electrónico:"
+        )
         return
 
+    # -----------------------------------
+    # DATOS PACIENTE: correo
+    # -----------------------------------
     elif paso == "correo":
-        sesion["correo"] = texto
-        sesion["paso"]   = "direccion"
-        sesiones[numero] = sesion
-        enviar_texto(numero, "📍 Por favor escribe la dirección del paciente.")
+
+        sesiones[numero]["correo"] = texto
+        sesiones[numero]["paso"] = "direccion"
+
+        enviar_texto(
+            numero,
+            "📍 Por favor escribe la dirección del paciente."
+            
+        )
         return
 
     elif paso == "direccion":
-        sesion["direccion"] = texto
-        sesion["paso"]      = "cobertura"
-        sesiones[numero] = sesion
+
+        sesiones[numero]["direccion"] = texto
+        sesiones[numero]["paso"] = "cobertura"
+
         enviar_tipo_cobertura(numero)
         return
-
+    
     # -----------------------------------
-    # DIRECCIÓN DOMICILIO
+    #DIRECION DOMICILIO
     # -----------------------------------
     elif paso == "direccion_domicilio":
-        sesion["direccion_domicilio"] = texto
-        sesion["paso"]                = "confirmacion"
-        sesiones[numero] = sesion
+        sesiones[numero]["direccion_domicilio"] = texto
+        sesiones[numero]["paso"] = "confirmacion"
         enviar_confirmacion_datos(numero)
         return
 
@@ -712,9 +787,8 @@ def manejar_texto(numero, texto):
 
         if len(citas) == 1:
             cita = citas[0]
-            sesion["paso"]    = "cancelar_confirmar"
-            sesion["cita_id"] = cita.id
-            sesiones[numero] = sesion
+            sesiones[numero]["paso"]    = "cancelar_confirmar"
+            sesiones[numero]["cita_id"] = cita.id
             fecha_str = cita.fecha_cita.strftime("%d/%m/%Y %H:%M") if cita.hora_cita else cita.fecha_cita.strftime("%d/%m/%Y")
             enviar_texto(
                 numero,
@@ -726,9 +800,8 @@ def manejar_texto(numero, texto):
                 "Responde *sí* o *no*"
             )
         else:
-            sesion["paso"]     = "cancelar_elegir"
-            sesion["cita_ids"] = [c.id for c in citas]
-            sesiones[numero] = sesion
+            sesiones[numero]["paso"]     = "cancelar_elegir"
+            sesiones[numero]["cita_ids"] = [c.id for c in citas]
             lista = "\n".join(
                 f"{i+1}. {c.fecha_cita.strftime('%d/%m/%Y')} — {c.tipo_examen} ({c.tipo_cita})"
                 for i, c in enumerate(citas)
@@ -739,11 +812,10 @@ def manejar_texto(numero, texto):
     elif paso == "cancelar_elegir":
         try:
             idx      = int(texto.strip()) - 1
-            cita_ids = sesion.get("cita_ids", [])
+            cita_ids = sesiones[numero]["cita_ids"]
             cita     = Cita.query.get(cita_ids[idx])
-            sesion["paso"]    = "cancelar_confirmar"
-            sesion["cita_id"] = cita.id
-            sesiones[numero] = sesion
+            sesiones[numero]["paso"]    = "cancelar_confirmar"
+            sesiones[numero]["cita_id"] = cita.id
             fecha_str = cita.fecha_cita.strftime("%d/%m/%Y %H:%M") if cita.hora_cita else cita.fecha_cita.strftime("%d/%m/%Y")
             enviar_texto(
                 numero,
@@ -761,7 +833,7 @@ def manejar_texto(numero, texto):
         respuesta = texto.strip().lower()
         if respuesta in ("sí", "si", "s"):
             try:
-                cita = Cita.query.get(sesion.get("cita_id"))
+                cita = Cita.query.get(sesiones[numero]["cita_id"])
                 cita.estado = "cancelada"
                 db.session.commit()
                 enviar_texto(numero, "✅ Tu cita ha sido cancelada exitosamente.")
@@ -776,8 +848,9 @@ def manejar_texto(numero, texto):
         enviar_menu(numero)
         return
 
+
     # -----------------------------------
-    # ORDEN (error si llega como texto)
+    # ORDEN (captura por texto — error)
     # -----------------------------------
     elif paso == "orden":
         enviar_texto(
@@ -787,32 +860,51 @@ def manejar_texto(numero, texto):
         return
 
     # -----------------------------------
-    # POST CITA
+    # POST CITA (re-agendar)
     # -----------------------------------
     elif paso == "post_cita":
+
         if texto == "1":
-            sesion["paso"] = "cobertura"
-            sesiones[numero] = sesion
-            enviar_texto(numero, "Perfecto 👍 agendaremos otra cita con los mismos datos.")
+            # MISMO PACIENTE
+            sesiones[numero]["paso"] = "cobertura"
+
+            enviar_texto(
+                numero,
+                "Perfecto 👍 agendaremos otra cita con los mismos datos."
+            )
+
             enviar_tipo_cobertura(numero)
             return
 
         elif texto == "2":
-            sesiones[numero] = {"flujo": "agendar", "paso": "buscar_documento"}
-            enviar_texto(numero, "📋 Ingresa el documento del nuevo paciente:")
+            # OTRO PACIENTE
+            sesiones[numero] = {
+                "flujo": "agendar",
+                "paso": "buscar_documento"
+            }
+
+            enviar_texto(
+                numero,
+                "📋 Ingresa el documento del nuevo paciente:"
+            )
             return
 
         elif texto == "3":
+            # TERMINAR
+            enviar_texto(
+                numero,
+                "Gracias por confiar en nosotros 💙"
+            )
+
             sesiones[numero] = {
                 "modo": "humano",
-                "modo_humano_inicio": datetime.utcnow().isoformat()
+                "modo_humano_inicio": datetime.utcnow()
             }
-            enviar_texto(numero, "Gracias por confiar en nosotros 💙")
             return
-
+        
         elif texto == "4":
-            del sesiones[numero]
             enviar_menu(numero)
+            sesiones[numero] = {}
             return
 
         else:
@@ -823,26 +915,20 @@ def manejar_texto(numero, texto):
                 "2️⃣ Otro paciente\n"
                 "3️⃣ No, gracias\n"
                 "4️⃣ Menú principal"
-            )
+                )
             return
-
-
-# =====================================================
-# ARCHIVOS (orden médica)
-# =====================================================
 
 def manejar_archivo(numero, media_id, tipo_mime):
     if numero not in sesiones:
         return
-
-    sesion = sesiones.get(numero) or {}
-    if sesion.get("paso") != "orden":
+    if sesiones[numero].get("paso") != "orden":
         return
 
-    sesion["orden"]        = media_id
-    sesion["tipo_archivo"] = tipo_mime
-    sesiones[numero] = sesion
+    sesiones[numero]["orden"] = media_id
+    sesiones[numero]["tipo_archivo"] = tipo_mime
     confirmar_cita(numero)
+
+
 
 
 # =====================================================
@@ -850,27 +936,48 @@ def manejar_archivo(numero, media_id, tipo_mime):
 # =====================================================
 
 def confirmar_cita(numero):
-    sesion = sesiones.get(numero) or {}
+    sesion = sesiones.get(numero, {})
     try:
-        fecha_texto = (sesion.get("fecha_cita") or "").strip()
-        hora_texto  = (sesion.get("hora_cita") or "").strip()
+        from datetime import datetime
 
-        if hora_texto and hora_texto != "Por asignar":
-            fecha_real = datetime.strptime(f"{fecha_texto} {hora_texto}", "%d/%m/%Y %H:%M")
+        # ---------------------------------
+        # FECHA
+        # ---------------------------------
+        fecha_texto = (sesion.get("fecha_cita") or "").strip() 
+        hora_texto  = (sesion.get("hora_cita") or "").strip()
+      
+        if hora_texto:
+            fecha_real = datetime.strptime(
+                f"{fecha_texto} {hora_texto}",
+                "%d/%m/%Y %H:%M"
+            )
         else:
-            fecha_real = datetime.strptime(fecha_texto, "%d/%m/%Y")
+            fecha_real = datetime.strptime(
+                fecha_texto,
+                "%d/%m/%Y"
+            )
 
         fecha_nacimiento_texto = (sesion.get("fecha_nacimiento") or "").strip()
+
         fecha_nacimiento = None
         if fecha_nacimiento_texto:
             try:
-                fecha_nacimiento = datetime.strptime(fecha_nacimiento_texto, "%d/%m/%Y").date()
+                fecha_nacimiento = datetime.strptime(
+                    fecha_nacimiento_texto,
+                    "%d/%m/%Y"
+                ).date()
             except ValueError:
-                enviar_texto(numero, "❌ Fecha de nacimiento inválida. Usa el formato DD/MM/AAAA.")
+                enviar_texto(
+                    numero,
+                    "❌ Fecha de nacimiento inválida. Usa el formato DD/MM/AAAA."
+                )
                 return
-
-        # Busca o crea paciente
-        paciente = Paciente.query.filter_by(documento=sesion.get("documento")).first()
+        # ---------------------------------
+        # PACIENTE — busca o crea
+        # ---------------------------------
+        paciente = Paciente.query.filter_by(
+            documento=sesion.get("documento")
+        ).first()
 
         if not paciente:
             paciente = Paciente(
@@ -884,19 +991,22 @@ def confirmar_cita(numero):
                 numero_whatsapp=numero
             )
             db.session.add(paciente)
-            db.session.flush()
+            db.session.flush()  # obtiene paciente.id sin commit
         else:
-            paciente.telefono         = sesion.get("telefono", paciente.telefono)
-            paciente.correo           = sesion.get("correo", paciente.correo)
-            paciente.direccion        = sesion.get("direccion", paciente.direccion)
+            # ← agregar esto
+            paciente.telefono  = sesion.get("telefono", paciente.telefono)
+            paciente.correo    = sesion.get("correo", paciente.correo)
+            paciente.direccion = sesion.get("direccion", paciente.direccion)
             paciente.fecha_nacimiento = fecha_nacimiento or paciente.fecha_nacimiento
 
+        # ---------------------------------
+        # CITA
+        # ---------------------------------
         agregar_mensajes_log(
             f"DEBUG confirmar_cita | area={sesion.get('area')} | "
             f"agenda_tipo={sesion.get('agenda_tipo')} | "
             f"examen={sesion.get('tipo_examen')}"
         )
-
         cita = Cita(
             paciente_id=paciente.id,
             tipo_cita=sesion.get("tipo_cita", ""),
@@ -906,10 +1016,10 @@ def confirmar_cita(numero):
             cobertura=sesion.get("cobertura", ""),
             aseguradora=sesion.get("aseguradora", ""),
             tipo_examen=sesion.get("tipo_examen", ""),
-            area=sesion.get("area", ""),
+            area=sesion.get("area", ""), 
             tipo_muestra=sesion.get("tipo_muestra", ""),
             fecha_cita=fecha_real,
-            hora_cita=hora_texto if hora_texto and hora_texto != "Por asignar" else None,
+            hora_cita=hora_texto if hora_texto else None,
             agenda_tipo=sesion.get("agenda_tipo", sesion.get("area", "").lower()),
             numero_whatsapp=numero,
             estado="pendiente"
@@ -926,22 +1036,25 @@ def confirmar_cita(numero):
             "Recibirás confirmación por este medio.\n\n"
             "🕘 Horario de atención para las confirmaciones: 9:00 AM - 12:00 PM\n\n"
             "Gracias por confiar en nosotros💙\n\n"
+
             "¿Deseas agendar otra cita?(es necesario seleccionar una opción)\n\n"
-            "1️⃣ Mismo paciente\n"
+            "1️⃣ Mismo paciente\n" 
             "2️⃣ Otro paciente\n"
             "3️⃣ No, gracias"
         )
-
-        sesion["paso"] = "post_cita"
-        sesiones[numero] = sesion
+        sesiones[numero]["paso"] = "post_cita"
         return
 
     except Exception as e:
         db.session.rollback()
         agregar_mensajes_log(str(e))
-        enviar_texto(numero, "❌ Ocurrió un error guardando tu solicitud.")
 
-        sesiones[numero] = {
-            "modo": "humano",
-            "modo_humano_inicio": datetime.utcnow().isoformat()
-        }
+        enviar_texto(
+            numero,
+            "❌ Ocurrió un error guardando tu solicitud."
+        )
+
+    sesiones[numero] = {
+        "modo": "humano",
+        "modo_humano_inicio": datetime.utcnow()
+    }
