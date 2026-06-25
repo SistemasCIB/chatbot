@@ -213,15 +213,13 @@
 
     setInterval(async () => {
         try {
-            const res = await fetch('/asesor/chat_mensajes_count/' + citaId);
+            const res = await fetch('/asesor/chat_total/' + citaId);
             const data = await res.json();
             if (data.total > ultimoTotal) {
-                ultimoTotal = data.total;
-                // Recargar el iframe o la página para mostrar nuevos mensajes
                 location.reload();
             }
         } catch(e) {}
-    }, 5000);
+    }, 3000);
 </script>
 
 </body>

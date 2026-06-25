@@ -531,13 +531,27 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                             class="btn btn-edit">
                             Editar
                             </a>
+
                             {% if c.chat_activo %}
-                                <a href="/asesor/liberar_chat/{{ c.id }}" class="btn btn-reject">🔴 Liberar Chat</a>
-                            {% else %}
-                                <button onclick="tomarYAbrir({{ c.id }}, '{{ c.paciente.nombre }}')" 
+                                <button onclick="abrirChat({{ c.id }}, '{{ c.paciente.nombre }}')"
                                         class="btn btn-confirm"
-                                        data-chat-cita="{{ c.id }}"
-                                        data-chat-total="0">
+                                        id="btn-notif-{{ c.id }}"
+                                        style="display:none;">
+                                    🔔 Mensaje Nuevo
+                                </button>
+
+                                <a href="#" onclick="abrirChat({{ c.id }}, '{{ c.paciente.nombre }}'); return false;"
+                                class="btn btn-edit">
+                                    💬 Ver Chat
+                                </a>
+
+                                <a href="/asesor/liberar_chat/{{ c.id }}" class="btn btn-reject">
+                                    🔴 Liberar Chat
+                                </a>
+                            {% else %}
+                                <button onclick="tomarYAbrir({{ c.id }}, '{{ c.paciente.nombre }}')"
+                                        class="btn btn-confirm"
+                                        data-chat-cita="{{ c.id }}">
                                     💬 Tomar Chat
                                 </button>
                             {% endif %}
@@ -608,21 +622,17 @@ function tomarYAbrir(citaId, nombre) {
     abrirChat(citaId, nombre);
 }
 async function verificarMensajesNuevos() {
-    document.querySelectorAll('[data-chat-cita]').forEach(async btn => {
-        const citaId = btn.dataset.chatCita;
+    document.querySelectorAll('[id^="btn-notif-"]').forEach(async btn => {
+        const citaId = btn.id.replace('btn-notif-', '');
         const res = await fetch('/asesor/chat_mensajes_count/' + citaId);
         const data = await res.json();
-        const anterior = parseInt(btn.dataset.chatTotal || '0');
-        if (anterior > 0 && data.total > anterior) {
-            btn.style.background = '#DC2626';
-            btn.style.color = 'white';
-            btn.textContent = '🔴 Mensaje nuevo';
-        }
-        btn.dataset.chatTotal = data.total;
+        btn.style.display = data.nuevos > 0 ? 'inline-block' : 'none';
     });
 }
 setInterval(verificarMensajesNuevos, 5000);
 </script>
+
+
 <script>
 let ultimoTotal = 0;
 

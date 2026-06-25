@@ -40,7 +40,11 @@ def recibir_mensaje(req):
             mensaje = objeto_messages[0]
             numero = mensaje['from']
             tipo = mensaje.get('type')
-
+        if objeto_messages:
+            mensaje = objeto_messages[0]
+            numero = mensaje['from']
+            tipo = mensaje.get('type')
+            agregar_mensajes_log(f"TIPO_MENSAJE | {numero} | {tipo}")  # ← agrega aquí
             if tipo == 'interactive':
                 tipo_interactive = mensaje.get('interactive', {}).get('type', '')
                 if tipo_interactive == 'list_reply':
@@ -51,7 +55,7 @@ def recibir_mensaje(req):
                     titulo = mensaje.get('interactive', {}).get('button_reply', {}).get('title', '')
 
                 agregar_mensajes_log(f"Boton presionado | {numero} | {titulo}")
-                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=titulo))
+                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=titulo, leido_asesor=False))
                 db.session.commit()
                 manejar_boton(numero, opcion_id)
 
@@ -63,16 +67,16 @@ def recibir_mensaje(req):
                 nombre = contactos[0].get('profile', {}).get('name', 'Desconocido') if contactos else 'Desconocido'
                # log limpio
                 agregar_mensajes_log(f"Mensaje | {nombre} | {numero} | {texto}")
-                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=texto))
+                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=texto, leido_asesor=False))
                 db.session.commit()
                 manejar_texto(numero, texto)
 
-            elif tipo in ['image', 'document']:
-                media = mensaje.get(tipo,{})
+            elif tipo in ['image', 'document', 'audio', 'video']:
+                media = mensaje.get(tipo, {})
                 media_id = media.get('id', '')
                 tipo_mime = media.get('mime_type', tipo)
                 agregar_mensajes_log(f"Archivo recibido | {numero} | Tipo: {tipo_mime} | Media ID: {media_id}")
-                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=f'[Archivo] {tipo_mime} | {media_id}'))
+                db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=f'[Archivo] {tipo_mime} | {media_id}', leido_asesor=False))
                 db.session.commit()
                 manejar_archivo(numero, media_id, tipo_mime)
                

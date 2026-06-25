@@ -169,3 +169,4 @@ class Mensaje(db.Model):
     origen = db.Column(db.String(10), nullable=False)  # 'cliente', 'bot', 'asesor'
     texto = db.Column(db.TEXT, nullable=False)
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    leido_asesor = db.Column(db.Boolean, default=False)  

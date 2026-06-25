@@ -1,5 +1,5 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for
-from models import db, Log, Cita, Consentimiento, Asesor, seed_examen_config
+from models import db, Log, Cita, Consentimiento, Asesor, seed_examen_config, Mensaje
 from scheduler import iniciar_scheduler
 from webhook import webhook_bp
 from asesor import asesor_bp
@@ -136,7 +136,7 @@ def citas_count():
 #    verificar_recordatorios_manual(app)
 #    return "Recordatorios enviados, revisa la consola"
 
-iniciar_scheduler(app)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

@@ -1,7 +1,7 @@
 from functools import wraps
 
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
-from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente, Mensaje
+from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente, Mensaje, agregar_mensajes_log
 from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
 from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario,RECAPTCHA_SITE_KEY
@@ -91,7 +91,18 @@ def panel():
 
     chats_activos = {chat.numero for chat in ChatActivo.query.filter_by(activo=True).all()}
     for cita in citas:
+
         cita.chat_activo = cita.numero_whatsapp in chats_activos
+
+        cita.total_mensajes = Mensaje.query.filter_by(
+            numero_whatsapp=cita.numero_whatsapp
+        ).count()
+
+        cita.mensajes_nuevos = Mensaje.query.filter_by(
+            numero_whatsapp=cita.numero_whatsapp,
+            origen='cliente',
+            leido_asesor=False
+        ).count()
         
     return render_template(
         'asesor.html',
@@ -870,7 +881,16 @@ def logout():
 def ver_chat(cita_id):
     cita = Cita.query.get_or_404(cita_id)
     numero = cita.numero_whatsapp
+    Mensaje.query.filter_by(
+        numero_whatsapp=numero,
+        origen='cliente',
+        leido_asesor=False
+    ).update({
+        'leido_asesor': True
+    })
 
+    db.session.commit()
+    
     if request.method == 'POST':
         texto = request.form.get('mensaje', '').strip()
         if texto:
@@ -880,17 +900,25 @@ def ver_chat(cita_id):
 
         return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
 
-    mensajes = Mensaje.query.filter_by(numero_whatsapp=numero)\
-                            .order_by(Mensaje.fecha.asc()).all()
+    mensajes = Mensaje.query.filter_by(numero_whatsapp=numero).order_by(Mensaje.id.asc()).all()
 
     return render_template('chat.html', cita=cita, mensajes=mensajes)
 
 @asesor_bp.route('/asesor/chat_mensajes_count/<int:cita_id>')
 @login_requerido
 def chat_mensajes_count(cita_id):
+
     cita = Cita.query.get_or_404(cita_id)
-    total = Mensaje.query.filter_by(numero_whatsapp=cita.numero_whatsapp).count()
-    return jsonify({'total': total})
+
+    nuevos = Mensaje.query.filter_by(
+        numero_whatsapp=cita.numero_whatsapp,
+        origen='cliente',
+        leido_asesor=False
+    ).count()
+
+    return jsonify({
+        'nuevos': nuevos
+    })
 
 @asesor_bp.route('/asesor/media/<media_id>')
 @login_requerido
@@ -980,3 +1008,17 @@ def enviar_media(cita_id):
     db.session.commit()
 
     return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
+
+@asesor_bp.route('/asesor/chat_total/<int:cita_id>')
+@login_requerido
+def chat_total(cita_id):
+
+    cita = Cita.query.get_or_404(cita_id)
+
+    total = Mensaje.query.filter_by(
+        numero_whatsapp=cita.numero_whatsapp
+    ).count()
+
+    return jsonify({
+        'total': total
+    })
