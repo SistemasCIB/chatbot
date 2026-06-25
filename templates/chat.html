@@ -120,9 +120,9 @@
         {% endif %}
         <div class="burbuja">
             {% if m.texto.startswith('[Archivo]') %}
-                {% set partes = m.texto.replace('[Archivo] ', '').split(' | ') %}
+                {% set partes = m.texto.replace('[Archivo] ', '').split(' | ', 1) %}
                 {% set mime = partes[0] %}
-                {% set media_id = partes[1] %}
+                {% set media_id = partes[1] if partes|length > 1 else '' %}
                 {% set url = '/asesor/media/' + media_id %}
 
                 {% if 'image' in mime %}
