@@ -579,22 +579,19 @@ def buscar_paciente():
 
     return jsonify({})
 
-
-
-@asesor_bp.route('/asesor/tomar_chat/<int:cita_id>')
-@login_requerido
-def tomar_chat(cita_id):
-    cita = Cita.query.get_or_404(cita_id)
-    chat = ChatActivo.query.filter_by(numero=cita.numero_whatsapp).first()
+def _ocupar_chat(numero):
+    """Crea o reactiva el ChatActivo para este número. Se llama tanto al
+    'tomar' un chat explícitamente como al simplemente abrir la conversación."""
+    chat = ChatActivo.query.filter_by(numero=numero).first()
 
     if not chat:
         chat = ChatActivo(
-            numero=cita.numero_whatsapp,
+            numero=numero,
             asesor_id=session['asesor_id'],
             asesor_nombre=session['asesor_nombre'],
             activo=True,
             vence_en=datetime.utcnow() + timedelta(hours=24),
-            primer_mensaje_asesor=datetime.utcnow()  # ← timer arranca aquí
+            primer_mensaje_asesor=datetime.utcnow()
         )
         db.session.add(chat)
     else:
@@ -602,10 +599,19 @@ def tomar_chat(cita_id):
         chat.asesor_id = session['asesor_id']
         chat.asesor_nombre = session['asesor_nombre']
         chat.vence_en = datetime.utcnow() + timedelta(hours=24)
-        chat.primer_mensaje_asesor = datetime.utcnow()  # ← timer arranca aquí
+        chat.primer_mensaje_asesor = datetime.utcnow()
 
     db.session.commit()
+    return chat
+
+
+@asesor_bp.route('/asesor/tomar_chat/<int:cita_id>')
+@login_requerido
+def tomar_chat(cita_id):
+    cita = Cita.query.get_or_404(cita_id)
+    _ocupar_chat(cita.numero_whatsapp)
     return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
+
 
 @asesor_bp.route('/asesor/liberar_chat/<int:cita_id>')
 @login_requerido
@@ -881,6 +887,9 @@ def logout():
 def ver_chat(cita_id):
     cita = Cita.query.get_or_404(cita_id)
     numero = cita.numero_whatsapp
+
+    _ocupar_chat(numero)   # ← aquí se "ocupa" el chat al abrirlo
+
     Mensaje.query.filter_by(
         numero_whatsapp=numero,
         origen='cliente',
@@ -890,13 +899,11 @@ def ver_chat(cita_id):
     })
 
     db.session.commit()
-    
+
     if request.method == 'POST':
         texto = request.form.get('mensaje', '').strip()
         if texto:
-            # 1. Enviar por WhatsApp
             enviar_texto(numero, texto, origen='asesor')
-     
 
         return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
 
@@ -1027,20 +1034,30 @@ def chat_total(cita_id):
 @login_requerido
 def bandeja():
     from sqlalchemy import func
-    
-    # Todos los chats activos con info del paciente
-    chats = ChatActivo.query.filter_by(activo=True).all()
-    
+    from datetime import datetime
+
+    # Todos los números que tienen al menos un mensaje (no solo los "tomados")
+    numeros = [n[0] for n in db.session.query(Mensaje.numero_whatsapp).distinct().all()]
+
     bandeja = []
-    for chat in chats:
-        cita = Cita.query.filter_by(numero_whatsapp=chat.numero).order_by(Cita.creada_en.desc()).first()
-        ultimo_msg = Mensaje.query.filter_by(numero_whatsapp=chat.numero).order_by(Mensaje.fecha.desc()).first()
-        nuevos = Mensaje.query.filter_by(numero_whatsapp=chat.numero, origen='cliente', leido_asesor=False).count()
+    for numero in numeros:
+        cita = Cita.query.filter_by(numero_whatsapp=numero).order_by(Cita.creada_en.desc()).first()
+        ultimo_msg = Mensaje.query.filter_by(numero_whatsapp=numero).order_by(Mensaje.fecha.desc()).first()
+        nuevos = Mensaje.query.filter_by(numero_whatsapp=numero, origen='cliente', leido_asesor=False).count()
+        chat_activo = ChatActivo.query.filter_by(numero=numero, activo=True).first()
+
         bandeja.append({
-            'chat': chat,
+            'numero': numero,
             'cita': cita,
             'ultimo_msg': ultimo_msg,
-            'nuevos': nuevos
+            'nuevos': nuevos,
+            'ocupado': chat_activo is not None
         })
-    
+
+    # más recientes primero
+    bandeja.sort(
+        key=lambda item: item['ultimo_msg'].fecha if item['ultimo_msg'] else datetime.min,
+        reverse=True
+    )
+
     return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))
