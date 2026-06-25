@@ -101,7 +101,7 @@
 
 <!-- Header -->
 <div class="chat-header">
-    <a href="{{ url_for('asesor.panel') }}" id="btn-volver">&#8592;</a>
+    <a href="{{ url_for('asesor.bandeja') }}" id="btn-volver">&#8592;</a>
     <div class="avatar">
         {{ (cita.paciente.nombre[0] if cita.paciente and cita.paciente.nombre else '?') | upper }}
     </div>
@@ -128,8 +128,8 @@
                 {% if 'image' in mime %}
                     <img src="{{ url }}" style="max-width:100%; border-radius:8px; display:block;">
                 {% elif 'audio' in mime %}
-                    <audio controls style="width:100%;">
-                        <source src="{{ url }}" type="audio/ogg; codecs=opus">
+                
+                    <audio controls style="width:220px;">
                         <source src="{{ url }}" type="{{ mime }}">
                     </audio>
                 {% elif 'video' in mime %}

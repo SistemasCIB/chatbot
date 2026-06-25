@@ -1022,3 +1022,25 @@ def chat_total(cita_id):
     return jsonify({
         'total': total
     })
+
+@asesor_bp.route('/asesor/bandeja')
+@login_requerido
+def bandeja():
+    from sqlalchemy import func
+    
+    # Todos los chats activos con info del paciente
+    chats = ChatActivo.query.filter_by(activo=True).all()
+    
+    bandeja = []
+    for chat in chats:
+        cita = Cita.query.filter_by(numero_whatsapp=chat.numero).order_by(Cita.creada_en.desc()).first()
+        ultimo_msg = Mensaje.query.filter_by(numero_whatsapp=chat.numero).order_by(Mensaje.fecha.desc()).first()
+        nuevos = Mensaje.query.filter_by(numero_whatsapp=chat.numero, origen='cliente', leido_asesor=False).count()
+        bandeja.append({
+            'chat': chat,
+            'cita': cita,
+            'ultimo_msg': ultimo_msg,
+            'nuevos': nuevos
+        })
+    
+    return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))

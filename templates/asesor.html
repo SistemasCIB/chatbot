@@ -349,6 +349,8 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
         <a href="/asesor/exportar" class="nav-item"><span>⬇️</span> Exportar CSV</a>
         <div class="nav-label">Acciones</div>
         <a href="/asesor/nueva" class="nav-cta">＋ Nueva cita</a>
+        <div class="nav-label">Bandeja de mensajes</div>
+        <a href="/asesor/bandeja" class="nav-item"><span>💬</span> Mensajes</a>
     </nav>
 
     <div class="sidebar-footer">
@@ -375,6 +377,15 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
             <a href="/asesor/historial"  class="btn-top btn-hist">🕘 Historial</a>
             <a href="/asesor/calendario" class="btn-top btn-cal">📅 Calendario</a>
             <a href="/asesor/trazabilidad" class="btn-top btn-traz">📈 Trazabilidad</a>
+            <a href="/asesor/bandeja" class="btn-top btn-hist" style="position:relative;">
+                💬 Mensajes
+                <span id="badge-mensajes" style="
+                    display:none; position:absolute; top:-6px; right:-6px;
+                    background:#DC2626; color:white; border-radius:50%;
+                    width:18px; height:18px; font-size:10px;
+                    align-items:center; justify-content:center;
+                "></span>
+            </a>
         </div>
     </div>
 
