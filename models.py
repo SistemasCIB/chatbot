@@ -4,6 +4,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+import json
+
+class SesionBot(db.Model):
+    __tablename__ = 'sesion_bot'
+
+    id        = db.Column(db.Integer, primary_key=True)
+    numero    = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    datos     = db.Column(db.Text, nullable=False, default='{}')  # JSON serializado
+    actualizada_en = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def get(self, key, default=None):
+        return self.as_dict().get(key, default)
+
+    def as_dict(self):
+        try:
+            return json.loads(self.datos)
+        except:
+            return {}
+
+    def set_datos(self, d):
+        self.datos = json.dumps(d, default=str)
+        
 class ConfigHorario(db.Model):
     __tablename__ = 'config_horario'
 
