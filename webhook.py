@@ -84,5 +84,5 @@ def recibir_mensaje(req):
 
         return jsonify({'message': 'EVENT_RECEIVED'})
     except Exception as e:
-        agregar_mensajes_log(f"Error: {str(e)}\n{traceback.format_exc()}")
+        agregar_mensajes_log(f"ERROR WEBHOOK | {str(e)} | {traceback.format_exc()}")
         return jsonify({'message': 'EVENT_RECEIVED'})

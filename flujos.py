@@ -598,7 +598,7 @@ def manejar_boton(numero, opcion_id):
 # =====================================================
 
 def manejar_texto(numero, texto):
-
+    agregar_mensajes_log(f"ENTRO manejar_texto | {numero} | {texto}")  # ← primera línea
     if verificar_modo_humano(numero):
         return
 
