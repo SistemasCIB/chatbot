@@ -351,6 +351,10 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
         <a href="/asesor/nueva" class="nav-cta">＋ Nueva cita</a>
         <div class="nav-label">Bandeja de mensajes</div>
         <a href="/asesor/bandeja" class="nav-item"><span>💬</span> Mensajes</a>
+        <div class="nav-label">Cuenta</div>
+        <a href="{{ url_for('asesor.vista_cambiar_password') }}" class="nav-item">
+            <span>🔒</span> Cambiar contraseña
+        </a>
     </nav>
 
     <div class="sidebar-footer">

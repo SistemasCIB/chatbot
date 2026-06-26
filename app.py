@@ -136,7 +136,7 @@ def citas_count():
 #    verificar_recordatorios_manual(app)
 #    return "Recordatorios enviados, revisa la consola"
 
-
+iniciar_scheduler(app)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
