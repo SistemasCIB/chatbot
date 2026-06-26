@@ -24,7 +24,6 @@ def verificar_token(req):
 def recibir_mensaje(req):
     try:
         data = req.get_json()
-        
 
         entry = data.get('entry', [])
         if not entry:
@@ -37,52 +36,73 @@ def recibir_mensaje(req):
         value = changes[0].get('value', {})
         objeto_messages = value.get('messages', [])
 
-        if objeto_messages:
-            mensaje = objeto_messages[0]
-            numero = mensaje['from']
-            tipo = mensaje.get('type')
-        if objeto_messages:
-            mensaje = objeto_messages[0]
-            numero = mensaje['from']
-            tipo = mensaje.get('type')
-            agregar_mensajes_log(f"TIPO_MENSAJE | {numero} | {tipo}")  # ← agrega aquí
-            if tipo == 'interactive':
-                tipo_interactive = mensaje.get('interactive', {}).get('type', '')
-                if tipo_interactive == 'list_reply':
-                    opcion_id = mensaje.get('interactive', {}).get('list_reply', {}).get('id', '')
-                    titulo = mensaje.get('interactive', {}).get('list_reply', {}).get('title', '')
-                else:
-                    opcion_id = mensaje.get('interactive', {}).get('button_reply', {}).get('id', '')
-                    titulo = mensaje.get('interactive', {}).get('button_reply', {}).get('title', '')
+        if not objeto_messages:
+            return jsonify({'message': 'EVENT_RECEIVED'})
 
-                agregar_mensajes_log(f"Boton presionado | {numero} | {titulo}")
+        mensaje = objeto_messages[0]
+        numero = mensaje['from']
+        tipo = mensaje.get('type')
+
+        agregar_mensajes_log(f"TIPO_MENSAJE | {numero} | {tipo}")
+
+        if tipo == 'interactive':
+            tipo_interactive = mensaje.get('interactive', {}).get('type', '')
+            if tipo_interactive == 'list_reply':
+                opcion_id = mensaje.get('interactive', {}).get('list_reply', {}).get('id', '')
+                titulo = mensaje.get('interactive', {}).get('list_reply', {}).get('title', '')
+            else:
+                opcion_id = mensaje.get('interactive', {}).get('button_reply', {}).get('id', '')
+                titulo = mensaje.get('interactive', {}).get('button_reply', {}).get('title', '')
+
+            agregar_mensajes_log(f"Boton presionado | {numero} | {titulo}")
+
+            try:
                 db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=titulo, leido_asesor=False))
                 db.session.commit()
-                manejar_boton(numero, opcion_id)
+            except Exception as e:
+                db.session.rollback()
+                agregar_mensajes_log(f"ERROR guardando Mensaje boton | {e}")
 
-            elif tipo == 'text':
-                texto = mensaje['text']['body']
-                nombre = objeto_messages[0].get('from', '')
-               # obtener nombre del contacto
-                contactos = value.get('contacts', [])
-                nombre = contactos[0].get('profile', {}).get('name', 'Desconocido') if contactos else 'Desconocido'
-               # log limpio
-                agregar_mensajes_log(f"Mensaje | {nombre} | {numero} | {texto}")
+            agregar_mensajes_log(f"ANTES manejar_boton | {numero} | {opcion_id}")
+            manejar_boton(numero, opcion_id)
+            agregar_mensajes_log(f"DESPUES manejar_boton | {numero}")
+
+        elif tipo == 'text':
+            texto = mensaje['text']['body']
+            contactos = value.get('contacts', [])
+            nombre = contactos[0].get('profile', {}).get('name', 'Desconocido') if contactos else 'Desconocido'
+
+            agregar_mensajes_log(f"Mensaje | {nombre} | {numero} | {texto}")
+
+            try:
                 db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=texto, leido_asesor=False))
                 db.session.commit()
-                manejar_texto(numero, texto)
+            except Exception as e:
+                db.session.rollback()
+                agregar_mensajes_log(f"ERROR guardando Mensaje texto | {e}")
 
-            elif tipo in ['image', 'document', 'audio', 'video']:
-                media = mensaje.get(tipo, {})
-                media_id = media.get('id', '')
-                tipo_mime = media.get('mime_type', tipo)
-                agregar_mensajes_log(f"Archivo recibido | {numero} | Tipo: {tipo_mime} | Media ID: {media_id}")
+            agregar_mensajes_log(f"ANTES manejar_texto | {numero}")
+            manejar_texto(numero, texto)
+            agregar_mensajes_log(f"DESPUES manejar_texto | {numero}")
+
+        elif tipo in ['image', 'document', 'audio', 'video']:
+            media = mensaje.get(tipo, {})
+            media_id = media.get('id', '')
+            tipo_mime = media.get('mime_type', tipo)
+
+            agregar_mensajes_log(f"Archivo recibido | {numero} | Tipo: {tipo_mime} | Media ID: {media_id}")
+
+            try:
                 db.session.add(Mensaje(numero_whatsapp=numero, origen='cliente', texto=f'[Archivo] {tipo_mime} | {media_id}', leido_asesor=False))
                 db.session.commit()
-                manejar_archivo(numero, media_id, tipo_mime)
-               
+            except Exception as e:
+                db.session.rollback()
+                agregar_mensajes_log(f"ERROR guardando Mensaje archivo | {e}")
+
+            manejar_archivo(numero, media_id, tipo_mime)
 
         return jsonify({'message': 'EVENT_RECEIVED'})
+
     except Exception as e:
         agregar_mensajes_log(f"ERROR WEBHOOK | {str(e)} | {traceback.format_exc()}")
         return jsonify({'message': 'EVENT_RECEIVED'})
