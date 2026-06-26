@@ -880,7 +880,12 @@ def manejar_texto(numero, texto):
                 "4️⃣ Menú principal"
             )
             return
-
+    # AL FINAL de manejar_texto, después de todos los elif
+    else:
+        agregar_mensajes_log(f"PASO no manejado | {numero} | paso={paso} | texto={texto}")
+        enviar_texto(numero, "No entendí tu mensaje. ¿Deseas continuar desde el menú principal?")
+        borrar_sesion(numero)
+        enviar_menu(numero)
 
 # =====================================================
 # ARCHIVOS (orden médica)

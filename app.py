@@ -136,7 +136,16 @@ def citas_count():
 #    verificar_recordatorios_manual(app)
 #    return "Recordatorios enviados, revisa la consola"
 
-
+@app.route('/admin/limpiar-sesion/<numero>')
+@admin_requerido
+def limpiar_sesion(numero):
+    from models import SesionBot
+    s = SesionBot.query.filter_by(numero=numero).first()
+    if s:
+        db.session.delete(s)
+        db.session.commit()
+        return f"Sesión de {numero} eliminada."
+    return f"No había sesión para {numero}."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
