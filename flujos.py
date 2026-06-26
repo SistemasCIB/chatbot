@@ -20,9 +20,66 @@ from mensajes import (
 from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL, dentro_de_horario
 from datetime import datetime, timedelta
 
-from sesiones_db import SesionesDB
-sesiones = SesionesDB()
 MODO_HUMANO_MINUTOS = 1  # cambiar tiempo al solicitado
+
+# =====================================================
+# SESIONES EN MEMORIA + RESPALDO EN DB
+# =====================================================
+
+sesiones = {}
+
+def get_sesion(numero):
+    """Lee sesión de memoria; si no existe, busca en DB como respaldo."""
+    if numero in sesiones:
+        return dict(sesiones[numero])
+    try:
+        from models import SesionBot
+        s = SesionBot.query.filter_by(numero=numero).first()
+        if s:
+            datos = s.as_dict()
+            sesiones[numero] = datos
+            return dict(datos)
+    except Exception as e:
+        agregar_mensajes_log(f"ERROR get_sesion DB | {numero} | {e}")
+    return {}
+
+def guardar_sesion(numero, sesion):
+    """Guarda en memoria Y en DB."""
+    sesiones[numero] = sesion
+    try:
+        from models import SesionBot
+        s = SesionBot.query.filter_by(numero=numero).first()
+        if s is None:
+            s = SesionBot(numero=numero)
+            db.session.add(s)
+        s.set_datos(sesion)
+        db.session.commit()
+    except Exception as e:
+        agregar_mensajes_log(f"ERROR guardar_sesion DB | {numero} | {e}")
+
+def borrar_sesion(numero):
+    """Borra de memoria y de DB."""
+    if numero in sesiones:
+        del sesiones[numero]
+    try:
+        from models import SesionBot
+        s = SesionBot.query.filter_by(numero=numero).first()
+        if s:
+            db.session.delete(s)
+            db.session.commit()
+    except Exception as e:
+        agregar_mensajes_log(f"ERROR borrar_sesion DB | {numero} | {e}")
+
+def numero_en_sesiones(numero):
+    """Verifica si hay sesión activa en memoria o en DB."""
+    if numero in sesiones:
+        return True
+    try:
+        from models import SesionBot
+        return SesionBot.query.filter_by(numero=numero).first() is not None
+    except Exception as e:
+        agregar_mensajes_log(f"ERROR numero_en_sesiones DB | {numero} | {e}")
+        return False
 
 
 # =====================================================
@@ -37,22 +94,21 @@ def verificar_modo_humano(numero):
     if chat:
         return True
 
-    sesion = sesiones.get(numero, {})
+    sesion = get_sesion(numero)
     if sesion.get("modo") != "humano":
         return False
 
     inicio = sesion.get("modo_humano_inicio")
     if not inicio:
         sesion["modo_humano_inicio"] = datetime.utcnow().isoformat()
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         return True
 
-    # modo_humano_inicio se guarda como string ISO en DB
     if isinstance(inicio, str):
         inicio = datetime.fromisoformat(inicio)
 
     if datetime.utcnow() - inicio >= timedelta(minutes=MODO_HUMANO_MINUTOS):
-        del sesiones[numero]
+        borrar_sesion(numero)
         return False
 
     return True
@@ -63,7 +119,7 @@ def verificar_modo_humano(numero):
 # =====================================================
 
 def enviar_confirmacion_datos(numero):
-    sesion = sesiones.get(numero) or {}
+    sesion = get_sesion(numero)
     tipo_cita = sesion.get("tipo_cita", "")
     area      = sesion.get("area", "")
 
@@ -109,7 +165,7 @@ def enviar_confirmacion_datos(numero):
     enviar_botones_lista(numero, "Selecciona una opción:", "Verificar datos", botones)
 
     sesion["paso"] = "confirmacion"
-    sesiones[numero] = sesion
+    guardar_sesion(numero, sesion)
 
 
 # =====================================================
@@ -188,7 +244,7 @@ def manejar_boton(numero, opcion_id):
             enviar_fuera_horario(numero)
             return
 
-        sesiones[numero] = {"flujo": "agendar", "paso": "buscar_documento"}
+        guardar_sesion(numero, {"flujo": "agendar", "paso": "buscar_documento"})
         enviar_texto(
             numero,
             "📋 Para comenzar, escribe tu número de documento de identidad sin puntos ni caracteres especiales para verificar si ya estás registrado:"
@@ -209,7 +265,7 @@ def manejar_boton(numero, opcion_id):
         return
 
     elif opcion_id == "cancelar":
-        sesiones[numero] = {"flujo": "cancelar", "paso": "cancelar_documento"}
+        guardar_sesion(numero, {"flujo": "cancelar", "paso": "cancelar_documento"})
         enviar_texto(
             numero,
             "Por favor escribe el número de documento asociado a la cita que deseas cancelar."
@@ -217,8 +273,7 @@ def manejar_boton(numero, opcion_id):
         return
 
     elif opcion_id == "terminar":
-        if numero in sesiones:
-            del sesiones[numero]
+        borrar_sesion(numero)
         enviar_texto(numero, "Gracias por contactarnos.")
         return
 
@@ -226,32 +281,29 @@ def manejar_boton(numero, opcion_id):
     # TIPO DOCUMENTO
     # -----------------------------------
     elif opcion_id.startswith("tdoc_"):
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["tipo_documento"] = opcion_id.replace("tdoc_", "")
         sesion["paso"] = "documento"
-        sesiones[numero] = sesion
-        enviar_texto(
-            numero,
-            "Escribe tu número de documento sin puntos ni caracteres especiales:"
-        )
+        guardar_sesion(numero, sesion)
+        enviar_texto(numero, "Escribe tu número de documento sin puntos ni caracteres especiales:")
         return
 
     # -----------------------------------
     # COBERTURA
     # -----------------------------------
     elif opcion_id == "cobertura_particular":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["cobertura"] = "Particular"
         sesion["paso"] = "tipo_examen"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_tipo_examen(numero)
         return
 
     elif opcion_id == "cobertura_poliza":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["cobertura"] = "Poliza"
         sesion["paso"] = "aseguradora"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_aseguradora(numero)
         return
 
@@ -259,9 +311,9 @@ def manejar_boton(numero, opcion_id):
     # ORDEN MÉDICA
     # -----------------------------------
     elif opcion_id == "orden_si":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["paso"] = "orden"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_texto(
             numero,
             "📄 Adjunta la orden médica.\n\n"
@@ -271,10 +323,10 @@ def manejar_boton(numero, opcion_id):
         return
 
     elif opcion_id == "orden_no":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["orden"] = None
         sesion["tipo_archivo"] = None
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         confirmar_cita(numero)
         return
 
@@ -288,10 +340,10 @@ def manejar_boton(numero, opcion_id):
             "seg_medplus":  "Medplus",
             "seg_bolivar":  "Seguros Bolivar",
         }
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["aseguradora"] = aseguradoras.get(opcion_id, opcion_id)
         sesion["paso"] = "tipo_examen"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_tipo_examen(numero)
         return
 
@@ -299,7 +351,7 @@ def manejar_boton(numero, opcion_id):
     # TIPO EXAMEN
     # -----------------------------------
     elif opcion_id.startswith("examen_"):
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
 
         examenes = {
             "examen_directo_hongos":        "Directo hongos",
@@ -318,12 +370,11 @@ def manejar_boton(numero, opcion_id):
             sesion["area"] = "Por definir"
             sesion["examen_id"] = "examen_otro"
             sesion["paso"] = "examen_otro_texto"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(numero, "Escribe el nombre completo del examen:")
             return
 
         sesion["tipo_examen"] = examenes.get(opcion_id)
-
         bacteriologia = ["examen_igra", "examen_ppd"]
         sesion["area"]        = "Bacteriología" if opcion_id in bacteriologia else "Micología"
         sesion["agenda_tipo"] = "bacteriologia" if opcion_id in bacteriologia else "micologia"
@@ -331,7 +382,7 @@ def manejar_boton(numero, opcion_id):
 
         if opcion_id in ["examen_directo_hongos", "examen_directo_cultivo"]:
             sesion["paso"] = "tipo_muestra"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_botones_lista(
                 numero,
                 "🧪 ¿De qué tipo de muestra es el examen?",
@@ -346,7 +397,7 @@ def manejar_boton(numero, opcion_id):
             return
 
         sesion["paso"] = "requisitos"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_requisitos(numero, opcion_id, tipo_muestra=None)
         return
 
@@ -354,19 +405,19 @@ def manejar_boton(numero, opcion_id):
     # REQUISITOS
     # -----------------------------------
     elif opcion_id == "cumple_si":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         area = sesion.get("area", "")
 
         if area == "Bacteriología":
             sesion["tipo_cita"]   = "presencial"
             sesion["agenda_tipo"] = "bacteriologia"
             sesion["paso"]        = "fecha"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(numero, "ℹ️ Los exámenes de Bacteriología se realizan únicamente de forma presencial.")
             mostrar_fechas_disponibles(numero, sesiones)
         else:
             sesion["paso"] = "tipo_cita"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_tipo_cita(numero)
         return
 
@@ -385,12 +436,12 @@ def manejar_boton(numero, opcion_id):
             "muestra_cuero": "Cuero cabelludo",
             "muestra_flujo": "Flujo vaginal",
         }
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["tipo_muestra"] = muestras.get(opcion_id)
         sesion["agenda_tipo"]  = "micologia"
         sesion["area"]         = "Micología"
         sesion["paso"]         = "requisitos"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_requisitos(numero, sesion["examen_id"], sesion["tipo_muestra"])
         return
 
@@ -398,19 +449,19 @@ def manejar_boton(numero, opcion_id):
     # TIPO CITA
     # -----------------------------------
     elif opcion_id == "tipo_presencial":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["tipo_cita"] = "presencial"
         sesion["paso"]      = "fecha"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         mostrar_fechas_disponibles(numero, sesiones)
         return
 
     elif opcion_id == "tipo_domicilio":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         sesion["tipo_cita"]   = "domicilio"
         sesion["paso"]        = "fecha"
         sesion["agenda_tipo"] = "domicilio"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         mostrar_fechas_disponibles(numero, sesiones)
         return
 
@@ -418,18 +469,18 @@ def manejar_boton(numero, opcion_id):
     # FECHA
     # -----------------------------------
     elif opcion_id.startswith("fecha_"):
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         fecha = sesion.get("fechas", {}).get(opcion_id)
         sesion["fecha_cita"] = fecha
 
         if sesion.get("tipo_cita") == "presencial":
             sesion["paso"] = "hora"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             mostrar_horas_disponibles(numero, sesiones)
         else:
             sesion["hora_cita"] = "Por asignar"
             sesion["paso"]      = "direccion_domicilio"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(
                 numero,
                 "🏠 *Dirección para domicilio*\n\n"
@@ -446,11 +497,11 @@ def manejar_boton(numero, opcion_id):
     # HORA
     # -----------------------------------
     elif opcion_id.startswith("hora_"):
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         hora = sesion.get("horas", {}).get(opcion_id)
         sesion["hora_cita"] = hora
         sesion["paso"]      = "confirmacion"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_confirmacion_datos(numero)
         return
 
@@ -458,17 +509,17 @@ def manejar_boton(numero, opcion_id):
     # CONFIRMACIÓN
     # -----------------------------------
     elif opcion_id == "confirm_ok":
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         cobertura = sesion.get("cobertura")
 
         if cobertura == "Particular":
             sesion["paso"] = "tiene_orden"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_pregunta_orden(numero)
 
         elif cobertura == "Poliza":
             sesion["paso"] = "orden"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(
                 numero,
                 "📄 Ahora adjunta la orden médica.\n\n"
@@ -478,7 +529,7 @@ def manejar_boton(numero, opcion_id):
 
         else:
             enviar_texto(numero, "⚠️ Ocurrió un error. Por favor inicia de nuevo.")
-            del sesiones[numero]
+            borrar_sesion(numero)
             enviar_menu(numero)
         return
 
@@ -486,7 +537,7 @@ def manejar_boton(numero, opcion_id):
     # EDICIÓN DE CAMPOS
     # -----------------------------------
     elif opcion_id.startswith("edit_"):
-        sesion = sesiones.get(numero) or {}
+        sesion = get_sesion(numero)
         campo = opcion_id.replace("edit_", "")
 
         mensajes = {
@@ -501,12 +552,12 @@ def manejar_boton(numero, opcion_id):
 
         if campo in mensajes:
             sesion["paso"] = f"editar_{campo}"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(numero, mensajes[campo])
 
         elif campo == "tipo_muestra":
             sesion["paso"] = "tipo_muestra"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_botones_lista(
                 numero,
                 "🧪 ¿De qué tipo de muestra es el examen?",
@@ -521,7 +572,7 @@ def manejar_boton(numero, opcion_id):
 
         elif campo == "examen":
             sesion["paso"] = "tipo_examen"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_tipo_examen(numero)
 
         elif campo == "tipo_cita":
@@ -531,12 +582,12 @@ def manejar_boton(numero, opcion_id):
                 enviar_confirmacion_datos(numero)
             else:
                 sesion["paso"] = "tipo_cita"
-                sesiones[numero] = sesion
+                guardar_sesion(numero, sesion)
                 enviar_tipo_cita(numero)
 
         elif campo == "fecha_cita":
             sesion["paso"] = "fecha"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             mostrar_fechas_disponibles(numero, sesiones)
 
         return
@@ -551,11 +602,11 @@ def manejar_texto(numero, texto):
     if verificar_modo_humano(numero):
         return
 
-    if numero not in sesiones:
+    if not numero_en_sesiones(numero):
         enviar_bienvenida(numero)
         return
 
-    sesion = sesiones.get(numero) or {}   # ← leer UNA VEZ
+    sesion = get_sesion(numero)
     paso = sesion.get("paso")
 
     # -----------------------------------
@@ -575,7 +626,7 @@ def manejar_texto(numero, texto):
             sesion[campo] = texto
 
         sesion["paso"] = "confirmacion"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_texto(numero, "✅ Dato actualizado correctamente.")
         enviar_confirmacion_datos(numero)
         return
@@ -595,7 +646,7 @@ def manejar_texto(numero, texto):
             sesion["correo"]           = paciente.correo
             sesion["direccion"]        = paciente.direccion
             sesion["paso"]             = "cobertura"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(
                 numero,
                 f"👤 Bienvenido de nuevo, *{paciente.nombre}*.\n"
@@ -604,7 +655,7 @@ def manejar_texto(numero, texto):
             enviar_tipo_cobertura(numero)
         else:
             sesion["paso"] = "tipo_documento"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(
                 numero,
                 "📋 No encontramos tu documento en nuestro sistema.\n"
@@ -619,7 +670,7 @@ def manejar_texto(numero, texto):
     if paso == "examen_otro_texto":
         sesion["tipo_examen"] = texto
         sesion["paso"]        = "requisitos"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_requisitos(numero, "examen_otro")
         return
 
@@ -629,7 +680,7 @@ def manejar_texto(numero, texto):
     elif paso == "documento":
         sesion["documento"] = texto
         sesion["paso"]      = "nombre"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_texto(
             numero,
             "Escribe tus nombres y apellidos completos tal como aparecen en tu documento de identidad:"
@@ -639,7 +690,7 @@ def manejar_texto(numero, texto):
     elif paso == "nombre":
         sesion["nombre"] = texto
         sesion["paso"]   = "fecha_nacimiento"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_texto(numero, "Escribe tu fecha de nacimiento (DD/MM/AAAA):")
         return
 
@@ -648,7 +699,7 @@ def manejar_texto(numero, texto):
             fecha = datetime.strptime(texto.strip(), "%d/%m/%Y")
             sesion["fecha_nacimiento"] = fecha.strftime("%d/%m/%Y")
             sesion["paso"]             = "telefono"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(numero, "Escribe tu número de teléfono:")
         except ValueError:
             enviar_texto(
@@ -660,21 +711,21 @@ def manejar_texto(numero, texto):
     elif paso == "telefono":
         sesion["telefono"] = texto
         sesion["paso"]     = "correo"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_texto(numero, "Escribe tu correo electrónico:")
         return
 
     elif paso == "correo":
         sesion["correo"] = texto
         sesion["paso"]   = "direccion"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_texto(numero, "📍 Por favor escribe la dirección del paciente.")
         return
 
     elif paso == "direccion":
         sesion["direccion"] = texto
         sesion["paso"]      = "cobertura"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_tipo_cobertura(numero)
         return
 
@@ -684,7 +735,7 @@ def manejar_texto(numero, texto):
     elif paso == "direccion_domicilio":
         sesion["direccion_domicilio"] = texto
         sesion["paso"]                = "confirmacion"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         enviar_confirmacion_datos(numero)
         return
 
@@ -706,7 +757,7 @@ def manejar_texto(numero, texto):
 
         if not citas:
             enviar_texto(numero, "No tienes citas activas para cancelar.")
-            del sesiones[numero]
+            borrar_sesion(numero)
             enviar_menu(numero)
             return
 
@@ -714,7 +765,7 @@ def manejar_texto(numero, texto):
             cita = citas[0]
             sesion["paso"]    = "cancelar_confirmar"
             sesion["cita_id"] = cita.id
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             fecha_str = cita.fecha_cita.strftime("%d/%m/%Y %H:%M") if cita.hora_cita else cita.fecha_cita.strftime("%d/%m/%Y")
             enviar_texto(
                 numero,
@@ -728,7 +779,7 @@ def manejar_texto(numero, texto):
         else:
             sesion["paso"]     = "cancelar_elegir"
             sesion["cita_ids"] = [c.id for c in citas]
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             lista = "\n".join(
                 f"{i+1}. {c.fecha_cita.strftime('%d/%m/%Y')} — {c.tipo_examen} ({c.tipo_cita})"
                 for i, c in enumerate(citas)
@@ -743,7 +794,7 @@ def manejar_texto(numero, texto):
             cita     = Cita.query.get(cita_ids[idx])
             sesion["paso"]    = "cancelar_confirmar"
             sesion["cita_id"] = cita.id
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             fecha_str = cita.fecha_cita.strftime("%d/%m/%Y %H:%M") if cita.hora_cita else cita.fecha_cita.strftime("%d/%m/%Y")
             enviar_texto(
                 numero,
@@ -772,7 +823,7 @@ def manejar_texto(numero, texto):
         else:
             enviar_texto(numero, "De acuerdo, tu cita no fue cancelada.")
 
-        del sesiones[numero]
+        borrar_sesion(numero)
         enviar_menu(numero)
         return
 
@@ -792,26 +843,26 @@ def manejar_texto(numero, texto):
     elif paso == "post_cita":
         if texto == "1":
             sesion["paso"] = "cobertura"
-            sesiones[numero] = sesion
+            guardar_sesion(numero, sesion)
             enviar_texto(numero, "Perfecto 👍 agendaremos otra cita con los mismos datos.")
             enviar_tipo_cobertura(numero)
             return
 
         elif texto == "2":
-            sesiones[numero] = {"flujo": "agendar", "paso": "buscar_documento"}
+            guardar_sesion(numero, {"flujo": "agendar", "paso": "buscar_documento"})
             enviar_texto(numero, "📋 Ingresa el documento del nuevo paciente:")
             return
 
         elif texto == "3":
-            sesiones[numero] = {
+            guardar_sesion(numero, {
                 "modo": "humano",
                 "modo_humano_inicio": datetime.utcnow().isoformat()
-            }
+            })
             enviar_texto(numero, "Gracias por confiar en nosotros 💙")
             return
 
         elif texto == "4":
-            del sesiones[numero]
+            borrar_sesion(numero)
             enviar_menu(numero)
             return
 
@@ -832,16 +883,16 @@ def manejar_texto(numero, texto):
 # =====================================================
 
 def manejar_archivo(numero, media_id, tipo_mime):
-    if numero not in sesiones:
+    if not numero_en_sesiones(numero):
         return
 
-    sesion = sesiones.get(numero) or {}
+    sesion = get_sesion(numero)
     if sesion.get("paso") != "orden":
         return
 
     sesion["orden"]        = media_id
     sesion["tipo_archivo"] = tipo_mime
-    sesiones[numero] = sesion
+    guardar_sesion(numero, sesion)
     confirmar_cita(numero)
 
 
@@ -850,7 +901,7 @@ def manejar_archivo(numero, media_id, tipo_mime):
 # =====================================================
 
 def confirmar_cita(numero):
-    sesion = sesiones.get(numero) or {}
+    sesion = get_sesion(numero)
     try:
         fecha_texto = (sesion.get("fecha_cita") or "").strip()
         hora_texto  = (sesion.get("hora_cita") or "").strip()
@@ -869,7 +920,6 @@ def confirmar_cita(numero):
                 enviar_texto(numero, "❌ Fecha de nacimiento inválida. Usa el formato DD/MM/AAAA.")
                 return
 
-        # Busca o crea paciente
         paciente = Paciente.query.filter_by(documento=sesion.get("documento")).first()
 
         if not paciente:
@@ -933,7 +983,7 @@ def confirmar_cita(numero):
         )
 
         sesion["paso"] = "post_cita"
-        sesiones[numero] = sesion
+        guardar_sesion(numero, sesion)
         return
 
     except Exception as e:
@@ -941,7 +991,7 @@ def confirmar_cita(numero):
         agregar_mensajes_log(str(e))
         enviar_texto(numero, "❌ Ocurrió un error guardando tu solicitud.")
 
-        sesiones[numero] = {
+        guardar_sesion(numero, {
             "modo": "humano",
             "modo_humano_inicio": datetime.utcnow().isoformat()
-        }
+        })
