@@ -598,11 +598,15 @@ def manejar_boton(numero, opcion_id):
 # =====================================================
 
 def manejar_texto(numero, texto):
-    agregar_mensajes_log(f"ENTRO manejar_texto | {numero} | {texto}")  # ← primera línea
+    agregar_mensajes_log(f"ENTRO manejar_texto | {numero} | {texto}")
     if verificar_modo_humano(numero):
         return
 
-    if not numero_en_sesiones(numero):
+    en_sesion = numero_en_sesiones(numero)
+    sesion = get_sesion(numero)
+    agregar_mensajes_log(f"DEBUG sesion | en_sesion={en_sesion} | sesion={sesion}")  # ← agrega esto
+
+    if not en_sesion:
         enviar_bienvenida(numero)
         return
 
