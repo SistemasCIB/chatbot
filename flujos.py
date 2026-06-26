@@ -19,7 +19,7 @@ from mensajes import (
 
 from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL, dentro_de_horario
 from datetime import datetime, timedelta
-
+import re
 sesiones = {}
 MODO_HUMANO_MINUTOS = 1# cambiar tiempo al solicitado
 
@@ -938,24 +938,25 @@ def manejar_archivo(numero, media_id, tipo_mime):
 def confirmar_cita(numero):
     sesion = sesiones.get(numero, {})
     try:
-        from datetime import datetime
-
+        
+   
         # ---------------------------------
         # FECHA
         # ---------------------------------
-        fecha_texto = (sesion.get("fecha_cita") or "").strip() 
+        fecha_texto = (sesion.get("fecha_cita") or "").strip()
         hora_texto  = (sesion.get("hora_cita") or "").strip()
-      
-        if hora_texto:
+
+        hora_valida = bool(re.match(r"^\d{2}:\d{2}$", hora_texto))
+
+        if hora_valida:
             fecha_real = datetime.strptime(
                 f"{fecha_texto} {hora_texto}",
                 "%d/%m/%Y %H:%M"
             )
         else:
-            fecha_real = datetime.strptime(
-                fecha_texto,
-                "%d/%m/%Y"
-            )
+            fecha_real = datetime.strptime(fecha_texto, "%d/%m/%Y")
+            hora_texto = ""
+
 
         fecha_nacimiento_texto = (sesion.get("fecha_nacimiento") or "").strip()
 
