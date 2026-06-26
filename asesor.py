@@ -613,17 +613,22 @@ def tomar_chat(cita_id):
     return redirect(url_for('asesor.ver_chat', cita_id=cita_id))
 
 
+from flask import request  # asegúrate de tenerlo importado
+
 @asesor_bp.route('/asesor/liberar_chat/<int:cita_id>')
 @login_requerido
 def liberar_chat(cita_id):
 
     cita = Cita.query.get_or_404(cita_id)
-
     chat = ChatActivo.query.filter_by(numero=cita.numero_whatsapp).first()
 
     if chat:
         db.session.delete(chat)
         db.session.commit()
+
+    origen = request.args.get('origen')
+    if origen == 'bandeja':
+        return redirect(url_for('asesor.bandeja'))  # ajusta el nombre si tu endpoint se llama distinto
 
     return redirect(url_for('asesor.panel'))
 
@@ -1036,7 +1041,6 @@ def bandeja():
     from sqlalchemy import func
     from datetime import datetime
 
-    # Todos los números que tienen al menos un mensaje (no solo los "tomados")
     numeros = [n[0] for n in db.session.query(Mensaje.numero_whatsapp).distinct().all()]
 
     bandeja = []
@@ -1046,15 +1050,19 @@ def bandeja():
         nuevos = Mensaje.query.filter_by(numero_whatsapp=numero, origen='cliente', leido_asesor=False).count()
         chat_activo = ChatActivo.query.filter_by(numero=numero, activo=True).first()
 
+        asesor_actual = session.get('asesor_nombre')
+        ocupado_por_mi = chat_activo and chat_activo.asesor_nombre == asesor_actual
+
         bandeja.append({
             'numero': numero,
             'cita': cita,
             'ultimo_msg': ultimo_msg,
             'nuevos': nuevos,
-            'ocupado': chat_activo is not None
+            'ocupado': chat_activo is not None,
+            'ocupado_por_mi': ocupado_por_mi,
+            'ocupado_por': chat_activo.asesor_nombre if chat_activo else None,
         })
 
-    # más recientes primero
     bandeja.sort(
         key=lambda item: item['ultimo_msg'].fecha if item['ultimo_msg'] else datetime.min,
         reverse=True

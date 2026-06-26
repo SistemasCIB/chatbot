@@ -175,6 +175,21 @@
         .estado-chat.mio { color:#00a884; }
         .estado-chat.otro { color:#e0a85a; }
 
+        .btn-liberar {
+            display:inline-block;
+            margin-top:5px;
+            padding:3px 10px;
+            font-size:11px;
+            font-weight:600;
+            color:#fff;
+            background:#c0392b;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            text-decoration:none;
+        }
+        .btn-liberar:hover { background:#a93226; }
+
         .empty, .no-results {
             display:flex;
             flex-direction:column;
@@ -278,7 +293,8 @@
                 <div class="separador" data-group="nuevos">Sin leer</div>
                 {% for item in con_nuevos %}
                 <div class="chat-item no-leido {{ 'sin-cita' if not item.cita }}" data-group="nuevos"
-                     {% if item.cita %}data-chat-url="{{ url_for('asesor.ver_chat', cita_id=item.cita.id) }}"{% endif %}>
+                    data-cita-id="{{ item.cita.id if item.cita else '' }}"
+                    {% if item.cita %}data-chat-url="{{ url_for('asesor.ver_chat', cita_id=item.cita.id) }}"{% endif %}>
                     <div class="avatar">
                         {{ (item.cita.paciente.nombre[0] if item.cita and item.cita.paciente else item.numero[-1]) | upper }}
                     </div>
@@ -303,6 +319,13 @@
                         <div class="estado-chat {{ 'mio' if item.ocupado_por_mi else 'otro' }}">
                             {% if item.ocupado_por_mi %}🟢 Lo estás atendiendo{% else %}🟠 En atención: {{ item.ocupado_por }}{% endif %}
                         </div>
+                        {% if item.cita %}
+                        <a href="/asesor/liberar_chat/{{ item.cita.id }}?origen=bandeja"
+                        class="btn-liberar"
+                        onclick="return confirm('¿Seguro que deseas liberar este chat?')">
+                            🔴 Liberar Chat
+                        </a>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -337,6 +360,13 @@
                         <div class="estado-chat {{ 'mio' if item.ocupado_por_mi else 'otro' }}">
                             {% if item.ocupado_por_mi %}🟢 Lo estás atendiendo{% else %}🟠 En atención: {{ item.ocupado_por }}{% endif %}
                         </div>
+                        {% if item.cita %}
+                        <a href="/asesor/liberar_chat/{{ item.cita.id }}?origen=bandeja"
+                        class="btn-liberar"
+                        onclick="return confirm('¿Seguro que deseas liberar este chat?')">
+                            🔴 Liberar Chat
+                        </a>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -368,57 +398,68 @@
     </div>
 
 </div>
-
 <script>
 (function () {
-    const input = document.getElementById('searchInput');
-    const clearBtn = document.getElementById('clearBtn');
-    const items = Array.from(document.querySelectorAll('.chat-item'));
+    const input       = document.getElementById('searchInput');
+    const clearBtn    = document.getElementById('clearBtn');
+    const items       = Array.from(document.querySelectorAll('.chat-item'));
     const separadores = Array.from(document.querySelectorAll('.separador'));
-    const noResults = document.getElementById('noResults');
-
-    const app = document.getElementById('app');
-    const iframe = document.getElementById('chatFrame');
+    const noResults   = document.getElementById('noResults');
+    const app         = document.getElementById('app');
+    const iframe      = document.getElementById('chatFrame');
     const placeholder = document.getElementById('placeholder');
-    const mobileBack = document.getElementById('mobileBack');
+    const mobileBack  = document.getElementById('mobileBack');
 
-    // ---- Búsqueda ----
-    if (input) {
-        function filtrar() {
-            const term = input.value.trim().toLowerCase();
-            clearBtn.classList.toggle('visible', term.length > 0);
-
-            let visiblesPorGrupo = { nuevos: 0, todos: 0 };
-
-            items.forEach(item => {
-                const nombre = (item.querySelector('.nombre')?.textContent || '').toLowerCase();
-                const preview = (item.querySelector('.preview')?.textContent || '').toLowerCase();
-                const coincide = term === '' || nombre.includes(term) || preview.includes(term);
-                item.style.display = coincide ? 'flex' : 'none';
-                if (coincide) visiblesPorGrupo[item.dataset.group] += 1;
-            });
-
-            separadores.forEach(sep => {
-                sep.style.display = visiblesPorGrupo[sep.dataset.group] > 0 ? 'block' : 'none';
-            });
-
-            const totalVisible = visiblesPorGrupo.nuevos + visiblesPorGrupo.todos;
-            if (noResults) {
-                noResults.style.display = (term !== '' && totalVisible === 0) ? 'flex' : 'none';
-            }
-        }
-
-        input.addEventListener('input', filtrar);
-        clearBtn.addEventListener('click', () => {
-            input.value = '';
-            filtrar();
-            input.focus();
-        });
+    // Extrae el cita_id desde la url guardada en data-chat-url
+    // (la url tiene forma /asesor/ver_chat/<id>)
+    function obtenerCitaId(item) {
+        const url = item.dataset.chatUrl || '';
+        const match = url.match(/(\d+)(?:\/?$)/);
+        return match ? match[1] : null;
     }
 
-    // ---- Abrir chat en el panel derecho (sin recargar la página) ----
+    // Marca visualmente el item como "lo estás atendiendo"
+    function marcarComoMio(item) {
+        // Si ya está marcado como mío, no hacer nada
+        if (item.querySelector('.estado-chat.mio')) return;
+
+        const citaId = obtenerCitaId(item);
+        if (!citaId) return;
+
+        const info = item.querySelector('.info');
+        if (!info) return;
+
+        // Si ya existe un estado-chat (de otro asesor), lo reemplazamos
+        let estadoExistente = info.querySelector('.estado-chat');
+        let liberarExistente = info.querySelector('.btn-liberar');
+        if (estadoExistente) estadoExistente.remove();
+        if (liberarExistente) liberarExistente.remove();
+
+        const estadoDiv = document.createElement('div');
+        estadoDiv.className = 'estado-chat mio';
+        estadoDiv.textContent = '🟢 Lo estás atendiendo';
+
+        const liberarLink = document.createElement('a');
+        liberarLink.href = '/asesor/liberar_chat/' + citaId + '?origen=bandeja';
+        liberarLink.className = 'btn-liberar';
+        liberarLink.textContent = '🔴 Liberar Chat';
+        liberarLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!confirm('¿Seguro que deseas liberar este chat?')) {
+                e.preventDefault();
+            }
+        });
+
+        info.appendChild(estadoDiv);
+        info.appendChild(liberarLink);
+    }
+
+    // ---- Abrir chat en panel derecho ----
     items.forEach(item => {
-        item.addEventListener('click', () => {
+        item.addEventListener('click', (e) => {
+            // Si el click viene del botón liberar, no abrir el chat
+            if (e.target.closest('.btn-liberar')) return;
+
             const url = item.dataset.chatUrl;
             if (!url) return;
 
@@ -429,7 +470,10 @@
             items.forEach(i => i.classList.remove('activo-seleccionado'));
             item.classList.add('activo-seleccionado');
 
-            app.classList.add('chat-abierto'); // para vista móvil
+            app.classList.add('chat-abierto');
+
+            // Actualización optimista: marcar como "lo estás atendiendo" al instante
+            marcarComoMio(item);
         });
     });
 
@@ -437,6 +481,40 @@
     if (mobileBack) {
         mobileBack.addEventListener('click', () => {
             app.classList.remove('chat-abierto');
+        });
+    }
+
+    // ---- Búsqueda ----
+    if (input) {
+        function filtrar() {
+            const term = input.value.trim().toLowerCase();
+            clearBtn.classList.toggle('visible', term.length > 0);
+
+            let visiblesPorGrupo = { nuevos: 0, todos: 0 };
+
+            items.forEach(item => {
+                const nombre  = (item.querySelector('.nombre')?.textContent  || '').toLowerCase();
+                const preview = (item.querySelector('.preview')?.textContent || '').toLowerCase();
+                const coincide = term === '' || nombre.includes(term) || preview.includes(term);
+                item.style.display = coincide ? 'flex' : 'none';
+                if (coincide) visiblesPorGrupo[item.dataset.group] += 1;
+            });
+
+            separadores.forEach(sep => {
+                sep.style.display = visiblesPorGrupo[sep.dataset.group] > 0 ? 'block' : 'none';
+            });
+
+            if (noResults) {
+                const totalVisible = visiblesPorGrupo.nuevos + visiblesPorGrupo.todos;
+                noResults.style.display = (term !== '' && totalVisible === 0) ? 'flex' : 'none';
+            }
+        }
+
+        input.addEventListener('input', filtrar);
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            filtrar();
+            input.focus();
         });
     }
 })();

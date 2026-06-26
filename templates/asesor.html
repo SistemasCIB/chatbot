@@ -542,7 +542,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                             class="btn btn-edit">
                             Editar
                             </a>
-
+                        
                             {% if c.chat_activo %}
                                 <button onclick="abrirChat({{ c.id }}, '{{ c.paciente.nombre }}')"
                                         class="btn btn-confirm"
@@ -556,7 +556,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                                     💬 Ver Chat
                                 </a>
 
-                                <a href="/asesor/liberar_chat/{{ c.id }}" class="btn btn-reject">
+                                <a href="/asesor/liberar_chat/{{ c.id }}?origen=panel" class="btn btn-reject">
                                     🔴 Liberar Chat
                                 </a>
                             {% else %}
@@ -630,6 +630,14 @@ function filtrarEstado(estado) {
     }
 }
 function tomarYAbrir(citaId, nombre) {
+    const cont = document.getElementById('acciones-' + citaId);
+    if (cont) {
+        cont.innerHTML = `
+            <a href="#" onclick="abrirChat(${citaId}, '${nombre}'); return false;" class="btn btn-edit">💬 Ver Chat</a>
+            <a href="/asesor/liberar_chat/${citaId}?origen=panel" class="btn btn-reject"
+               onclick="return confirm('¿Seguro que deseas liberar este chat?')">🔴 Liberar Chat</a>
+        `;
+    }
     abrirChat(citaId, nombre);
 }
 async function verificarMensajesNuevos() {
