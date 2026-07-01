@@ -771,7 +771,7 @@ def eventos_calendario():
                 hora_obj
             )
 
-            fin = inicio + timedelta(hours=1)
+            fin = inicio + timedelta(minutes=30)
 
         except Exception:
             continue
