@@ -1,8 +1,13 @@
+import os
+
 from flask import Blueprint, request, jsonify
+from dotenv import load_dotenv
 from models import db, Log, agregar_mensajes_log, Mensaje
 from flujos import manejar_boton, manejar_texto, manejar_archivo
-from config import TOKEN_ANDERCODE
 import json
+load_dotenv(".env")
+
+TOKEN_ANDERCODE = os.getenv("TOKEN_ANDERCODE")
 
 webhook_bp = Blueprint('webhook', __name__)
 

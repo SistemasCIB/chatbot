@@ -1,10 +1,14 @@
 from datetime import date
+import os
 
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, session
-from config import get_config_horario, RECAPTCHA_SITE_KEY
+from config import get_config_horario
+from dotenv import load_dotenv
 from models import Cita, ConfigHorario, DiasBloqueados, Paciente, db, Asesor, Auditoria, ExamenConfig, seed_examen_config
 from functools import wraps
 from recaptcha import verificar_recaptcha
+load_dotenv(".env")
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
 admin_bp = Blueprint('admin', __name__)
 
 

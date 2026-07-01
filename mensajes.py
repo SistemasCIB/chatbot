@@ -1,9 +1,15 @@
 from datetime import date
 import http.client
 import json
-from config import DIAS_ACTIVOS, TOKEN_META, PHONE_NUMBER_ID, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS, get_config_horario
+import os
+from config import DIAS_ACTIVOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS, get_config_horario
 
 from models import agregar_mensajes_log, db, Cita, Mensaje 
+
+from dotenv import load_dotenv
+load_dotenv(".env")
+TOKEN_META = os.getenv("TOKEN_META")
+PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
 
 def _enviar_texto_simple(numero, mensaje):
     """Envío de emergencia — no llama a enviar_request para evitar recursión."""

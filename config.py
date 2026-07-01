@@ -6,17 +6,13 @@ import os
 
 from models import ConfigHorario, DiasBloqueados, db 
  
-RECAPTCHA_SITE_KEY   = os.getenv('RECAPTCHA_SITE_KEY', '6LeFVwctAAAAAP0P9ObzjCIOgMwljAsnK4Icvxfw')
-RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LeFVwctAAAAAHOxGyREIDQcBd8oHfcOpjAIWdaA')
-TOKEN_ANDERCODE = "ANDERCODE"
-TOKEN_META = "EAAY5YGNZBIz8BR6svjyVmEn6TfG403DPgrJO95rUZBGxz3Xkp2aE6eO7DaX1WhuGeigwynWhqABpdkXCKIUF4VMlpQD2QWNrtfvEunWVm4oOheRXfGZA7VNX1lZAoPz6wmVhUyCSSeZABM97qUFlrUJLP4Ik4HJCXBFIl3sUyURuIgtnPZA0EgXB18ahZCFMd30CQZDZD"
-PHONE_NUMBER_ID = "1242442578944235"
+
 LINK_ASESOR = "https://wa.me/573118930862"
 LINK_EDITORIAL = "https://wa.me/573042151025"
 LINK_ALIMENTATEC ="https://wa.me/573235865867"
 URL_BASE = "https://python-2-zqc5.onrender.com"
 URL_RESULTADOS = "https://cib.org.co/resultados-de-laboratorio/"
-SECRET_KEY = "cib_secret_2025"
+
 
 OUTLOOK_EMAIL    = os.getenv('OUTLOOK_EMAIL', 'aprendizti@cib.org.co')
 OUTLOOK_PASSWORD = os.getenv('OUTLOOK_PASSWORD', 'higuita_29')

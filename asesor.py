@@ -4,7 +4,7 @@ from flask import Blueprint, flash, render_template, request, redirect, url_for,
 from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente, Mensaje, agregar_mensajes_log
 from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
-from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario,RECAPTCHA_SITE_KEY
+from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario
 import io, csv, os
 from flask import Response
 from werkzeug.utils import secure_filename
@@ -12,7 +12,9 @@ from recaptcha import verificar_recaptcha
 from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
 from recaptcha import verificar_recaptcha
 
-
+from dotenv import load_dotenv
+load_dotenv(".env")
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
 asesor_bp = Blueprint('asesor', __name__)
 
 

@@ -1,5 +1,8 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for
 from models import db, Log, Cita, Consentimiento, Asesor, seed_examen_config, Mensaje
+from dotenv import load_dotenv
+
+load_dotenv(".env")
 from scheduler import iniciar_scheduler
 from webhook import webhook_bp
 from asesor import asesor_bp
@@ -12,9 +15,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import Response, stream_with_context
 from admin_routes import admin_requerido
 
-from dotenv import load_dotenv
 
-load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
+TOKEN_META = os.getenv("TOKEN_META")
 
 app = Flask(__name__)
 
