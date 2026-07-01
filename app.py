@@ -6,7 +6,6 @@ load_dotenv(".env")
 from scheduler import iniciar_scheduler
 from webhook import webhook_bp
 from asesor import asesor_bp
-from config import SECRET_KEY, TOKEN_META
 from datetime import datetime, time
 from admin_routes import admin_bp, admin_requerido
 import os
