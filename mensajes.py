@@ -456,7 +456,7 @@ def _examen_a_id(nombre: str) -> str:
     return mapa.get(nombre, "examen_otro")
 
 
-def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin, dias_permitidos) -> date | None:
+def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin) -> date | None:
     from festivos import es_festivo
     from datetime import timedelta
 
@@ -465,7 +465,6 @@ def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin, dias_permitidos) -> dat
 
     if (
         lectura.weekday() >= 5            # fin de semana
-        or lectura.weekday() not in dias_permitidos  # ← día no habilitado por admin
         or es_festivo(lectura)
         or lectura in bloqueados_admin
     ):
