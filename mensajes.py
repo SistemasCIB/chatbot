@@ -360,7 +360,7 @@ def mostrar_fechas_disponibles(numero, sesiones):
             #    el día de lectura (dia + 3 días hábiles laborables) no debe
             #    caer en festivo, fin de semana ni día bloqueado.
             if examen_id == "examen_ppd":
-                lectura = _dia_lectura_ppd(dia, bloqueados_admin, dias_permitidos)
+                lectura = _dia_lectura_ppd(dia, bloqueados_admin)
                 if lectura is None:
                     dia += timedelta(days=1)
                     continue
