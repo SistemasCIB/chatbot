@@ -217,6 +217,17 @@ body{
 .table-wrap::-webkit-scrollbar{height:10px;}
 .table-wrap::-webkit-scrollbar-track{background:#F1F5F9;}
 .table-wrap::-webkit-scrollbar-thumb{background:var(--cyan-mid);border-radius:6px;}
+.table-scroll-top{
+    overflow-x:auto;
+    overflow-y:hidden;
+    height:14px;
+    border-bottom:1px solid var(--border);
+    background:#FAFCFF;
+}
+.table-scroll-top::-webkit-scrollbar{height:10px;}
+.table-scroll-top::-webkit-scrollbar-track{background:#F1F5F9;}
+.table-scroll-top::-webkit-scrollbar-thumb{background:var(--cyan-mid);border-radius:6px;}
+.table-scroll-top-inner{height:1px;}
 
 table{width:100%;border-collapse:collapse;min-width:1200px;}
 thead{background:#F8FAFC;}
@@ -455,7 +466,12 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
             </div>
 
             {% if citas %}
-            <div class="table-wrap">
+           
+            <div class="table-scroll-top" id="tableScrollTop">
+                <div class="table-scroll-top-inner" id="tableScrollTopInner"></div>
+            </div>
+            <div class="table-wrap" id="tableWrap">
+            <table id="citasTable">
             <table>
                 <thead>
                     <tr>
@@ -733,6 +749,37 @@ function cerrarChat() {
     document.getElementById('chat-iframe').src = '';
     location.reload(); 
 }
+(function(){
+    const scrollTop = document.getElementById('tableScrollTop');
+    const scrollTopInner = document.getElementById('tableScrollTopInner');
+    const tableWrap = document.getElementById('tableWrap');
+    const table = document.getElementById('citasTable');
+
+    if (!scrollTop || !tableWrap || !table) return;
+
+    function syncWidth() {
+        scrollTopInner.style.width = table.scrollWidth + 'px';
+    }
+
+    syncWidth();
+    new ResizeObserver(syncWidth).observe(table);
+    window.addEventListener('resize', syncWidth);
+
+    let syncing = false;
+    scrollTop.addEventListener('scroll', () => {
+        if (syncing) return;
+        syncing = true;
+        tableWrap.scrollLeft = scrollTop.scrollLeft;
+        syncing = false;
+    });
+    tableWrap.addEventListener('scroll', () => {
+        if (syncing) return;
+        syncing = true;
+        scrollTop.scrollLeft = tableWrap.scrollLeft;
+        syncing = false;
+    });
+})();
 </script>
+
 </body>
 </html>

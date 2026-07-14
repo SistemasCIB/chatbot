@@ -142,7 +142,7 @@ def manejar_boton(numero, opcion_id):
             "Gracias por comunicarte con nosotros💙"
 
         )
-        enviar_bienvenida(numero)
+        enviar_bienvenida(numero) 
         return
 
     # -----------------------------------
