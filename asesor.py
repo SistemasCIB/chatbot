@@ -693,7 +693,10 @@ def eventos_calendario():
     elif rol_actual == 'bacteriologia':
         agenda_filtro = 'bacteriologia'
 
-    query = Cita.query.filter(Cita.fecha_cita.isnot(None))
+    query = Cita.query.filter(
+        Cita.fecha_cita.isnot(None),
+        Cita.estado != 'rechazada'
+        )
 
     if agenda_filtro == 'micologia':
         query = query.filter(Cita.agenda_tipo == 'micologia')
