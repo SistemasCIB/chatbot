@@ -15,6 +15,8 @@ from recaptcha import verificar_recaptcha
 from dotenv import load_dotenv
 load_dotenv(".env")
 RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY")
+TOKEN_META = os.getenv("TOKEN_META")
+PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
 asesor_bp = Blueprint('asesor', __name__)
 
 
@@ -937,7 +939,7 @@ def chat_mensajes_count(cita_id):
 @asesor_bp.route('/asesor/media/<media_id>')
 @login_requerido
 def ver_media(media_id):
-    from config import TOKEN_META
+    
     import requests as req_lib
     from flask import Response
 
@@ -965,7 +967,7 @@ def ver_media(media_id):
 @asesor_bp.route('/asesor/chat/<int:cita_id>/enviar_media', methods=['POST'])
 @login_requerido
 def enviar_media(cita_id):
-    from config import TOKEN_META, PHONE_NUMBER_ID
+    
     import requests as req_lib
 
     cita = Cita.query.get_or_404(cita_id)
