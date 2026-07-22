@@ -9,7 +9,7 @@ load_dotenv(".env")
 CLIENT_ID     = os.getenv("AZURE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
 TENANT_ID     = os.getenv("AZURE_TENANT_ID")
-ASESOR_EMAIL  = os.getenv("ASESOR_USER_ID")  # aprendizti@cib.org.co
+ASESOR_EMAIL  = os.getenv("ASESOR_USER_ID") 
 
 AUTHORITY  = f"https://login.microsoftonline.com/{TENANT_ID}"
 SCOPES     = ["https://graph.microsoft.com/.default"]

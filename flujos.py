@@ -707,7 +707,7 @@ def manejar_texto(numero, texto):
 
             enviar_texto(
                 numero,
-                "Escribe tu número de teléfono:"
+                "Por favor escribe el número de teléfono de esta línea desde la cual nos estás escribiendo. Este será el medio de contacto para comunicarnos contigo y enviarte cualquier información o novedad."
             )
 
         except ValueError:
