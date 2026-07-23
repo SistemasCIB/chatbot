@@ -83,6 +83,7 @@
     }
     .chip-mico  { background:#E8F0FE; color:#4f8ef7; }
     .chip-bacte { background:#E6F7F4; color:#16a085; }
+    .chip-domi { background:#F3E8FF; color:#7C3AED; }
 </style>
 </head>
 <body>
@@ -118,9 +119,9 @@
 
             {% if asesor %}
                 <!-- Al editar, mostrar chip + select para cambiar si se quiere -->
-                <span class="chip {{ 'chip-mico' if asesor.rol == 'micologia' else 'chip-bacte' }}"
+                <span class="chip {{ 'chip-mico' if asesor.rol == 'micologia' else ('chip-bacte' if asesor.rol == 'bacteriologia' else 'chip-domi') }}"
                       style="margin-bottom:8px;display:inline-block;">
-                    {{ '🔬 Micología' if asesor.rol == 'micologia' else '🧫 Bacteriología' }}
+                    {{ '🔬 Micología' if asesor.rol == 'micologia' else ('🧫 Bacteriología' if asesor.rol == 'bacteriologia' else '🏠 Domicilio') }}
                 </span>
                 <select name="rol" class="rol-select">
                     <option value="micologia"
@@ -131,12 +132,17 @@
                         {{ 'selected' if asesor.rol == 'bacteriologia' }}>
                         🧫 Bacteriología
                     </option>
+                    <option value="domicilio"
+                       {{ 'selected' if asesor.rol == 'domicilio' }}>
+                       🏠 Domicilio
+                    </option>
                 </select>
             {% else %}
                 <select name="rol" class="rol-select" required>
                     <option value="" disabled selected>Selecciona el área…</option>
                     <option value="micologia">🔬 Micología</option>
                     <option value="bacteriologia">🧫 Bacteriología</option>
+                    <option value="domicilio">🏠 Domicilio</option>
                 </select>
             {% endif %}
         </div>

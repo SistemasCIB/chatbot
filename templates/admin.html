@@ -386,6 +386,18 @@ tbody tr:last-child td{ border-bottom:none; }
     font-weight:700;
 }
 
+.chip-domi{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    background:#F3E8FF;
+    color:#7C3AED;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+}
+
 /* ══ ACTIONS ══ */
 .actions{ display:flex; gap:6px; flex-wrap:wrap; }
 
@@ -675,6 +687,9 @@ tbody tr:last-child td{ border-bottom:none; }
                     <span style="background:var(--bacte-soft);color:var(--bacte);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
                         🧫 Bacteriología: {{ especialistas|selectattr('rol','equalto','bacteriologia')|list|length }}
                     </span>
+                    <span style="background:#F3E8FF;color:#7C3AED;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
+                        🏠 Domicilio: {{ especialistas|selectattr('rol','equalto','domicilio')|list|length }}
+                    </span>
                 </div>
             </div>
 
@@ -711,8 +726,10 @@ tbody tr:last-child td{ border-bottom:none; }
                         <td>
                             {% if e.rol == 'micologia' %}
                                 <span class="chip-mico">🔬 Micología</span>
-                            {% else %}
+                            {% elif e.rol == 'bacteriologia' %}
                                 <span class="chip-bacte">🧫 Bacteriología</span>
+                            {% else %}
+                                <span class="chip-domi">🏠 Domicilio</span>
                             {% endif %}
                         </td>
 

@@ -43,6 +43,8 @@ def login():
                 return redirect(url_for('asesor.calendario_micologia'))
             elif asesor.rol == 'bacteriologia':
                 return redirect(url_for('asesor.calendario_bacteriologia'))
+            elif asesor.rol == 'domicilio':
+                return redirect(url_for('asesor.calendario_domicilio'))
             else:
                 return redirect(url_for('asesor.panel'))
 
@@ -679,6 +681,18 @@ def calendario_bacteriologia():
         agenda_fija='bacteriologia'
     )
 
+
+@asesor_bp.route('/asesor/calendario/domicilio')
+@login_requerido
+@rol_requerido('domicilio')
+def calendario_domicilio():
+    return render_template(
+        'asesor_calendario.html',
+        asesor_nombre=session.get('asesor_nombre'),
+        asesor_rol='domicilio',
+        agenda_fija='domicilio'
+    )
+
 @asesor_bp.route('/asesor/eventos')
 @login_requerido
 def eventos_calendario():
@@ -692,6 +706,8 @@ def eventos_calendario():
         agenda_filtro = 'micologia'
     elif rol_actual == 'bacteriologia':
         agenda_filtro = 'bacteriologia'
+    elif rol_actual == 'domicilio':
+        agenda_filtro = 'domicilio'
 
     query = Cita.query.filter(
         Cita.fecha_cita.isnot(None),

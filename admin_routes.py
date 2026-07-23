@@ -68,7 +68,7 @@ def logout():
 def panel():
     asesores = Asesor.query.filter_by(rol='asesor').order_by(Asesor.nombre).all()
     especialistas = Asesor.query.filter(
-        Asesor.rol.in_(['micologia', 'bacteriologia'])
+        Asesor.rol.in_(['micologia', 'bacteriologia', 'domicilio'])
     ).order_by(Asesor.nombre).all()
 
     config = get_config_horario()
@@ -129,7 +129,7 @@ def nuevo_especialista():
         password = request.form['password'].strip()
         rol      = request.form['rol'].strip()   # 'micologia' o 'bacteriologia'
 
-        if rol not in ('micologia', 'bacteriologia'):
+        if rol not in ('micologia', 'bacteriologia', 'domicilio'):
             error = "Rol inválido."
         elif Asesor.query.filter_by(usuario=usuario).first():
             error = "Ya existe un usuario con ese nombre."
@@ -159,9 +159,9 @@ def editar_asesor(asesor_id):
         asesor.usuario = request.form['usuario'].strip()
 
         # Si es especialista, el admin puede cambiar el rol
-        if asesor.rol in ('micologia', 'bacteriologia'):
+        if asesor.rol in ('micologia', 'bacteriologia', 'domicilio'):
             nuevo_rol = request.form.get('rol', '').strip()
-            if nuevo_rol in ('micologia', 'bacteriologia'):
+            if nuevo_rol in ('micologia', 'bacteriologia', 'domicilio'):
                 asesor.rol = nuevo_rol
 
         password = request.form.get('password', '').strip()
@@ -174,7 +174,7 @@ def editar_asesor(asesor_id):
     # Reutilizar el form correcto según el rol
     template = (
         'admin_form_especialista.html'
-        if asesor.rol in ('micologia', 'bacteriologia')
+        if asesor.rol in ('micologia', 'bacteriologia', 'domicilio')
         else 'admin_form_asesor.html'
     )
 
