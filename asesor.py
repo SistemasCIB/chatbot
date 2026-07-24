@@ -1094,3 +1094,28 @@ def bandeja():
     )
 
     return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))
+
+@asesor_bp.route('/asesor/eliminar/<int:cita_id>')
+@login_requerido
+def eliminar_cita(cita_id):
+
+    cita = Cita.query.get_or_404(cita_id)
+
+    # Solo permitir eliminar citas pendientes
+    if cita.estado != "pendiente":
+        flash("Solo se pueden eliminar citas pendientes.", "warning")
+        return redirect(url_for("asesor.panel"))
+
+    # Eliminar evento de Outlook
+    if cita.outlook_event_id:
+        try:
+            eliminar_evento_outlook(cita.outlook_event_id)
+        except Exception as e:
+            print(f"No se pudo eliminar el evento: {e}")
+
+    db.session.delete(cita)
+    db.session.commit()
+
+    flash("La cita fue eliminada correctamente.", "success")
+
+    return redirect(url_for("asesor.panel"))

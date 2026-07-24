@@ -540,6 +540,11 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                                 class="btn btn-reject">
                                 Rechazar
                                 </a>
+                                <a href="/asesor/eliminar/{{ c.id }}"
+                                class="btn btn-reject"
+                                onclick="return confirm('¿Está seguro de eliminar esta cita? Esta acción no se puede deshacer.');">
+                                    🗑 Eliminar
+                                </a>
 
                             {% endif %}
 
@@ -561,7 +566,7 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                             class="btn btn-edit">
                             Editar
                             </a>
-                        
+       
                             {% if c.chat_activo %}
                                 <button onclick="abrirChat({{ c.id }}, '{{ c.paciente.nombre }}')"
                                         class="btn btn-confirm"
