@@ -574,16 +574,7 @@ def manejar_boton(numero, opcion_id):
                 mostrar_fechas_disponibles(numero, sesiones)
 
             return   
-    # -----------------------------------
-    # FALLBACK: opción no reconocida
-    # -----------------------------------
-    else:
-        enviar_texto(
-            numero,
-            "❓ Esa opción ya no está disponible o expiró.\n\nAquí tienes el menú principal:"
-        )
-        enviar_menu(numero)
-        return
+
 # =====================================================
 # MENSAJES TEXTO
 # =====================================================
@@ -927,54 +918,11 @@ def manejar_texto(numero, texto):
                 "4️⃣ Menú principal"
                 )
             return
-# -----------------------------------
-    # FALLBACK: mensaje no reconocido
-    # -----------------------------------
-    else:
-        mensajes_reenvio = {
-            "documento":            "Por favor escribe tu número de documento sin puntos ni caracteres especiales:",
-            "nombre":               "Por favor escribe tus nombres y apellidos completos tal como aparecen en tu documento:",
-            "telefono":             "Por favor escribe tu número de teléfono:",
-            "correo":               "Por favor escribe tu correo electrónico:",
-            "direccion":            "Por favor escribe tu dirección completa:",
-            "direccion_domicilio":  "Por favor escribe la dirección completa para el domicilio:",
-            "examen_otro_texto":    "Por favor escribe el nombre completo del examen:",
-            "buscar_documento":     "Por favor escribe tu número de documento sin puntos ni caracteres especiales:",
-        }
 
-        if paso in mensajes_reenvio:
-            enviar_texto(
-                numero,
-                "❓ No entendí tu mensaje.\n\n" + mensajes_reenvio[paso]
-            )
-        else:
-            enviar_texto(
-                numero,
-                "❓ No entendí tu mensaje. Aquí tienes el menú principal:"
-            )
-            enviar_menu(numero)
-        return
-    
 def manejar_archivo(numero, media_id, tipo_mime):
-    # -----------------------------------
-    # FALLBACK: no hay sesión activa
-    # -----------------------------------
     if numero not in sesiones:
-        enviar_texto(
-            numero,
-            "❓ No encontré una solicitud activa para este archivo.\n\nAquí tienes el menú principal:"
-        )
-        enviar_menu(numero)
         return
-
-    # -----------------------------------
-    # FALLBACK: archivo enviado fuera de contexto
-    # -----------------------------------
     if sesiones[numero].get("paso") != "orden":
-        enviar_texto(
-            numero,
-            "❓ No esperaba un archivo en este momento. Por favor sigue las instrucciones del paso actual."
-        )
         return
 
     sesiones[numero]["orden"] = media_id
