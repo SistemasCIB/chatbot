@@ -423,6 +423,7 @@ def nueva_cita():
                 fecha_nacimiento=datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d') if request.form.get('fecha_nacimiento') else None,
                 telefono=request.form['telefono'],
                 correo=request.form.get('correo', ''),
+                direccion=request.form.get('direccion')
             )
             db.session.add(paciente)
             db.session.commit()
