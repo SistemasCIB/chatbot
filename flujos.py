@@ -621,6 +621,38 @@ def manejar_texto(numero, texto):
                 return
 
         else:
+            texto = texto.strip()
+
+            if campo == "telefono":
+
+                if not texto.isdigit():
+                    enviar_texto(
+                        numero,
+                        "❌ El teléfono solo debe contener números."
+                    )
+                    return
+
+
+            if campo == "nombre":
+
+                if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$", texto):
+                    enviar_texto(
+                        numero,
+                        "❌ El nombre solo debe contener letras y espacios."
+                    )
+                    return
+
+
+            if campo == "correo":
+
+                if not re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", texto):
+                    enviar_texto(
+                        numero,
+                        "❌ El correo electrónico no parece válido."
+                    )
+                    return
+
+
             sesiones[numero][campo] = texto
 
         sesiones[numero]["paso"] = "confirmacion"
@@ -634,7 +666,17 @@ def manejar_texto(numero, texto):
     # -----------------------------------
     if paso == "buscar_documento":
 
-        paciente = Paciente.query.filter_by(documento=texto.strip()).first()
+        texto = texto.strip()
+
+        if not texto.isdigit():
+            enviar_texto(
+                numero,
+                "❌ El número de documento solo debe contener números.\n\n"
+                "Por favor ingrésalo nuevamente sin puntos ni caracteres especiales."
+            )
+            return
+
+        paciente = Paciente.query.filter_by(documento=texto).first()
 
         if paciente:
             # Paciente encontrado — cargar datos y saltar al flujo
@@ -681,6 +723,17 @@ def manejar_texto(numero, texto):
     # DATOS PACIENTE: número de documento
     # -----------------------------------
     elif paso == "documento":
+
+        texto = texto.strip()
+
+        if not texto.isdigit():
+            enviar_texto(
+                numero,
+                "❌ El número de documento solo debe contener números.\n\n"
+                "Por favor ingrésalo nuevamente sin puntos, espacios ni caracteres especiales."
+            )
+            return
+
         sesiones[numero]["documento"] = texto
         sesiones[numero]["paso"] = "nombre"
 
@@ -694,6 +747,17 @@ def manejar_texto(numero, texto):
     # DATOS PACIENTE: nombre
     # -----------------------------------
     elif paso == "nombre":
+
+        texto = texto.strip()
+
+        if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$", texto):
+            enviar_texto(
+                numero,
+                "❌ El nombre solo debe contener letras y espacios.\n\n"
+                "Por favor escribe tus nombres y apellidos completos."
+            )
+            return
+
         sesiones[numero]["nombre"] = texto
         sesiones[numero]["paso"] = "fecha_nacimiento"
 
@@ -732,6 +796,17 @@ def manejar_texto(numero, texto):
     # DATOS PACIENTE: teléfono
     # -----------------------------------
     elif paso == "telefono":
+
+        texto = texto.strip()
+
+        if not texto.isdigit():
+            enviar_texto(
+                numero,
+                "❌ El número de teléfono solo debe contener números.\n\n"
+                "Por favor ingresa un número válido sin espacios, letras ni caracteres especiales."
+            )
+            return
+
         sesiones[numero]["telefono"] = texto
         sesiones[numero]["paso"] = "correo"
 
@@ -746,13 +821,23 @@ def manejar_texto(numero, texto):
     # -----------------------------------
     elif paso == "correo":
 
+        texto = texto.strip()
+
+        if not re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", texto):
+            enviar_texto(
+                numero,
+                "❌ El correo electrónico no parece válido.\n\n"
+                "Por favor ingresa un correo con este formato:\n"
+                "ejemplo@correo.com"
+            )
+            return
+
         sesiones[numero]["correo"] = texto
         sesiones[numero]["paso"] = "direccion"
 
         enviar_texto(
             numero,
             "📍 Por favor escribe la dirección del paciente."
-            
         )
         return
 
@@ -777,7 +862,17 @@ def manejar_texto(numero, texto):
     # FLUJO CANCELAR CITA
     # -----------------------------------
     elif paso == "cancelar_documento":
+
         documento = texto.strip()
+
+        if not documento.isdigit():
+            enviar_texto(
+                numero,
+                "❌ El número de documento solo debe contener números.\n\n"
+                "Por favor ingrésalo nuevamente sin puntos ni caracteres especiales."
+            )
+            return
+
         paciente = Paciente.query.filter_by(documento=documento).first()
 
         if not paciente:
