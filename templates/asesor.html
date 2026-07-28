@@ -497,7 +497,11 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                     <td>{{ c.paciente.telefono }}</td>
                     <td><span class="pill {{ c.tipo_cita }}">{{ c.tipo_cita.capitalize() }}</span></td>
                     <td style="max-width:180px;font-size:11.5px;color:var(--muted)">
-                        {% if c.tipo_cita == 'domicilio' and c.direccion_domicilio %}{{ c.direccion_domicilio }}{% else %}<span class="dash">—</span>{% endif %}
+                        {% if c.tipo_cita == 'domicilio' %}
+                           {{ c.direccion_domicilio or '—' }}
+                        {% else %}
+                            {{ c.paciente.direccion or '—' }}
+                        {% endif %}
                     </td>
                     <td>
                         {% if c.orden_medica %}<a href="/asesor/orden/{{ c.id }}" target="_blank" class="btn btn-orden">Ver orden</a>{% else %}<span class="dash">—</span>{% endif %}

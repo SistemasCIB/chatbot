@@ -229,7 +229,13 @@
                     <input type="email" name="correo"
                         value="{{ cita.paciente.correo if cita else '' }}">
                 </div>
+                <div>
+                <div class="campo campo-full" id="direccion_paciente_box">
+                    <label for="direccion">Dirección del paciente</label>
+                    <textarea name="direccion" id="direccion" rows="3">{{ cita.paciente.direccion if cita else '' }}</textarea>
+                </div>
 
+                </div>
             </div>
         </div>
 
@@ -261,10 +267,10 @@
                 </div>
 
                 <div class="campo campo-full hidden" id="direccion_box">
-                    <label>Dirección domicilio</label>
-                    <textarea name="direccion_domicilio" rows="3">{{ cita.direccion_domicilio if cita else '' }}</textarea>
+                    <label for="direccion_domicilio">Dirección domicilio</label>
+                    <textarea name="direccion_domicilio" id="direccion_domicilio" rows="3">{{ cita.direccion_domicilio if cita else '' }}</textarea>
                 </div>
-
+           
             </div>
         </div>
 
@@ -421,19 +427,32 @@
 // MOSTRAR / OCULTAR DIRECCIÓN + AUTO AGENDA
 // =====================================================
 
-const tipoCita   = document.getElementById('tipo_cita');
-const direccionBox = document.getElementById('direccion_box');
+const tipoCita = document.getElementById('tipo_cita');
+const direccionDomicilioBox = document.getElementById('direccion_box');
 const agendaTipo = document.getElementById('agenda_tipo');
+const direccionInput = document.getElementById('direccion');
+const direccionDomicilioInput = document.getElementById('direccion_domicilio');
 
 function actualizarFormulario() {
+
     if (tipoCita.value === 'domicilio') {
-        direccionBox.classList.remove('hidden');
+
+        direccionDomicilioBox.classList.remove('hidden');
         agendaTipo.value = 'domicilio';
+
+        direccionInput.required = false;
+        direccionDomicilioInput.required = true;
+
     } else {
-        direccionBox.classList.add('hidden');
+
+        direccionDomicilioBox.classList.add('hidden');
+
         if (agendaTipo.value === 'domicilio') {
             agendaTipo.value = '';
         }
+
+        direccionInput.required = true;
+        direccionDomicilioInput.required = false;
     }
 }
 
