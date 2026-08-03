@@ -1,9 +1,111 @@
-{% extends "asesor/base.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Exportar citas</title>
 
-{% block content %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 40px;
+        }
 
-<h2>Exportar citas</h2>
+        .card {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.08);
+        }
 
-<p>Aquí irá el filtro de fechas</p>
+        h2 {
+            margin-bottom: 25px;
+            color: #1f2937;
+        }
 
-{% endblock %}
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .info {
+            margin-bottom: 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h2>⬇ Exportar citas CSV</h2>
+
+    <div class="info">
+        Selecciona un rango de fechas o deja los campos vacíos para descargar todas las citas.
+    </div>
+
+    <form action="/asesor/exportar" method="GET">
+
+        <label for="fecha_inicio">
+            Fecha inicial
+        </label>
+
+        <input 
+            type="date" 
+            id="fecha_inicio"
+            name="fecha_inicio"
+        >
+
+
+        <label for="fecha_fin">
+            Fecha final
+        </label>
+
+        <input 
+            type="date" 
+            id="fecha_fin"
+            name="fecha_fin"
+        >
+
+
+        <button type="submit">
+            ⬇ Descargar CSV
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
