@@ -340,7 +340,18 @@ def trazabilidad():
 @login_requerido
 def exportar_excel():
 
-    citas = Cita.query.order_by(Cita.creada_en.desc()).all()
+    fecha_inicio = request.args.get("fecha_inicio")
+    fecha_fin = request.args.get("fecha_fin")
+
+    query = Cita.query
+
+    if fecha_inicio:
+        query = query.filter(Cita.creada_en >= fecha_inicio)
+
+    if fecha_fin:
+        query = query.filter(Cita.creada_en <= fecha_fin)
+
+    citas = query.order_by(Cita.creada_en.desc()).all()
 
     output = io.StringIO()
 
@@ -379,20 +390,27 @@ def exportar_excel():
             str(c.hora_cita),
             str(c.numero_whatsapp),
             c.estado,
-            c.creada_en.strftime('%d/%m/%Y %H:%M')
+            c.creada_en.strftime('%d/%m/%Y') if c.creada_en else ''
         ])
 
     csv_data = output.getvalue()
     output.close()
 
     return Response(
-        '\ufeff' + csv_data,  # Corrige tildes en Excel
+        '\ufeff' + csv_data,
         mimetype='text/csv; charset=utf-8',
         headers={
             "Content-Disposition": "attachment; filename=citas_cib.csv"
         }
     )
 
+@asesor_bp.route('/asesor/exportar_form')
+@login_requerido
+def exportar_form():
+
+    return render_template(
+        'exportar.html'
+    )
 
 @asesor_bp.route('/asesor/nueva', methods=['GET', 'POST'])
 @login_requerido
@@ -423,7 +441,6 @@ def nueva_cita():
                 fecha_nacimiento=datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d') if request.form.get('fecha_nacimiento') else None,
                 telefono=request.form['telefono'],
                 correo=request.form.get('correo', ''),
-                direccion=request.form.get('direccion')
             )
             db.session.add(paciente)
             db.session.commit()
