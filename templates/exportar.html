@@ -9,12 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+
 :root{
     --navy:#223A7F;
     --navy-deep:#182B63;
-    --cyan:#2EA1DB;
-    --cyan-light:#E7F5FC;
-    --green:#8CBF45;
     --border:#E4EAF2;
     --text:#1E293B;
     --muted:#6B7280;
@@ -31,117 +29,48 @@ body{
     font-family:'Outfit',sans-serif;
     background:#F7F9FC;
     display:flex;
-}
-
-
-/* SIDEBAR IGUAL AL ASESOR */
-
-.sidebar{
-    width:230px;
-    background:linear-gradient(180deg,var(--navy),var(--navy-deep));
-    height:100vh;
-    position:fixed;
-    left:0;
-    top:0;
-    padding:25px 12px;
-}
-
-
-.logo{
-    color:white;
-    font-size:22px;
-    font-weight:700;
-    padding:0 10px 25px;
-}
-
-
-.nav-label{
-    color:rgba(255,255,255,.35);
-    font-size:10px;
-    text-transform:uppercase;
-    margin:15px 10px 8px;
-}
-
-
-.nav-item{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    padding:12px 14px;
-    color:rgba(255,255,255,.75);
-    text-decoration:none;
-    border-radius:10px;
-    font-size:13px;
-}
-
-
-.nav-item:hover,
-.nav-item.active{
-    background:rgba(46,161,219,.18);
-    color:white;
-}
-
-
-.nav-cta{
-    display:flex;
     justify-content:center;
-    padding:12px;
-    background:var(--green);
-    color:white;
-    border-radius:10px;
-    text-decoration:none;
-    margin-top:15px;
-    font-weight:bold;
-}
-
-
-/* CONTENIDO */
-
-.main{
-    margin-left:230px;
-    flex:1;
-}
-
-
-.topbar{
-    height:70px;
-    background:white;
-    border-bottom:1px solid var(--border);
-    display:flex;
     align-items:center;
-    padding:0 28px;
-}
-
-
-.topbar h1{
-    color:var(--navy);
-    font-size:20px;
-}
-
-
-.page{
-    padding:30px;
 }
 
 
 .card{
     background:white;
-    border:1px solid var(--border);
+    width:450px;
+    padding:35px;
     border-radius:14px;
-    padding:25px;
-    max-width:550px;
+    border:1px solid var(--border);
+    box-shadow:0 8px 24px rgba(34,58,127,.12);
 }
 
 
-.card h2{
+.top-actions{
+    margin-bottom:25px;
+}
+
+
+.btn-back{
+    display:inline-block;
+    text-decoration:none;
+    color:var(--navy);
+    background:#E9EEFA;
+    padding:10px 14px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+}
+
+
+h2{
     color:var(--navy);
     margin-bottom:10px;
 }
 
 
-.card p{
+p{
     color:var(--muted);
-    margin-bottom:20px;
+    font-size:14px;
+    margin-bottom:25px;
 }
 
 
@@ -149,164 +78,107 @@ label{
     display:block;
     font-size:13px;
     font-weight:600;
-    margin-bottom:6px;
+    margin-bottom:7px;
 }
 
 
 input{
     width:100%;
     padding:12px;
-    border-radius:10px;
     border:1px solid var(--border);
-    margin-bottom:15px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-family:'Outfit';
 }
 
 
 button{
+    width:100%;
+    padding:12px;
     background:var(--navy);
     color:white;
-    border:0;
-    padding:12px 20px;
+    border:none;
     border-radius:10px;
+    font-weight:600;
     cursor:pointer;
+}
+
+
+button:hover{
+    background:var(--navy-deep);
+}
+
+
+.todo{
+    margin-top:15px;
+    font-size:12px;
+    color:#6B7280;
 }
 
 </style>
 
 </head>
 
+
 <body>
-
-
-<aside class="sidebar">
-
-<div class="logo">
-    CIB
-</div>
-
-
-<nav>
-
-<div class="nav-label">Principal</div>
-
-
-<a href="/asesor" class="nav-item">
-📋 Solicitudes
-</a>
-
-
-<a href="/asesor/calendario" class="nav-item">
-📅 Calendario
-</a>
-
-
-<a href="/asesor/historial" class="nav-item">
-🕘 Historial
-</a>
-
-
-<a href="/asesor/trazabilidad" class="nav-item">
-📈 Trazabilidad
-</a>
-
-
-<a href="/asesor/exportar_form" class="nav-item active">
-⬇️ Exportar CSV
-</a>
-
-
-
-<div class="nav-label">Acciones</div>
-
-
-<a href="/asesor/nueva" class="nav-cta">
-＋ Nueva cita
-</a>
-
-
-<div class="nav-label">
-Bandeja de mensajes
-</div>
-
-
-<a href="/asesor/bandeja" class="nav-item">
-💬 Mensajes
-</a>
-
-
-<div class="nav-label">
-Cuenta
-</div>
-
-
-<a href="{{ url_for('asesor.vista_cambiar_password') }}" class="nav-item">
-🔒 Cambiar contraseña
-</a>
-
-
-</nav>
-
-</aside>
-
-
-
-<div class="main">
-
-
-<div class="topbar">
-
-<h1>
-Exportar citas CSV
-</h1>
-
-</div>
-
-
-
-<div class="page">
 
 
 <div class="card">
 
-<h2>
-⬇ Descargar CSV
-</h2>
 
-<p>
-Selecciona un rango de fechas. Si lo dejas vacío descarga todas las citas.
-</p>
+    <div class="top-actions">
 
+        <a href="/asesor" class="btn-back">
+            ← Volver al panel
+        </a>
 
-<form action="/asesor/exportar" method="GET">
-
-
-<label>
-Fecha inicial
-</label>
-
-<input type="date" name="fecha_inicio">
+    </div>
 
 
 
-<label>
-Fecha final
-</label>
-
-<input type="date" name="fecha_fin">
+    <h2>
+        ⬇ Exportar citas CSV
+    </h2>
 
 
-<button type="submit">
-Descargar CSV
-</button>
+    <p>
+        Selecciona un rango de fechas.  
+        Si dejas los campos vacíos descargarás todas las citas.
+    </p>
 
 
-</form>
+
+    <form action="/asesor/exportar" method="GET">
 
 
-</div>
+        <label>
+            Fecha inicial
+        </label>
+
+        <input 
+            type="date"
+            name="fecha_inicio"
+        >
 
 
-</div>
+
+        <label>
+            Fecha final
+        </label>
+
+        <input 
+            type="date"
+            name="fecha_fin"
+        >
+
+
+
+        <button type="submit">
+            Descargar CSV
+        </button>
+
+
+    </form>
 
 
 </div>
