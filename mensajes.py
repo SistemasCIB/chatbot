@@ -11,6 +11,7 @@ load_dotenv(".env")
 TOKEN_META = os.getenv("TOKEN_META")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
 
+
 def _enviar_texto_simple(numero, mensaje):
     """Envío de emergencia — no llama a enviar_request para evitar recursión."""
     headers = {
@@ -33,7 +34,43 @@ def _enviar_texto_simple(numero, mensaje):
     finally:
         connection.close()
 
-def enviar_request(data, numero=None):
+
+def _extraer_texto_resumen(data):
+    """Convierte cualquier payload de WhatsApp (texto, botones, listas) en un
+    texto legible para guardar en el historial del chat."""
+    tipo = data.get("type")
+
+    if tipo == "text":
+        return data.get("text", {}).get("body", "")
+
+    if tipo == "interactive":
+        interactive = data.get("interactive", {})
+        body_text = interactive.get("body", {}).get("text", "")
+        tipo_int = interactive.get("type")
+        opciones = []
+
+        if tipo_int == "button":
+            opciones = [
+                b.get("reply", {}).get("title", "")
+                for b in interactive.get("action", {}).get("buttons", [])
+            ]
+        elif tipo_int == "list":
+            for sec in interactive.get("action", {}).get("sections", []):
+                opciones += [r.get("title", "") for r in sec.get("rows", [])]
+
+        if opciones:
+            return f"{body_text}\n\n[Opciones: {', '.join(o for o in opciones if o)}]"
+        return body_text
+
+    if tipo in ("image", "audio", "video", "document"):
+        media = data.get(tipo, {})
+        media_id = media.get("id", "")
+        return f"[Archivo] {tipo} | {media_id}"
+
+    return f"[Mensaje tipo {tipo}]"
+
+
+def enviar_request(data, numero=None, origen='bot'):
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {TOKEN_META}'
@@ -43,19 +80,31 @@ def enviar_request(data, numero=None):
         connection.request('POST', f'/v25.0/{PHONE_NUMBER_ID}/messages', json.dumps(data), headers)
         response = connection.getresponse()
         body = response.read()
+
         if response.status != 200:
             agregar_mensajes_log(f"Error envio | {response.status} {response.reason} | {body.decode('utf-8', errors='replace')}")
 
-            # ── NUEVO: avisar al usuario si tenemos su número ──
             if numero:
                 _enviar_texto_simple(numero, "⚠️ Ocurrió un error técnico. Por favor escribe *hola* para reiniciar.")
+            return
+
+        # ── Guardar SIEMPRE que el envío fue exitoso, sin importar qué función lo llamó ──
+        if numero:
+            try:
+                texto_resumen = _extraer_texto_resumen(data)
+                db.session.add(Mensaje(numero_whatsapp=numero, origen=origen, texto=texto_resumen))
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                agregar_mensajes_log(f"Error guardando mensaje: {str(e)}")
 
     except Exception as e:
         agregar_mensajes_log(f"Error envio: {str(e)}")
     finally:
         connection.close()
 
-def enviar_texto(numero, mensaje, origen='bot'):  
+
+def enviar_texto(numero, mensaje, origen='bot'):
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
@@ -63,7 +112,7 @@ def enviar_texto(numero, mensaje, origen='bot'):
         "type": "text",
         "text": {"preview_url": False, "body": mensaje}
     }
-    enviar_request(data, numero=numero)
+    enviar_request(data, numero=numero, origen=origen)
     
     try:
         db.session.add(Mensaje(numero_whatsapp=numero, origen=origen, texto=mensaje))

@@ -20,6 +20,13 @@ from mensajes import (
 from config import DIAS_ACTIVOS, DIAS_BLOQUEADOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, URL_RESULTADOS, LINK_ALIMENTATEC, LINK_EDITORIAL, dentro_de_horario
 from datetime import datetime, timedelta
 import re
+import os
+import requests
+from flask import current_app
+from dotenv import load_dotenv
+load_dotenv(".env") 
+TOKEN_META = os.getenv("TOKEN_META")
+
 sesiones = {}
 MODO_HUMANO_MINUTOS = 1# cambiar tiempo al solicitado
 
@@ -1072,10 +1079,56 @@ def manejar_archivo(numero, media_id, tipo_mime):
         )
         return
 
-    sesiones[numero]["orden"] = media_id
-    sesiones[numero]["tipo_archivo"] = tipo_mime
-    confirmar_cita(numero)
+    # -----------------------------------
+    # DESCARGAR Y GUARDAR EL ARCHIVO LOCALMENTE
+    # (el media_id de Meta expira, hay que bajarlo YA)
+    # -----------------------------------
 
+
+    try:
+        headers = {"Authorization": f"Bearer {TOKEN_META}"}
+
+        r = requests.get(
+            f"https://graph.facebook.com/v25.0/{media_id}",
+            headers=headers
+        )
+        r.raise_for_status()
+        url_archivo = r.json().get("url")
+
+        if not url_archivo:
+            raise ValueError("Meta no devolvió URL del archivo")
+
+        archivo = requests.get(url_archivo, headers=headers)
+        archivo.raise_for_status()
+
+        extensiones = {
+            "application/pdf": "pdf",
+            "image/jpeg": "jpg",
+            "image/png": "png",
+        }
+        ext = extensiones.get(tipo_mime, "bin")
+
+        nombre_archivo = f"orden_{numero}_{media_id}.{ext}"
+
+        carpeta_uploads = os.path.join(current_app.root_path, 'static', 'uploads')
+        os.makedirs(carpeta_uploads, exist_ok=True)
+
+        ruta_destino = os.path.join(carpeta_uploads, nombre_archivo)
+        with open(ruta_destino, 'wb') as f:
+            f.write(archivo.content)
+
+        sesiones[numero]["orden"] = nombre_archivo
+        sesiones[numero]["tipo_archivo"] = tipo_mime
+
+    except Exception as e:
+        agregar_mensajes_log(f"ERROR descargando orden médica: {str(e)}")
+        enviar_texto(
+            numero,
+            "❌ No pudimos procesar el archivo. Por favor intenta enviarlo de nuevo."
+        )
+        return
+
+    confirmar_cita(numero)
 
 
 
