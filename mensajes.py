@@ -113,13 +113,6 @@ def enviar_texto(numero, mensaje, origen='bot'):
         "text": {"preview_url": False, "body": mensaje}
     }
     enviar_request(data, numero=numero, origen=origen)
-    
-    try:
-        db.session.add(Mensaje(numero_whatsapp=numero, origen=origen, texto=mensaje))
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        agregar_mensajes_log(f"Error guardando mensaje: {str(e)}")
 
 
 def enviar_menu(numero):
