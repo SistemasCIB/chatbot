@@ -86,17 +86,26 @@ def ver_orden(cita_id):
     if not cita.orden_medica:
         return "Esta cita no tiene orden médica.", 404
 
+    tipo_mime = cita.orden_tipo_archivo or "application/octet-stream"
+
+    # 1) Prioridad: bytes en BD (independiente de Meta y del disco efímero)
+    if cita.orden_medica_datos:
+        return Response(
+            cita.orden_medica_datos,
+            mimetype=tipo_mime,
+            headers={"Content-Disposition": f"inline; filename=orden_{cita_id}"}
+        )
+
+    # 2) Fallback: archivo local (citas viejas que aún estén en disco)
     ruta_local = os.path.join(
         app.root_path, 'static', 'uploads', cita.orden_medica
     )
-
-    # Si existe localmente → sirve directo
     if os.path.exists(ruta_local):
         return redirect(
             url_for('static', filename='uploads/' + cita.orden_medica)
         )
 
-    # Si es media_id de Meta → descargar con token y servir
+    # 3) Último recurso legacy: Meta (citas viejas sin respaldo en BD ni disco)
     headers = {"Authorization": f"Bearer {TOKEN_META}"}
 
     r = req_lib.get(
@@ -105,18 +114,14 @@ def ver_orden(cita_id):
     )
 
     if r.status_code != 200:
-        return f"Error consultando archivo a Meta: {r.text}", 500
+        return f"Esta orden ya no está disponible (registro antiguo sin respaldo en BD). Error Meta: {r.text}", 404
 
     url_archivo = r.json().get("url")
 
     if not url_archivo:
         return "No se pudo obtener la URL del archivo.", 500
 
-    #  Descargar con token y devolver al navegador — NO hacer redirect
     archivo = req_lib.get(url_archivo, headers=headers)
-
-    from flask import Response
-    tipo_mime = cita.orden_tipo_archivo or "application/octet-stream"
 
     return Response(
         archivo.content,

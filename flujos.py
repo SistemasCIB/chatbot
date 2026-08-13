@@ -1,3 +1,5 @@
+import base64
+
 from models import ConfigHorario, DiasBloqueados, db, Cita,Paciente, Consentimiento, agregar_mensajes_log
 from mensajes import (
     enviar_texto,
@@ -1119,6 +1121,7 @@ def manejar_archivo(numero, media_id, tipo_mime):
 
         sesiones[numero]["orden"] = nombre_archivo
         sesiones[numero]["tipo_archivo"] = tipo_mime
+        sesiones[numero]["orden_bytes_b64"] = base64.b64encode(archivo.content).decode("utf-8")  # 👈 NUEVO
 
     except Exception as e:
         agregar_mensajes_log(f"ERROR descargando orden médica: {str(e)}")
@@ -1209,11 +1212,22 @@ def confirmar_cita(numero):
             f"agenda_tipo={sesion.get('agenda_tipo')} | "
             f"examen={sesion.get('tipo_examen')}"
         )
+        # ---------------------------------
+        # ORDEN MÉDICA — decodificar de base64
+        # ---------------------------------
+        orden_bytes = None
+        orden_b64 = sesion.get("orden_bytes_b64")
+        if orden_b64:
+            try:
+                orden_bytes = base64.b64decode(orden_b64)
+            except Exception as e:
+                agregar_mensajes_log(f"ERROR decodificando orden_bytes_b64: {str(e)}")
         cita = Cita(
             paciente_id=paciente.id,
             tipo_cita=sesion.get("tipo_cita", ""),
             direccion_domicilio=sesion.get("direccion_domicilio", ""),
             orden_medica=sesion.get("orden", ""),
+            orden_medica_datos=orden_bytes,
             orden_tipo_archivo=sesion.get("tipo_archivo", ""),
             cobertura=sesion.get("cobertura", ""),
             aseguradora=sesion.get("aseguradora", ""),
