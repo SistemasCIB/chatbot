@@ -112,6 +112,7 @@ class Cita(db.Model):
     tipo_cita = db.Column(db.String(20))
     direccion_domicilio = db.Column(db.String(300))
     orden_medica = db.Column(db.String(500))
+    orden_medica_datos = db.Column(db.LargeBinary, nullable=True)
     orden_tipo_archivo = db.Column(db.String(50))
     cobertura = db.Column(db.String(50))
     aseguradora = db.Column(db.String(100))
