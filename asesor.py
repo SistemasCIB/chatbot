@@ -416,7 +416,11 @@ def exportar_excel():
             c.paciente.nombre,
             str(c.paciente.documento),
             str(c.paciente.telefono),
-            c.paciente.direccion or '',
+            (
+                c.direccion_domicilio
+                if c.tipo_cita == 'domicilio'
+                else c.paciente.direccion
+            ),
             c.tipo_cita,
             c.orden_medica or '',
             c.area or '',

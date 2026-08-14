@@ -282,11 +282,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 "👤 Paciente: " + props.paciente + "\n\n" +
 
-                "🪪 Documento: " + props.documento + "\n\n" +
+                "🆔 Documento: " + props.documento + "\n\n" +
 
-                "🏷️ Tipo: " + props.cobertura + "\n\n" +
+                "🏷️ Cobertura: " + props.cobertura + "\n\n" +
 
-                (props.cobertura === "POLIZA"
+                (props.cobertura &&
+                props.cobertura.toUpperCase() === "POLIZA"
                     ? "🏥 Aseguradora: " + props.aseguradora + "\n\n"
                     : "") +
 
@@ -301,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 "📞 Teléfono: " + props.telefono + "\n\n" +
 
                 "📧 Correo: " + props.correo + "\n\n" +
+
                 (props.direccion ? "🏠 Dirección: " + props.direccion + "\n\n" : "") +  
                 
                 "📌 Estado: " + props.estado
