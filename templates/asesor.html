@@ -675,14 +675,14 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                             {% endif %}
                             {% if c.estado == 'rechazada' %}
 
+                     
                                 <button
                                     type="button"
-                                    class="btn btn-reject"
-                                    onclick="verObservacionRechazo(
-                                        {{ (c.observacion_rechazo or 'No se registró una observación.')|tojson }}
-                                    )">
+                                    class="btn btn-reject btn-ver-observacion"
+                                    data-observacion="{{ c.observacion_rechazo or 'No se registró una observación.' }}">
                                     👁 Ver observación
                                 </button>
+                       
 
                             {% endif %}
                             <a href="/asesor/editar/{{ c.id }}"
@@ -826,6 +826,13 @@ function cerrarModalObservacion() {
     document.getElementById('modal-observacion').classList.remove('active');
 }
 
+/* ===== NUEVO: delegación de eventos para el botón "Ver observación" ===== */
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-ver-observacion');
+    if (!btn) return;
+    verObservacionRechazo(btn.dataset.observacion);
+});
+
 /* ===== NUEVO: envío AJAX del formulario de rechazo ===== */
 document.addEventListener('DOMContentLoaded', function () {
     const formRechazo = document.getElementById('form-rechazo');
@@ -905,9 +912,9 @@ function actualizarFilaRechazada(citaId, observacion) {
         if (btnReject) {
             const nuevoBoton = document.createElement('button');
             nuevoBoton.type = 'button';
-            nuevoBoton.className = 'btn btn-reject';
+            nuevoBoton.className = 'btn btn-reject btn-ver-observacion';
             nuevoBoton.textContent = '👁 Ver observación';
-            nuevoBoton.onclick = () => verObservacionRechazo(observacion);
+            nuevoBoton.dataset.observacion = observacion;
             btnReject.replaceWith(nuevoBoton);
         }
     }
