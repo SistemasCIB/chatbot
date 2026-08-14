@@ -229,38 +229,68 @@ def confirmar_cita(cita_id):
     return redirect(url_for('asesor.panel'))
 
 
-@asesor_bp.route('/asesor/rechazar/<int:cita_id>')
+@asesor_bp.route('/asesor/rechazar/<int:cita_id>', methods=['POST'])
 @login_requerido
 def rechazar_cita(cita_id):
+
     cita = Cita.query.get(cita_id)
-    if cita:
-        # Eliminar evento de Outlook si existe
-        if cita.outlook_event_id:
-            try:
-                eliminar_evento_outlook(cita.outlook_event_id)
-                cita.outlook_event_id = None
-            except Exception as e:
-                print(f"[Outlook] Error eliminando evento: {e}")
 
-        cita.estado = 'rechazada'
-        db.session.commit()
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-        log = Auditoria(
-            asesor_id=session['asesor_id'],
-            asesor_nombre=session['asesor_nombre'],
-            accion='rechazo',
-            cita_id=cita.id,
-            detalle=f'Rechazó cita de {cita.paciente.documento} - {cita.paciente.nombre}'
+    if not cita:
+        if es_ajax:
+            return jsonify({'ok': False, 'error': 'Cita no encontrada'}), 404
+        return redirect(url_for('asesor.panel'))
+
+    observacion = request.form.get('observacion_rechazo', '').strip()
+
+    if not observacion:
+        if es_ajax:
+            return jsonify({'ok': False, 'error': 'Debes indicar un motivo'}), 400
+        return redirect(url_for('asesor.panel'))
+
+    if cita.outlook_event_id:
+        try:
+            eliminar_evento_outlook(cita.outlook_event_id)
+            cita.outlook_event_id = None
+        except Exception as e:
+            print(f"[Outlook] Error eliminando evento: {e}")
+
+    cita.estado = 'rechazada'
+    cita.observacion_rechazo = observacion
+
+    db.session.commit()
+
+    log = Auditoria(
+        asesor_id=session['asesor_id'],
+        asesor_nombre=session['asesor_nombre'],
+        accion='rechazo',
+        cita_id=cita.id,
+        detalle=(
+            f'Rechazó cita de '
+            f'{cita.paciente.documento} - '
+            f'{cita.paciente.nombre}. '
+            f'Motivo: {observacion}'
         )
-        db.session.add(log)
-        db.session.commit()
+    )
 
-        enviar_texto(cita.numero_whatsapp,
-            f"👋 Gracias por comunicarte con nosotros.\n\n"
-            f"En este momento no fue posible continuar con tu solicitud de cita.\n\n"
-            f"Si más adelante deseas retomarla o completar la información, estaremos atentos para ayudarte por este medio\n\n"
-            f"¡Que tengas un buen día! 💙"
-        )
+    db.session.add(log)
+    db.session.commit()
+
+    enviar_texto(cita.numero_whatsapp,
+        f"👋 Gracias por comunicarte con nosotros.\n\n"
+        f"En este momento no fue posible continuar con tu solicitud de cita.\n\n"
+        f"Si más adelante deseas retomarla o completar la información, estaremos atentos para ayudarte por este medio\n\n"
+        f"¡Que tengas un buen día! 💙"
+    )
+
+    if es_ajax:
+        return jsonify({
+            'ok': True,
+            'cita_id': cita.id,
+            'observacion': observacion
+        })
+
     return redirect(url_for('asesor.panel'))
 
 # ==========================================
@@ -1157,27 +1187,3 @@ def bandeja():
 
     return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))
 
-@asesor_bp.route('/asesor/eliminar/<int:cita_id>')
-@login_requerido
-def eliminar_cita(cita_id):
-
-    cita = Cita.query.get_or_404(cita_id)
-
-    # Solo permitir eliminar citas pendientes
-    if cita.estado != "pendiente":
-        flash("Solo se pueden eliminar citas pendientes.", "warning")
-        return redirect(url_for("asesor.panel"))
-
-    # Eliminar evento de Outlook
-    if cita.outlook_event_id:
-        try:
-            eliminar_evento_outlook(cita.outlook_event_id)
-        except Exception as e:
-            print(f"No se pudo eliminar el evento: {e}")
-
-    db.session.delete(cita)
-    db.session.commit()
-
-    flash("La cita fue eliminada correctamente.", "success")
-
-    return redirect(url_for("asesor.panel"))
