@@ -282,6 +282,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 "👤 Paciente: " + props.paciente + "\n\n" +
 
+                "🪪 Documento: " + props.documento + "\n\n" +
+
+                "🏷️ Tipo: " + props.cobertura + "\n\n" +
+
+                (props.cobertura === "POLIZA"
+                    ? "🏥 Aseguradora: " + props.aseguradora + "\n\n"
+                    : "") +
+
                 "🔬 Examen: " + props.tipo_examen + "\n\n" +
 
                 "🧫 Tipo de muestra: " + props.tipo_muestra + "\n\n" +

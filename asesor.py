@@ -86,11 +86,40 @@ def rol_requerido(*roles_permitidos):
 @asesor_bp.route('/asesor')
 @login_requerido
 def panel():
-    documento = request.args.get('documento', '').strip()
+    busqueda = request.args.get('busqueda', '').strip()
+    fecha = request.args.get('fecha', '').strip()
+
     query = Cita.query.join(Paciente)
 
-    if documento:
-        query = query.filter(Paciente.documento.ilike(f"%{documento}%"))
+    # ==========================================
+    # BUSCAR POR NOMBRE O DOCUMENTO
+    # ==========================================
+
+    if busqueda:
+        query = query.filter(
+            db.or_(
+                Paciente.nombre.ilike(f"%{busqueda}%"),
+                Paciente.documento.ilike(f"%{busqueda}%")
+            )
+        )
+
+    # ==========================================
+    # FILTRO OPCIONAL POR FECHA
+    # ==========================================
+
+    if fecha:
+        try:
+            fecha_filtro = datetime.strptime(
+                fecha,
+                '%Y-%m-%d'
+            ).date()
+
+            query = query.filter(
+                db.func.date(Cita.fecha_cita) == fecha_filtro
+            )
+
+        except ValueError:
+            pass
 
     citas = query.order_by(Cita.creada_en.desc()).all()
     config = get_config_horario()
@@ -114,7 +143,8 @@ def panel():
         'asesor.html',
         citas=citas,
         asesor_nombre=session.get('asesor_nombre'),
-        documento_filtro=documento
+        busqueda_filtro=busqueda,
+        fecha_filtro=fecha
     )
 
 
@@ -193,6 +223,8 @@ def confirmar_cita(cita_id):
             f"Debes cumplir con todos los requisitos del examen.\n\n"
             f"De lo contrario, no será posible tomar la muestra y deberás reagendar tu cita.\n\n"
             f"Te esperamos y agradecemos por confiar en nosotros 💙"
+            f"📍 Estamos ubicados en:\n"
+            f"Carrera 71A # 78B-141, Altamira, Robledo, Medellín.\n\n"
         )
     return redirect(url_for('asesor.panel'))
 
@@ -366,6 +398,7 @@ def exportar_excel():
         'Nombre',
         'Documento',
         'Telefono',
+        'Dirección',
         'Tipo',
         'Orden Médica',
         'Área',
@@ -383,6 +416,7 @@ def exportar_excel():
             c.paciente.nombre,
             str(c.paciente.documento),
             str(c.paciente.telefono),
+            c.paciente.direccion or '',
             c.tipo_cita,
             c.orden_medica or '',
             c.area or '',
@@ -781,6 +815,9 @@ def eventos_calendario():
                     'estado': cita.estado,
                     'telefono': cita.numero_whatsapp,
                     'paciente': cita.paciente.nombre,
+                    'documento': str(cita.paciente.documento or ''),
+                    'cobertura': cita.cobertura or '',
+                    'aseguradora': cita.aseguradora or '',
                     'tipo_examen': cita.tipo_examen or '',
                     'tipo_muestra': cita.tipo_muestra or '',
                     'agenda': cita.agenda_tipo or 'domicilio',
@@ -846,6 +883,9 @@ def eventos_calendario():
                 'estado': cita.estado,
                 'telefono': cita.numero_whatsapp,
                 'paciente': cita.paciente.nombre,
+                'documento': str(cita.paciente.documento or ''),
+                'cobertura': cita.cobertura or '',
+                'aseguradora': cita.aseguradora or '',
                 'tipo_examen': cita.tipo_examen or '',
                 'tipo_muestra': cita.tipo_muestra or '',
                 'agenda': cita.agenda_tipo or cita.area or '',

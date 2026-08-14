@@ -410,11 +410,29 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
     <div class="page">
 
         <form method="GET" class="filtro-bar">
-            <input type="text" name="documento"
-                   placeholder="🔍  Buscar por número de cédula..."
-                   value="{{ documento_filtro or '' }}">
-            <button type="submit" class="btn-buscar">Buscar</button>
-            <a href="/asesor" class="btn-limpiar">✕ Limpiar</a>
+
+            <input
+                type="text"
+                name="busqueda"
+                placeholder="🔍 Buscar por nombre o documento..."
+                value="{{ busqueda_filtro or '' }}"
+            >
+
+            <input
+                type="date"
+                name="fecha"
+                value="{{ fecha_filtro or '' }}"
+                title="Filtrar por fecha"
+            >
+
+            <button type="submit" class="btn-buscar">
+                Buscar
+            </button>
+
+            <a href="/asesor" class="btn-limpiar">
+                ✕ Limpiar
+            </a>
+
         </form>
 
         <div id="filtro-activo" style="display:none;margin-bottom:14px;padding:10px 16px;background:var(--cyan-light);border-radius:10px;font-size:13px;color:var(--navy);font-weight:600;align-items:center;justify-content:space-between;">

@@ -165,6 +165,13 @@ class Conversacion(db.Model):
     actualizada = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+def ahora_colombia():
+    return datetime.now(ZoneInfo("America/Bogota")).replace(tzinfo=None)
+
+
 class Auditoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     asesor_id = db.Column(db.Integer)
@@ -172,7 +179,7 @@ class Auditoria(db.Model):
     accion = db.Column(db.String(50))
     cita_id = db.Column(db.Integer, nullable=True)
     detalle = db.Column(db.Text)
-    fecha = db.Column(db.DateTime, default=datetime.utcnow)        
+    fecha = db.Column(db.DateTime, default=ahora_colombia)        
 
 class ChatActivo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
