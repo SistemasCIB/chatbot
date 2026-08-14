@@ -436,7 +436,9 @@ def exportar_excel():
         'Hora',
         'WhatsApp',
         'Estado',
+        'Observación Rechazo', 
         'Registrada'
+        
     ])
 
     for c in citas:
@@ -458,6 +460,7 @@ def exportar_excel():
             str(c.hora_cita),
             str(c.numero_whatsapp),
             c.estado,
+            c.observacion_rechazo or '', 
             c.creada_en.strftime('%d/%m/%Y') if c.creada_en else ''
         ])
 
