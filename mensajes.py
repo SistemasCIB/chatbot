@@ -3,10 +3,15 @@ import http.client
 import json
 import os
 from config import DIAS_ACTIVOS, LINK_ASESOR, HORARIO_INICIO, HORARIO_FIN, REQUISITOS, get_config_horario
-
-from models import agregar_mensajes_log, db, Cita, Mensaje 
-
 from dotenv import load_dotenv
+from models import agregar_mensajes_log, db, Cita, Mensaje 
+from datetime import date
+
+# Cupos especiales por fecha puntual para domicilios
+CUPOS_ESPECIALES_DOMICILIO = {
+    date(2026, 9, 9): 4,   # Día de asignación de domicilios
+}
+
 load_dotenv(".env")
 TOKEN_META = os.getenv("TOKEN_META")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
@@ -444,13 +449,15 @@ def mostrar_fechas_disponibles(numero, sesiones):
                 dia += timedelta(days=1)
                 continue
 
+            cupo_maximo_domicilio = CUPOS_ESPECIALES_DOMICILIO.get(dia, 6)
+
             ocupadas = Cita.query.filter(
                 db.func.date(Cita.fecha_cita) == dia,
                 Cita.estado.in_(["pendiente", "confirmada"]),
                 Cita.tipo_cita == "domicilio"
             ).count()
 
-            if ocupadas < 6:
+            if ocupadas < cupo_maximo_domicilio:
                 texto = f"{DIAS_ES[wd]} {dia.strftime('%d/%m/%Y')}"
                 dias.append(texto)
                 fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
