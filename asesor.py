@@ -86,6 +86,7 @@ def rol_requerido(*roles_permitidos):
 @asesor_bp.route('/asesor')
 @login_requerido
 def panel():
+
     busqueda = request.args.get('busqueda', '').strip()
     fecha = request.args.get('fecha', '').strip()
 
@@ -121,13 +122,24 @@ def panel():
         except ValueError:
             pass
 
-    citas = query.order_by(Cita.creada_en.desc()).all()
+    citas = query.order_by(
+        Cita.creada_en.desc()
+    ).all()
+
     config = get_config_horario()
 
-    chats_activos = {chat.numero for chat in ChatActivo.query.filter_by(activo=True).all()}
+    chats_activos = {
+        chat.numero
+        for chat in ChatActivo.query.filter_by(
+            activo=True
+        ).all()
+    }
+
     for cita in citas:
 
-        cita.chat_activo = cita.numero_whatsapp in chats_activos
+        cita.chat_activo = (
+            cita.numero_whatsapp in chats_activos
+        )
 
         cita.total_mensajes = Mensaje.query.filter_by(
             numero_whatsapp=cita.numero_whatsapp
@@ -138,7 +150,7 @@ def panel():
             origen='cliente',
             leido_asesor=False
         ).count()
-        
+
     return render_template(
         'asesor.html',
         citas=citas,
@@ -146,7 +158,6 @@ def panel():
         busqueda_filtro=busqueda,
         fecha_filtro=fecha
     )
-
 
 
 @asesor_bp.route('/asesor/horario', methods=['POST'])
@@ -222,9 +233,10 @@ def confirmar_cita(cita_id):
             f"⚠️ Muy importante:\n"
             f"Debes cumplir con todos los requisitos del examen.\n\n"
             f"De lo contrario, no será posible tomar la muestra y deberás reagendar tu cita.\n\n"
-            f"Te esperamos y agradecemos por confiar en nosotros 💙"
             f"📍 Estamos ubicados en:\n"
             f"Carrera 71A # 78B-141, Altamira, Robledo, Medellín.\n\n"
+            f"Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos al (604) 605-1808\n\n"
+            f"Te esperamos y agradecemos por confiar en nosotros 💙"
         )
     return redirect(url_for('asesor.panel'))
 
@@ -436,9 +448,8 @@ def exportar_excel():
         'Hora',
         'WhatsApp',
         'Estado',
-        'Observación Rechazo', 
+        'Observación Rechazo',   # 👈 NUEVO
         'Registrada'
-        
     ])
 
     for c in citas:
@@ -460,7 +471,7 @@ def exportar_excel():
             str(c.hora_cita),
             str(c.numero_whatsapp),
             c.estado,
-            c.observacion_rechazo or '', 
+            c.observacion_rechazo or '',   # 👈 NUEVO
             c.creada_en.strftime('%d/%m/%Y') if c.creada_en else ''
         ])
 
@@ -852,7 +863,7 @@ def eventos_calendario():
                     'estado': cita.estado,
                     'telefono': cita.numero_whatsapp,
                     'paciente': cita.paciente.nombre,
-                    'documento': str(cita.paciente.documento or ''),
+                    'documento': cita.paciente.documento,
                     'cobertura': cita.cobertura or '',
                     'aseguradora': cita.aseguradora or '',
                     'tipo_examen': cita.tipo_examen or '',
@@ -920,7 +931,7 @@ def eventos_calendario():
                 'estado': cita.estado,
                 'telefono': cita.numero_whatsapp,
                 'paciente': cita.paciente.nombre,
-                'documento': str(cita.paciente.documento or ''),
+                'documento': cita.paciente.documento,
                 'cobertura': cita.cobertura or '',
                 'aseguradora': cita.aseguradora or '',
                 'tipo_examen': cita.tipo_examen or '',
@@ -1189,4 +1200,3 @@ def bandeja():
     )
 
     return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))
-

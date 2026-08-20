@@ -3,8 +3,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 
-OUTLOOK_EMAIL    = os.getenv('OUTLOOK_EMAIL', 'aprendizti@cib.org.co')
-OUTLOOK_PASSWORD = os.getenv('OUTLOOK_PASSWORD', 'higuita_29')
+
+OUTLOOK_EMAIL    = os.getenv('OUTLOOK_EMAIL', 'notificaciones@cib.org.co')
+OUTLOOK_PASSWORD = os.getenv('OUTLOOK_PASSWORD', 'C1b2026#*N')
 
 def enviar_recordatorio(correo_destino, nombre_paciente, fecha_cita, tipo_examen, dias_antes):
     if not correo_destino:
