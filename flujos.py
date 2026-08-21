@@ -445,11 +445,13 @@ def manejar_boton(numero, opcion_id):
     # PASO 5 - TIPO CITA: después de requisitos
     # -----------------------------------
     elif opcion_id == "tipo_presencial":
-
         sesiones[numero]["tipo_cita"] = "presencial"
-        # FLUJO: después de tipo_cita → fecha
+        area = sesiones[numero].get("area", "")
+        if area == "Bacteriología":
+            sesiones[numero]["agenda_tipo"] = "bacteriologia"
+        else:
+            sesiones[numero]["agenda_tipo"] = "micologia"
         sesiones[numero]["paso"] = "fecha"
-
         mostrar_fechas_disponibles(numero, sesiones)
         return
 
