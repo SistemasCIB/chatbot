@@ -70,7 +70,12 @@ def enviar_recordatorio(correo_destino, nombre_paciente, fecha_cita, tipo_examen
             </p>
 
             <p style="line-height:1.6;">
-                Si necesita cancelar o reprogramar, comuníquese con nosotros con anticipación.
+                Si necesita cancelar su cita, escríbanos al chat de WhatsApp
+                y seleccione la opción <strong>"Cancelar Cita"</strong> del menú:
+                <br>
+                <a href="https://wa.me/573117641909" style="color:#005792; font-weight:bold;">
+                    Cancelar mi cita
+                </a>
             </p>
 
         </div>
