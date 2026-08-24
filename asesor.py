@@ -452,7 +452,7 @@ def exportar_excel():
         'Cobertura',
         'Aseguradora',
         'Examen',
-        'Area'
+        'Area',
         'Agenda',
         'Muestra',
         'WhatsApp',
