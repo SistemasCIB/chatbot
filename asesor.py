@@ -438,14 +438,23 @@ def exportar_excel():
     writer.writerow([
         'ID',
         'Nombre',
+        'tipo de documento',
         'Documento',
+        'Fecha de nacimiento',
         'Telefono',
+        'Correo',
         'Dirección',
         'Tipo',
         'Orden Médica',
         'Área',
         'Fecha',
         'Hora',
+        'Cobertura',
+        'Aseguradora',
+        'Examen',
+        'Area'
+        'Agenda',
+        'Muestra',
         'WhatsApp',
         'Estado',
         'Observación Rechazo',   # 👈 NUEVO
@@ -457,8 +466,11 @@ def exportar_excel():
         writer.writerow([
             c.id,
             c.paciente.nombre,
+            c.paciente.tipo_documento,
             str(c.paciente.documento),
+            c.paciente.fecha_nacimiento.strftime('%d/%m/%Y') if c.paciente.fecha_nacimiento else '',
             str(c.paciente.telefono),
+            c.paciente.correo or '',
             (
                 c.direccion_domicilio
                 if c.tipo_cita == 'domicilio'
@@ -469,6 +481,12 @@ def exportar_excel():
             c.area or '',
             c.fecha_cita.strftime('%d/%m/%Y') if c.fecha_cita else '',
             str(c.hora_cita),
+            c.cobertura or '',
+            c.aseguradora or '',
+            c.tipo_examen or '',
+            c.area or '',
+            c.agenda_tipo or '',
+            c.tipo_muestra or '',
             str(c.numero_whatsapp),
             c.estado,
             c.observacion_rechazo or '',   # 👈 NUEVO
