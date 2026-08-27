@@ -86,19 +86,60 @@ def rol_requerido(*roles_permitidos):
 @asesor_bp.route('/asesor')
 @login_requerido
 def panel():
-    documento = request.args.get('documento', '').strip()
+
+    busqueda = request.args.get('busqueda', '').strip()
+    fecha = request.args.get('fecha', '').strip()
+
     query = Cita.query.join(Paciente)
 
-    if documento:
-        query = query.filter(Paciente.documento.ilike(f"%{documento}%"))
+    # ==========================================
+    # BUSCAR POR NOMBRE O DOCUMENTO
+    # ==========================================
 
-    citas = query.order_by(Cita.creada_en.desc()).all()
+    if busqueda:
+        query = query.filter(
+            db.or_(
+                Paciente.nombre.ilike(f"%{busqueda}%"),
+                Paciente.documento.ilike(f"%{busqueda}%")
+            )
+        )
+
+    # ==========================================
+    # FILTRO OPCIONAL POR FECHA
+    # ==========================================
+
+    if fecha:
+        try:
+            fecha_filtro = datetime.strptime(
+                fecha,
+                '%Y-%m-%d'
+            ).date()
+
+            query = query.filter(
+                db.func.date(Cita.fecha_cita) == fecha_filtro
+            )
+
+        except ValueError:
+            pass
+
+    citas = query.order_by(
+        Cita.creada_en.desc()
+    ).all()
+
     config = get_config_horario()
 
-    chats_activos = {chat.numero for chat in ChatActivo.query.filter_by(activo=True).all()}
+    chats_activos = {
+        chat.numero
+        for chat in ChatActivo.query.filter_by(
+            activo=True
+        ).all()
+    }
+
     for cita in citas:
 
-        cita.chat_activo = cita.numero_whatsapp in chats_activos
+        cita.chat_activo = (
+            cita.numero_whatsapp in chats_activos
+        )
 
         cita.total_mensajes = Mensaje.query.filter_by(
             numero_whatsapp=cita.numero_whatsapp
@@ -109,14 +150,14 @@ def panel():
             origen='cliente',
             leido_asesor=False
         ).count()
-        
+
     return render_template(
         'asesor.html',
         citas=citas,
         asesor_nombre=session.get('asesor_nombre'),
-        documento_filtro=documento
+        busqueda_filtro=busqueda,
+        fecha_filtro=fecha
     )
-
 
 
 @asesor_bp.route('/asesor/horario', methods=['POST'])
@@ -192,43 +233,76 @@ def confirmar_cita(cita_id):
             f"⚠️ Muy importante:\n"
             f"Debes cumplir con todos los requisitos del examen.\n\n"
             f"De lo contrario, no será posible tomar la muestra y deberás reagendar tu cita.\n\n"
+            f"📍 Estamos ubicados en:\n"
+            f"Carrera 71A # 78B-141, Altamira, Robledo, Medellín.\n\n"
+            f"Si tienes alguna duda o necesitas asistencia, no dudes en contactarnos al (604) 605-1808\n\n"
             f"Te esperamos y agradecemos por confiar en nosotros 💙"
         )
     return redirect(url_for('asesor.panel'))
 
 
-@asesor_bp.route('/asesor/rechazar/<int:cita_id>')
+@asesor_bp.route('/asesor/rechazar/<int:cita_id>', methods=['POST'])
 @login_requerido
 def rechazar_cita(cita_id):
+
     cita = Cita.query.get(cita_id)
-    if cita:
-        # Eliminar evento de Outlook si existe
-        if cita.outlook_event_id:
-            try:
-                eliminar_evento_outlook(cita.outlook_event_id)
-                cita.outlook_event_id = None
-            except Exception as e:
-                print(f"[Outlook] Error eliminando evento: {e}")
 
-        cita.estado = 'rechazada'
-        db.session.commit()
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-        log = Auditoria(
-            asesor_id=session['asesor_id'],
-            asesor_nombre=session['asesor_nombre'],
-            accion='rechazo',
-            cita_id=cita.id,
-            detalle=f'Rechazó cita de {cita.paciente.documento} - {cita.paciente.nombre}'
+    if not cita:
+        if es_ajax:
+            return jsonify({'ok': False, 'error': 'Cita no encontrada'}), 404
+        return redirect(url_for('asesor.panel'))
+
+    observacion = request.form.get('observacion_rechazo', '').strip()
+
+    if not observacion:
+        if es_ajax:
+            return jsonify({'ok': False, 'error': 'Debes indicar un motivo'}), 400
+        return redirect(url_for('asesor.panel'))
+
+    if cita.outlook_event_id:
+        try:
+            eliminar_evento_outlook(cita.outlook_event_id)
+            cita.outlook_event_id = None
+        except Exception as e:
+            print(f"[Outlook] Error eliminando evento: {e}")
+
+    cita.estado = 'rechazada'
+    cita.observacion_rechazo = observacion
+
+    db.session.commit()
+
+    log = Auditoria(
+        asesor_id=session['asesor_id'],
+        asesor_nombre=session['asesor_nombre'],
+        accion='rechazo',
+        cita_id=cita.id,
+        detalle=(
+            f'Rechazó cita de '
+            f'{cita.paciente.documento} - '
+            f'{cita.paciente.nombre}. '
+            f'Motivo: {observacion}'
         )
-        db.session.add(log)
-        db.session.commit()
+    )
 
-        enviar_texto(cita.numero_whatsapp,
-            f"👋 Gracias por comunicarte con nosotros.\n\n"
-            f"En este momento no fue posible continuar con tu solicitud de cita.\n\n"
-            f"Si más adelante deseas retomarla o completar la información, estaremos atentos para ayudarte por este medio\n\n"
-            f"¡Que tengas un buen día! 💙"
-        )
+    db.session.add(log)
+    db.session.commit()
+
+    enviar_texto(cita.numero_whatsapp,
+        f"👋 Gracias por comunicarte con nosotros.\n\n"
+        f"En este momento no fue posible continuar con tu solicitud de cita.\n\n"
+        f"Si más adelante deseas retomarla o completar la información, estaremos atentos para ayudarte por este medio\n\n"
+        f"¡Que tengas un buen día! 💙"
+    )
+
+    if es_ajax:
+        return jsonify({
+            'ok': True,
+            'cita_id': cita.id,
+            'observacion': observacion
+        })
+
     return redirect(url_for('asesor.panel'))
 
 # ==========================================
@@ -364,15 +438,25 @@ def exportar_excel():
     writer.writerow([
         'ID',
         'Nombre',
+        'tipo de documento',
         'Documento',
+        'Fecha de nacimiento',
         'Telefono',
+        'Correo',
+        'Dirección',
         'Tipo',
         'Orden Médica',
-        'Área',
         'Fecha',
         'Hora',
+        'Área',
+        'Agenda',
+        'Cobertura',
+        'Aseguradora',
+        'Examen', 
+        'Muestra',
         'WhatsApp',
         'Estado',
+        'Observación Rechazo',   # 👈 NUEVO
         'Registrada'
     ])
 
@@ -381,15 +465,30 @@ def exportar_excel():
         writer.writerow([
             c.id,
             c.paciente.nombre,
+            c.paciente.tipo_documento,
             str(c.paciente.documento),
+            c.paciente.fecha_nacimiento.strftime('%d/%m/%Y') if c.paciente.fecha_nacimiento else '',
             str(c.paciente.telefono),
+            c.paciente.correo or '',
+            (
+                c.direccion_domicilio
+                if c.tipo_cita == 'domicilio'
+                else c.paciente.direccion
+            ),
             c.tipo_cita,
             c.orden_medica or '',
-            c.area or '',
             c.fecha_cita.strftime('%d/%m/%Y') if c.fecha_cita else '',
             str(c.hora_cita),
+            c.area or '',
+            c.agenda_tipo or '',
+            c.cobertura or '',
+            c.aseguradora or '',
+            c.tipo_examen or '',
+            
+            c.tipo_muestra or '',
             str(c.numero_whatsapp),
             c.estado,
+            c.observacion_rechazo or '',   # 👈 NUEVO
             c.creada_en.strftime('%d/%m/%Y') if c.creada_en else ''
         ])
 
@@ -781,6 +880,9 @@ def eventos_calendario():
                     'estado': cita.estado,
                     'telefono': cita.numero_whatsapp,
                     'paciente': cita.paciente.nombre,
+                    'documento': cita.paciente.documento,
+                    'cobertura': cita.cobertura or '',
+                    'aseguradora': cita.aseguradora or '',
                     'tipo_examen': cita.tipo_examen or '',
                     'tipo_muestra': cita.tipo_muestra or '',
                     'agenda': cita.agenda_tipo or 'domicilio',
@@ -846,6 +948,9 @@ def eventos_calendario():
                 'estado': cita.estado,
                 'telefono': cita.numero_whatsapp,
                 'paciente': cita.paciente.nombre,
+                'documento': cita.paciente.documento,
+                'cobertura': cita.cobertura or '',
+                'aseguradora': cita.aseguradora or '',
                 'tipo_examen': cita.tipo_examen or '',
                 'tipo_muestra': cita.tipo_muestra or '',
                 'agenda': cita.agenda_tipo or cita.area or '',
@@ -1112,4 +1217,3 @@ def bandeja():
     )
 
     return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))
-

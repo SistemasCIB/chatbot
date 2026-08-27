@@ -331,6 +331,94 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
 .dropdown:hover .dropdown-content{
     display:block;
 }
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, .45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-rechazo {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.2);
+    overflow: hidden;
+}
+
+.modal-header-rechazo {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.modal-header-rechazo h3 {
+    color: var(--navy);
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.modal-header-rechazo p {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.modal-header-rechazo > button {
+    border: none;
+    background: var(--gray-light);
+    color: var(--gray);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#form-rechazo {
+    padding: 20px;
+}
+
+#form-rechazo label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#observacion_rechazo {
+    width: 100%;
+    resize: vertical;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    outline: none;
+}
+
+#observacion_rechazo:focus {
+    border-color: var(--cyan);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px;
+}
 </style>
 </head>
 <body>
@@ -410,11 +498,29 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
     <div class="page">
 
         <form method="GET" class="filtro-bar">
-            <input type="text" name="documento"
-                   placeholder="🔍  Buscar por número de cédula..."
-                   value="{{ documento_filtro or '' }}">
-            <button type="submit" class="btn-buscar">Buscar</button>
-            <a href="/asesor" class="btn-limpiar">✕ Limpiar</a>
+
+            <input
+                type="text"
+                name="busqueda"
+                placeholder="🔍 Buscar por nombre o documento..."
+                value="{{ busqueda_filtro or '' }}"
+            >
+
+            <input
+                type="date"
+                name="fecha"
+                value="{{ fecha_filtro or '' }}"
+                title="Filtrar por fecha"
+            >
+
+            <button type="submit" class="btn-buscar">
+                Buscar
+            </button>
+
+            <a href="/asesor" class="btn-limpiar">
+                ✕ Limpiar
+            </a>
+
         </form>
 
         <div id="filtro-activo" style="display:none;margin-bottom:14px;padding:10px 16px;background:var(--cyan-light);border-radius:10px;font-size:13px;color:var(--navy);font-weight:600;align-items:center;justify-content:space-between;">
@@ -544,9 +650,13 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                                 Confirmar
                                 </a>
 
-                                <a href="/asesor/rechazar/{{ c.id }}"
-                                class="btn btn-reject">
-                                Rechazar
+                                <button
+                                    type="button"
+                                    class="btn btn-reject"
+                                    onclick="abrirModalRechazo({{ c.id }})">
+                                    Rechazar
+                                </button>
+
 
                             {% endif %}
 
@@ -563,7 +673,18 @@ td:first-child{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(-
                                 </a>
 
                             {% endif %}
+                            {% if c.estado == 'rechazada' %}
 
+                     
+                                <button
+                                    type="button"
+                                    class="btn btn-reject btn-ver-observacion"
+                                    data-observacion="{{ c.observacion_rechazo or 'No se registró una observación.' }}">
+                                    👁 Ver observación
+                                </button>
+                       
+
+                            {% endif %}
                             <a href="/asesor/editar/{{ c.id }}"
                             class="btn btn-edit">
                             Editar
@@ -655,6 +776,7 @@ function filtrarEstado(estado) {
         document.querySelector('.badge-count').textContent = count + ' registros';
     }
 }
+
 function tomarYAbrir(citaId, nombre) {
     const cont = document.getElementById('acciones-' + citaId);
     if (cont) {
@@ -666,6 +788,7 @@ function tomarYAbrir(citaId, nombre) {
     }
     abrirChat(citaId, nombre);
 }
+
 async function verificarMensajesNuevos() {
     document.querySelectorAll('[id^="btn-notif-"]').forEach(async btn => {
         const citaId = btn.id.replace('btn-notif-', '');
@@ -675,6 +798,136 @@ async function verificarMensajesNuevos() {
     });
 }
 setInterval(verificarMensajesNuevos, 5000);
+
+/* ===== MODAL RECHAZO — CORREGIDO PARA AJAX ===== */
+
+function abrirModalRechazo(citaId) {
+    const modal = document.getElementById('modal-rechazo');
+    const textarea = document.getElementById('observacion_rechazo');
+
+    modal.dataset.citaId = citaId;
+    textarea.value = ''; // NUEVO: limpia texto de un rechazo anterior
+
+    modal.classList.add('active');
+    textarea.focus();
+}
+
+function cerrarModalRechazo() {
+    document.getElementById('modal-rechazo').classList.remove('active');
+    document.getElementById('observacion_rechazo').value = ''; // NUEVO
+}
+
+function verObservacionRechazo(observacion) {
+    document.getElementById('texto-observacion').textContent = observacion;
+    document.getElementById('modal-observacion').classList.add('active');
+}
+
+function cerrarModalObservacion() {
+    document.getElementById('modal-observacion').classList.remove('active');
+}
+
+/* ===== NUEVO: delegación de eventos para el botón "Ver observación" ===== */
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-ver-observacion');
+    if (!btn) return;
+    verObservacionRechazo(btn.dataset.observacion);
+});
+
+/* ===== NUEVO: envío AJAX del formulario de rechazo ===== */
+document.addEventListener('DOMContentLoaded', function () {
+    const formRechazo = document.getElementById('form-rechazo');
+    if (!formRechazo) return;
+
+    formRechazo.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const modal = document.getElementById('modal-rechazo');
+        const citaId = modal.dataset.citaId;
+        const observacion = document.getElementById('observacion_rechazo').value.trim();
+
+        if (!observacion || !citaId) return;
+
+        const btnSubmit = e.submitter;
+        const textoOriginal = btnSubmit.textContent;
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Rechazando...';
+
+        try {
+            const formData = new FormData();
+            formData.append('observacion_rechazo', observacion);
+
+            const res = await fetch('/asesor/rechazar/' + citaId, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (!data.ok) {
+                alert(data.error || 'No se pudo rechazar la cita.');
+                return;
+            }
+
+            actualizarFilaRechazada(citaId, data.observacion);
+            cerrarModalRechazo();
+
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión al rechazar la cita.');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = textoOriginal;
+        }
+    });
+});
+
+function actualizarFilaRechazada(citaId, observacion) {
+    const filas = document.querySelectorAll('#citasTable tbody tr');
+    let filaObjetivo = null;
+
+    filas.forEach(f => {
+        const idCelda = f.querySelector('td:first-child');
+        if (idCelda && idCelda.textContent.trim() === String(citaId)) {
+            filaObjetivo = f;
+        }
+    });
+
+    if (!filaObjetivo) return;
+
+    filaObjetivo.dataset.estado = 'rechazada';
+
+    const pillEstado = filaObjetivo.querySelector('td:nth-last-child(3) .pill');
+    if (pillEstado) {
+        pillEstado.className = 'pill rechazada';
+        pillEstado.textContent = 'rechazada';
+    }
+
+    const actions = filaObjetivo.querySelector('.actions');
+    if (actions) {
+        const btnConfirm = actions.querySelector('.btn-confirm');
+        const btnReject = actions.querySelector('.btn-reject');
+        if (btnConfirm) btnConfirm.remove();
+
+        if (btnReject) {
+            const nuevoBoton = document.createElement('button');
+            nuevoBoton.type = 'button';
+            nuevoBoton.className = 'btn btn-reject btn-ver-observacion';
+            nuevoBoton.textContent = '👁 Ver observación';
+            nuevoBoton.dataset.observacion = observacion;
+            btnReject.replaceWith(nuevoBoton);
+        }
+    }
+
+    actualizarContadorStat('s-pend', -1);
+    actualizarContadorStat('s-rech', +1);
+}
+
+function actualizarContadorStat(claseCard, delta) {
+    const card = document.querySelector('.' + claseCard + ' .value');
+    if (!card) return;
+    card.textContent = parseInt(card.textContent, 10) + delta;
+}
 </script>
 
 
@@ -787,6 +1040,101 @@ function cerrarChat() {
     });
 })();
 </script>
+<!-- MODAL RECHAZAR CITA -->
+<div id="modal-rechazo" class="modal-overlay">
 
+    <div class="modal-rechazo">
+
+        <div class="modal-header-rechazo">
+            <div>
+                <h3>Rechazar cita</h3>
+                <p>Indica el motivo del rechazo</p>
+            </div>
+
+            <button type="button" onclick="cerrarModalRechazo()">✕</button>
+        </div>
+
+        <form id="form-rechazo" method="POST">
+
+            <label for="observacion_rechazo">
+                Motivo del rechazo
+            </label>
+
+            <textarea
+                id="observacion_rechazo"
+                name="observacion_rechazo"
+                rows="5"
+                maxlength="1000"
+                placeholder="Escribe el motivo por el cual se rechaza la cita..."
+                required></textarea>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="btn btn-limpiar"
+                    onclick="cerrarModalRechazo()">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-reject">
+                    Rechazar cita
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+<!-- MODAL VER OBSERVACIÓN -->
+<div id="modal-observacion" class="modal-overlay">
+
+    <div class="modal-rechazo">
+
+        <div class="modal-header-rechazo">
+            <div>
+                <h3>Observación del rechazo</h3>
+                <p>Motivo registrado por el asesor</p>
+            </div>
+
+            <button type="button" onclick="cerrarModalObservacion()">
+                ✕
+            </button>
+        </div>
+
+        <div class="modal-body-rechazo">
+
+            <div id="texto-observacion"
+                 style="
+                    background:#F8FAFC;
+                    border:1px solid var(--border);
+                    border-radius:10px;
+                    padding:14px;
+                    font-size:13px;
+                    line-height:1.5;
+                    white-space:pre-wrap;
+                 ">
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="btn btn-limpiar"
+                    onclick="cerrarModalObservacion()">
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 </body>
 </html>

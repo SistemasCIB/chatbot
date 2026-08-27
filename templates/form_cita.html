@@ -377,8 +377,11 @@
                     <select name="estado">
                         <option value="pendiente"  {% if cita and cita.estado == 'pendiente'  %}selected{% endif %}>Pendiente</option>
                         <option value="confirmada" {% if cita and cita.estado == 'confirmada' %}selected{% endif %}>Confirmada</option>
+                        <option value="cumplida"   {% if cita and cita.estado == 'cumplida'   %}selected{% endif %}>Cumplida</option>
+                        <option value="no_cumplio" {% if cita and cita.estado == 'no_cumplio' %}selected{% endif %}>No Cumplida</option>
                         <option value="rechazada"  {% if cita and cita.estado == 'rechazada'  %}selected{% endif %}>Rechazada</option>
                         <option value="cancelada"  {% if cita and cita.estado == 'cancelada'  %}selected{% endif %}>Cancelada</option>
+                        
                     </select>
                 </div>
 
