@@ -5,7 +5,7 @@
 <div class="hor-wrap">
   <header class="hor-head">
     <h1>Horario de agenda manual</h1>
-    <p>Define en qué días y horas se puede agendar manualmente cada tipo de agenda. El bot no consulta esta configuración.</p>
+    <p>Define en qué días y horas se puede agendar manualmente cada tipo de agenda. El bot no consulta esta configuración — habilitar un día aquí no afecta qué ofrece el bot por WhatsApp.</p>
   </header>
 
   <div id="hor-panels"></div>
@@ -19,7 +19,7 @@
 <style>
   .hor-wrap { max-width: 900px; margin: 0 auto; color: #1C2B27; font-family: 'Inter', system-ui, sans-serif; }
   .hor-head h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 .35rem; }
-  .hor-head p { color: #5B6B67; font-size: .92rem; margin: 0 0 1.75rem; max-width: 60ch; }
+  .hor-head p { color: #5B6B67; font-size: .92rem; margin: 0 0 1.75rem; max-width: 64ch; }
 
   .hor-panel { background: #fff; border: 1px solid #DCE3E0; border-radius: 10px; padding: 1.25rem 1.5rem 1.5rem; margin-bottom: 1.25rem; }
   .hor-panel h2 { font-size: 1.02rem; font-weight: 600; margin: 0 0 1rem; display: flex; align-items: center; gap: .55rem; }
@@ -30,7 +30,6 @@
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: .6rem;
   }
-  @media (max-width: 720px) { .hor-days { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); } }
 
   .hor-day { border: 1px solid #E4E9E7; border-radius: 8px; padding: .7rem .65rem; background: #FAFBFA; transition: opacity .15s ease; }
   .hor-day.is-off { opacity: .55; }
@@ -44,9 +43,24 @@
   .switch input:checked + .slider { background: #2F6F5E; }
   .switch input:checked + .slider:before { transform: translateX(15px); }
 
-  .hor-time-row { display: flex; align-items: center; gap: .3rem; }
-  .hor-time-row input[type="time"] { width: 100%; font-size: .78rem; border: 1px solid #DCE3E0; border-radius: 5px; padding: .28rem .3rem; color: #1C2B27; background: #fff; }
-  .hor-time-row span { color: #9AA6A2; font-size: .72rem; }
+  .hor-time-row { display: flex; flex-direction: column; gap: .5rem; }
+  .hor-time-field { display: flex; flex-direction: column; gap: .2rem; }
+  .hor-time-field label {
+    font-size: .66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #9AA6A2;
+  }
+  .hor-time-field input[type="time"] {
+    width: 100%;
+    font-size: .8rem;
+    border: 1px solid #DCE3E0;
+    border-radius: 5px;
+    padding: .32rem .4rem;
+    color: #1C2B27;
+    background: #fff;
+  }
   .hor-day.is-off .hor-time-row { visibility: hidden; }
 
   .hor-bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 1rem; padding: .9rem 0; }
@@ -62,7 +76,8 @@
   const AGENDAS = [
     { tipo: 'micologia', label: 'Micología', color: '#2F6F5E' },
     { tipo: 'bacteriologia', label: 'Bacteriología', color: '#3D6EA6' },
-    { tipo: 'domicilio', label: 'Domicilio', color: '#6E4E9E' },
+    // domicilio se quita de aquí — no usa horas y su restricción de días
+    // ya vive completa (y compartida con el bot) en "Días permitidos por tipo de cita".
   ];
 
   // horariosData viene del backend: lista de filas de HorarioAsesor.
@@ -102,9 +117,14 @@
           </label>
         </div>
         <div class="hor-time-row">
-          <input type="time" class="hor-inicio" value="${existente.hora_inicio || '08:00'}">
-          <span>–</span>
-          <input type="time" class="hor-fin" value="${existente.hora_fin || '17:00'}">
+          <div class="hor-time-field">
+            <label>Desde</label>
+            <input type="time" class="hor-inicio" value="${existente.hora_inicio || '08:00'}">
+          </div>
+          <div class="hor-time-field">
+            <label>Hasta</label>
+            <input type="time" class="hor-fin" value="${existente.hora_fin || '17:00'}">
+          </div>
         </div>`;
 
       dayEl.querySelector('.hor-activo').addEventListener('change', e => {
