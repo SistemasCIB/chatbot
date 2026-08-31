@@ -385,7 +385,7 @@ def config_horario_asesor():
          'activo': h.activo, 'hora_inicio': h.hora_inicio, 'hora_fin': h.hora_fin}
         for h in horarios
     ]
-    return render_template('admin_horario_asesor.html', horarios=horarios_json)
+    return render_template('horario_asesor.html', horarios=horarios_json)
 
 
 @admin_bp.route('/admin/dias-tipo-cita', methods=['GET'])
@@ -393,7 +393,7 @@ def config_horario_asesor():
 def config_dias_tipo_cita():
     reglas = DiasPermitidosTipoCita.query.all()
     reglas_json = [{'tipo_cita': r.tipo_cita, 'dias_semana': r.dias_semana} for r in reglas]
-    return render_template('admin_dias_tipo_cita.html', reglas=reglas_json)
+    return render_template('dias_tipo_cita.html', reglas=reglas_json)
 
 
 @admin_bp.route('/admin/horario-asesor/guardar', methods=['POST'])
@@ -433,7 +433,7 @@ def guardar_dias_tipo_cita():
 @admin_requerido
 def listar_bloqueos_fecha():
     bloqueos = BloqueoAgendaFecha.query.order_by(BloqueoAgendaFecha.fecha.desc()).all()
-    return render_template('admin_bloqueo_fecha.html', bloqueos=bloqueos)
+    return render_template('bloqueo_fecha.html', bloqueos=bloqueos)
 
 
 @admin_bp.route('/admin/bloqueo-fecha/crear', methods=['POST'])
