@@ -25,7 +25,11 @@
   .hor-panel h2 { font-size: 1.02rem; font-weight: 600; margin: 0 0 1rem; display: flex; align-items: center; gap: .55rem; }
   .hor-panel h2 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-  .hor-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: .6rem; }
+  .hor-days {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: .6rem;
+  }
   @media (max-width: 720px) { .hor-days { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); } }
 
   .hor-day { border: 1px solid #E4E9E7; border-radius: 8px; padding: .7rem .65rem; background: #FAFBFA; transition: opacity .15s ease; }

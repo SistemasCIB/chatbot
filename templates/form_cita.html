@@ -32,13 +32,7 @@
             padding-bottom: 16px;
         }
 
-        /* ========================= */
-        /* SECCIONES */
-        /* ========================= */
-
-        .seccion {
-            margin-bottom: 28px;
-        }
+        .seccion { margin-bottom: 28px; }
 
         .seccion-titulo {
             font-size: 12px;
@@ -51,24 +45,14 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        /* ========================= */
-        /* GRID */
-        /* ========================= */
-
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
 
-        .campo {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .campo-full {
-            grid-column: 1 / -1;
-        }
+        .campo { display: flex; flex-direction: column; }
+        .campo-full { grid-column: 1 / -1; }
 
         label {
             margin-bottom: 6px;
@@ -77,9 +61,7 @@
             color: #374151;
         }
 
-        input,
-        select,
-        textarea {
+        input, select, textarea {
             padding: 10px 13px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
@@ -90,25 +72,14 @@
             width: 100%;
         }
 
-        input:focus,
-        select:focus,
-        textarea:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
 
-        textarea {
-            resize: vertical;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* ========================= */
-        /* ACCIONES */
-        /* ========================= */
+        textarea { resize: vertical; }
+        .hidden { display: none; }
 
         .actions {
             display: flex;
@@ -131,7 +102,6 @@
             text-decoration: none;
             display: inline-block;
         }
-
         .btn-save:hover { background: #1d4ed8; }
 
         .btn-cancel {
@@ -147,21 +117,15 @@
             display: inline-block;
             transition: background 0.2s;
         }
-
         .btn-cancel:hover { background: #e2e8f0; }
 
-        /* archivo actual */
         .archivo-actual {
             display: block;
             margin-top: 8px;
             font-size: 12px;
             color: #64748b;
         }
-
-        .archivo-actual a {
-            color: #2563eb;
-            text-decoration: none;
-        }
+        .archivo-actual a { color: #2563eb; text-decoration: none; }
 
         @media (max-width: 640px) {
             .grid { grid-template-columns: 1fr; }
@@ -169,15 +133,46 @@
             body { padding: 16px; }
             .container { padding: 20px; }
         }
+
+        .alertas { margin-bottom: 20px; }
+        .alerta {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .alerta-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
     </style>
 </head>
 <body>
+
+{#
+    vp = valores_previos si venimos de un rechazo por restricción de agenda (cita=None todavía),
+    o None si es un GET normal (form vacío) o una edición (cita ya trae sus propios datos).
+    Cada campo usa: valor de `cita` si existe -> si no, valor de `vp` si existe -> si no, ''.
+#}
+{% set vp = valores_previos %}
 
 <div class="container">
 
     <h1>
         {% if cita %}Editar cita{% else %}Nueva cita{% endif %}
     </h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="alertas">
+        {% for categoria, mensaje in messages %}
+            <div class="alerta alerta-{{ categoria }}">{{ mensaje }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
 
     <form method="POST" enctype="multipart/form-data">
 
@@ -189,52 +184,55 @@
             <div class="seccion-titulo">Datos del paciente</div>
             <div class="grid">
 
+                {% set v_tipo_doc = cita.paciente.tipo_documento if cita else (vp.get('tipo_documento') if vp else '') %}
                 <div class="campo">
                     <label>Tipo documento</label>
                     <select name="tipo_documento" required>
-                        <option value="CC" {% if cita and cita.paciente.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
-                        <option value="TI" {% if cita and cita.paciente.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
-                        <option value="CE" {% if cita and cita.paciente.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
-                        <option value="PP" {% if cita and cita.paciente.tipo_documento == 'PP' %}selected{% endif %}>Pasaporte</option>
+                        <option value="CC" {% if v_tipo_doc == 'CC' %}selected{% endif %}>CC</option>
+                        <option value="TI" {% if v_tipo_doc == 'TI' %}selected{% endif %}>TI</option>
+                        <option value="CE" {% if v_tipo_doc == 'CE' %}selected{% endif %}>CE</option>
+                        <option value="PP" {% if v_tipo_doc == 'PP' %}selected{% endif %}>Pasaporte</option>
                     </select>
                 </div>
 
                 <div class="campo">
                     <label>Documento</label>
                     <input type="text" name="documento" id="documento"
-                        value="{{ cita.paciente.documento if cita else '' }}" required>
+                        value="{{ cita.paciente.documento if cita else (vp.get('documento') if vp else '') }}" required>
                 </div>
 
                 <div class="campo">
                     <label>Nombre completo</label>
                     <input type="text" name="nombre" id="nombre"
-                        value="{{ cita.paciente.nombre if cita else '' }}" required>
+                        value="{{ cita.paciente.nombre if cita else (vp.get('nombre') if vp else '') }}" required>
                 </div>
 
                 <div class="campo">
                     <label>Teléfono</label>
                     <input type="text" name="telefono" id="telefono"
-                        value="{{ cita.paciente.telefono if cita else '' }}" required>
+                        value="{{ cita.paciente.telefono if cita else (vp.get('telefono') if vp else '') }}" required>
                 </div>
+
                 <div class="campo">
                     <label>Fecha de nacimiento</label>
-                    <input 
-                        type="date" 
+                    <input
+                        type="date"
                         name="fecha_nacimiento"
-                        value="{% if cita and cita.paciente.fecha_nacimiento %}{{ cita.paciente.fecha_nacimiento.strftime('%Y-%m-%d') }}{% endif %}"
+                        value="{% if cita and cita.paciente.fecha_nacimiento %}{{ cita.paciente.fecha_nacimiento.strftime('%Y-%m-%d') }}{% elif vp %}{{ vp.get('fecha_nacimiento', '') }}{% endif %}"
                     >
                 </div>
+
                 <div class="campo campo-full">
                     <label>Correo</label>
                     <input type="email" name="correo"
-                        value="{{ cita.paciente.correo if cita else '' }}">
+                        value="{{ cita.paciente.correo if cita else (vp.get('correo') if vp else '') }}">
                 </div>
+
                 <div>
                 <div class="campo campo-full" id="direccion_paciente_box">
                     <label for="direccion">Dirección del paciente</label>
-                    <textarea name="direccion" id="direccion" rows="3">{{ cita.paciente.direccion if cita else '' }}</textarea>
+                    <textarea name="direccion" id="direccion" rows="3">{{ cita.paciente.direccion if cita else (vp.get('direccion') if vp else '') }}</textarea>
                 </div>
-
                 </div>
             </div>
         </div>
@@ -247,30 +245,32 @@
             <div class="seccion-titulo">Tipo de cita</div>
             <div class="grid">
 
+                {% set v_tipo_cita = cita.tipo_cita if cita else (vp.get('tipo_cita') if vp else '') %}
                 <div class="campo">
                     <label>Tipo de cita</label>
                     <select name="tipo_cita" id="tipo_cita" required>
                         <option value="">Selecciona</option>
-                        <option value="presencial" {% if cita and cita.tipo_cita == 'presencial' %}selected{% endif %}>Presencial</option>
-                        <option value="domicilio"  {% if cita and cita.tipo_cita == 'domicilio'  %}selected{% endif %}>Domicilio</option>
+                        <option value="presencial" {% if v_tipo_cita == 'presencial' %}selected{% endif %}>Presencial</option>
+                        <option value="domicilio"  {% if v_tipo_cita == 'domicilio'  %}selected{% endif %}>Domicilio</option>
                     </select>
                 </div>
 
+                {% set v_agenda_tipo = cita.agenda_tipo if cita else (vp.get('agenda_tipo') if vp else '') %}
                 <div class="campo">
                     <label>Agenda</label>
                     <select name="agenda_tipo" id="agenda_tipo">
                         <option value="">Selecciona agenda</option>
-                        <option value="micologia"     {% if cita and cita.agenda_tipo == 'micologia'     %}selected{% endif %}>Micología</option>
-                        <option value="bacteriologia" {% if cita and cita.agenda_tipo == 'bacteriologia' %}selected{% endif %}>Bacteriología</option>
-                        <option value="domicilio"     {% if cita and cita.agenda_tipo == 'domicilio'     %}selected{% endif %}>Domicilio</option>
+                        <option value="micologia"     {% if v_agenda_tipo == 'micologia'     %}selected{% endif %}>Micología</option>
+                        <option value="bacteriologia" {% if v_agenda_tipo == 'bacteriologia' %}selected{% endif %}>Bacteriología</option>
+                        <option value="domicilio"     {% if v_agenda_tipo == 'domicilio'     %}selected{% endif %}>Domicilio</option>
                     </select>
                 </div>
 
-                <div class="campo campo-full hidden" id="direccion_box">
+                <div class="campo campo-full {% if v_tipo_cita != 'domicilio' %}hidden{% endif %}" id="direccion_box">
                     <label for="direccion_domicilio">Dirección domicilio</label>
-                    <textarea name="direccion_domicilio" id="direccion_domicilio" rows="3">{{ cita.direccion_domicilio if cita else '' }}</textarea>
+                    <textarea name="direccion_domicilio" id="direccion_domicilio" rows="3">{{ cita.direccion_domicilio if cita else (vp.get('direccion_domicilio') if vp else '') }}</textarea>
                 </div>
-           
+
             </div>
         </div>
 
@@ -282,22 +282,24 @@
             <div class="seccion-titulo">Cobertura</div>
             <div class="grid">
 
+                {% set v_cobertura = cita.cobertura if cita else (vp.get('cobertura') if vp else '') %}
                 <div class="campo">
                     <label>Cobertura</label>
                     <select name="cobertura">
-                        <option value="Particular" {% if cita and cita.cobertura == 'Particular' %}selected{% endif %}>Particular</option>
-                        <option value="Poliza"     {% if cita and cita.cobertura == 'Poliza'     %}selected{% endif %}>Póliza</option>
+                        <option value="Particular" {% if v_cobertura == 'Particular' %}selected{% endif %}>Particular</option>
+                        <option value="Poliza"     {% if v_cobertura == 'Poliza'     %}selected{% endif %}>Póliza</option>
                     </select>
                 </div>
 
+                {% set v_aseguradora = cita.aseguradora if cita else (vp.get('aseguradora') if vp else '') %}
                 <div class="campo">
                     <label>Póliza / Aseguradora</label>
                     <select name="aseguradora">
                         <option value="">N/A</option>
-                        <option value="Poliza Sura"     {% if cita and cita.aseguradora == 'Poliza Sura'     %}selected{% endif %}>Póliza Sura</option>
-                        <option value="Coomeva"         {% if cita and cita.aseguradora == 'Coomeva'         %}selected{% endif %}>Coomeva</option>
-                        <option value="Medplus"         {% if cita and cita.aseguradora == 'Medplus'         %}selected{% endif %}>Medplus</option>
-                        <option value="Seguros Bolivar" {% if cita and cita.aseguradora == 'Seguros Bolivar' %}selected{% endif %}>Seguros Bolívar</option>
+                        <option value="Poliza Sura"     {% if v_aseguradora == 'Poliza Sura'     %}selected{% endif %}>Póliza Sura</option>
+                        <option value="Coomeva"         {% if v_aseguradora == 'Coomeva'         %}selected{% endif %}>Coomeva</option>
+                        <option value="Medplus"         {% if v_aseguradora == 'Medplus'         %}selected{% endif %}>Medplus</option>
+                        <option value="Seguros Bolivar" {% if v_aseguradora == 'Seguros Bolivar' %}selected{% endif %}>Seguros Bolívar</option>
                     </select>
                 </div>
 
@@ -312,40 +314,43 @@
             <div class="seccion-titulo">Examen</div>
             <div class="grid">
 
+                {% set v_tipo_examen = cita.tipo_examen if cita else (vp.get('tipo_examen') if vp else '') %}
                 <div class="campo">
                     <label>Tipo de examen</label>
                     <select name="tipo_examen">
                         <option value="">Seleccionar</option>
-                        <option value="Directo hongos"    {% if cita and cita.tipo_examen == 'Directo hongos'    %}selected{% endif %}>Directo hongos</option>
-                        <option value="Hongos + Cultivo"  {% if cita and cita.tipo_examen == 'Hongos + Cultivo'  %}selected{% endif %}>Hongos + Cultivo</option>
-                        <option value="Galactomanan"      {% if cita and cita.tipo_examen == 'Galactomanan'      %}selected{% endif %}>Galactomanan</option>
-                        <option value="Cryptococcus"      {% if cita and cita.tipo_examen == 'Cryptococcus'      %}selected{% endif %}>Cryptococcus</option>
-                        <option value="Serologia hongos"  {% if cita and cita.tipo_examen == 'Serologia hongos'  %}selected{% endif %}>Serología hongos</option>
-                        <option value="Serologia endemicos" {% if cita and cita.tipo_examen == 'Serologia endemicos' %}selected{% endif %}>Serología endémicos</option>
-                        <option value="Serologia completa" {% if cita and cita.tipo_examen == 'Serologia completa' %}selected{% endif %}>Serología completa</option>
-                        <option value="IGRAs"             {% if cita and cita.tipo_examen == 'IGRAs'             %}selected{% endif %}>IGRAs</option>
-                        <option value="Tuberculina PPD"   {% if cita and cita.tipo_examen == 'Tuberculina PPD'   %}selected{% endif %}>Tuberculina PPD</option>
-                        <option value="Otro examen"       {% if cita and cita.tipo_examen == 'Otro examen'       %}selected{% endif %}>Otro examen</option>
+                        <option value="Directo hongos"      {% if v_tipo_examen == 'Directo hongos'      %}selected{% endif %}>Directo hongos</option>
+                        <option value="Hongos + Cultivo"     {% if v_tipo_examen == 'Hongos + Cultivo'     %}selected{% endif %}>Hongos + Cultivo</option>
+                        <option value="Galactomanan"         {% if v_tipo_examen == 'Galactomanan'         %}selected{% endif %}>Galactomanan</option>
+                        <option value="Cryptococcus"         {% if v_tipo_examen == 'Cryptococcus'         %}selected{% endif %}>Cryptococcus</option>
+                        <option value="Serologia hongos"     {% if v_tipo_examen == 'Serologia hongos'     %}selected{% endif %}>Serología hongos</option>
+                        <option value="Serologia endemicos"  {% if v_tipo_examen == 'Serologia endemicos'  %}selected{% endif %}>Serología endémicos</option>
+                        <option value="Serologia completa"   {% if v_tipo_examen == 'Serologia completa'   %}selected{% endif %}>Serología completa</option>
+                        <option value="IGRAs"                {% if v_tipo_examen == 'IGRAs'                %}selected{% endif %}>IGRAs</option>
+                        <option value="Tuberculina PPD"      {% if v_tipo_examen == 'Tuberculina PPD'      %}selected{% endif %}>Tuberculina PPD</option>
+                        <option value="Otro examen"          {% if v_tipo_examen == 'Otro examen'          %}selected{% endif %}>Otro examen</option>
                     </select>
                 </div>
 
+                {% set v_tipo_muestra = cita.tipo_muestra if cita else (vp.get('tipo_muestra') if vp else '') %}
                 <div class="campo">
                     <label>Tipo de muestra</label>
                     <select name="tipo_muestra">
                         <option value="">Seleccionar</option>
-                        <option value="Uñas"            {% if cita and cita.tipo_muestra == 'Uñas'            %}selected{% endif %}>Uñas</option>
-                        <option value="Piel"            {% if cita and cita.tipo_muestra == 'Piel'            %}selected{% endif %}>Piel</option>
-                        <option value="Cuero cabelludo" {% if cita and cita.tipo_muestra == 'Cuero cabelludo' %}selected{% endif %}>Cuero cabelludo</option>
-                        <option value="Flujo vaginal"   {% if cita and cita.tipo_muestra == 'Flujo vaginal'   %}selected{% endif %}>Flujo vaginal</option>
+                        <option value="Uñas"            {% if v_tipo_muestra == 'Uñas'            %}selected{% endif %}>Uñas</option>
+                        <option value="Piel"            {% if v_tipo_muestra == 'Piel'            %}selected{% endif %}>Piel</option>
+                        <option value="Cuero cabelludo" {% if v_tipo_muestra == 'Cuero cabelludo' %}selected{% endif %}>Cuero cabelludo</option>
+                        <option value="Flujo vaginal"   {% if v_tipo_muestra == 'Flujo vaginal'   %}selected{% endif %}>Flujo vaginal</option>
                     </select>
                 </div>
 
+                {% set v_area = cita.area if cita else (vp.get('area') if vp else '') %}
                 <div class="campo">
                     <label>Área</label>
                     <select name="area">
                         <option value="">Selecciona</option>
-                        <option value="Micología"    {% if cita and cita.area == 'Micología'    %}selected{% endif %}>Micología</option>
-                        <option value="Bacteriología" {% if cita and cita.area == 'Bacteriología' %}selected{% endif %}>Bacteriología</option>
+                        <option value="Micología"     {% if v_area == 'Micología'     %}selected{% endif %}>Micología</option>
+                        <option value="Bacteriología" {% if v_area == 'Bacteriología' %}selected{% endif %}>Bacteriología</option>
                     </select>
                 </div>
 
@@ -363,25 +368,25 @@
                 <div class="campo">
                     <label>Fecha cita</label>
                     <input type="date" name="fecha_cita" id="fecha_cita" required
-                        value="{{ cita.fecha_cita.strftime('%Y-%m-%d') if cita and cita.fecha_cita else '' }}">
+                        value="{{ cita.fecha_cita.strftime('%Y-%m-%d') if cita and cita.fecha_cita else (vp.get('fecha_cita') if vp else '') }}">
                 </div>
 
                 <div class="campo">
                     <label>Hora cita</label>
                     <input type="time" name="hora_cita" id="hora_cita"
-                        value="{{ cita.hora_cita if cita else '' }}">
+                        value="{{ cita.hora_cita if cita else (vp.get('hora_cita') if vp else '') }}">
                 </div>
 
+                {% set v_estado = cita.estado if cita else (vp.get('estado') if vp else 'pendiente') %}
                 <div class="campo">
                     <label>Estado</label>
                     <select name="estado">
-                        <option value="pendiente"  {% if cita and cita.estado == 'pendiente'  %}selected{% endif %}>Pendiente</option>
-                        <option value="confirmada" {% if cita and cita.estado == 'confirmada' %}selected{% endif %}>Confirmada</option>
-                        <option value="cumplida"   {% if cita and cita.estado == 'cumplida'   %}selected{% endif %}>Cumplida</option>
-                        <option value="no_cumplio" {% if cita and cita.estado == 'no_cumplio' %}selected{% endif %}>No Cumplida</option>
-                        <option value="rechazada"  {% if cita and cita.estado == 'rechazada'  %}selected{% endif %}>Rechazada</option>
-                        <option value="cancelada"  {% if cita and cita.estado == 'cancelada'  %}selected{% endif %}>Cancelada</option>
-                        
+                        <option value="pendiente"  {% if v_estado == 'pendiente'  %}selected{% endif %}>Pendiente</option>
+                        <option value="confirmada" {% if v_estado == 'confirmada' %}selected{% endif %}>Confirmada</option>
+                        <option value="cumplida"   {% if v_estado == 'cumplida'   %}selected{% endif %}>Cumplida</option>
+                        <option value="no_cumplio" {% if v_estado == 'no_cumplio' %}selected{% endif %}>No Cumplida</option>
+                        <option value="rechazada"  {% if v_estado == 'rechazada'  %}selected{% endif %}>Rechazada</option>
+                        <option value="cancelada"  {% if v_estado == 'cancelada'  %}selected{% endif %}>Cancelada</option>
                     </select>
                 </div>
 
@@ -405,6 +410,10 @@
                             <a href="{{ url_for('static', filename='uploads/' + cita.orden_medica) }}" target="_blank">
                                 {{ cita.orden_medica }}
                             </a>
+                        </span>
+                    {% elif vp %}
+                        <span class="archivo-actual">
+                            Nota: si habías adjuntado un archivo, debes volver a seleccionarlo — no se conserva tras un rechazo.
                         </span>
                     {% endif %}
                 </div>

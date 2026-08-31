@@ -525,52 +525,14 @@ def nueva_cita():
             ruta = os.path.join('static/uploads', nombre_archivo)
             archivo.save(ruta)
 
-        # CORREGIR FECHA
         fecha_cita = datetime.strptime(
             request.form['fecha_cita'],
             '%Y-%m-%d'
         )
 
-        paciente = Paciente.query.filter_by(documento=request.form['documento']).first()
-        if not paciente:
-            paciente = Paciente(
-                nombre=request.form['nombre'],
-                tipo_documento=request.form['tipo_documento'],
-                documento=request.form['documento'],
-                fecha_nacimiento=datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d') if request.form.get('fecha_nacimiento') else None,
-                telefono=request.form['telefono'],
-                correo=request.form.get('correo', ''),
-            )
-            db.session.add(paciente)
-            db.session.commit()
-
-        cita = Cita(
-            paciente_id=paciente.id,
-            tipo_cita=request.form['tipo_cita'],
-            direccion_domicilio=request.form.get('direccion_domicilio', ''),
-            cobertura=request.form.get('cobertura', ''),
-            aseguradora=request.form.get('aseguradora', ''),
-            tipo_examen=request.form.get('tipo_examen', ''),
-            tipo_muestra=request.form.get('tipo_muestra', ''),
-            agenda_tipo=request.form.get('agenda_tipo', ''),
-            area=(
-                    "Bacteriología"
-                    if request.form.get('tipo_examen') in [
-                        'IGRAs',
-                        'Tuberculina PPD'
-                    ]
-                    else 'Micología'
-                ),  
-            orden_medica=nombre_archivo,
-            fecha_cita=fecha_cita,
-            hora_cita=request.form['hora_cita'],
-            numero_whatsapp=request.form['telefono'],
-            estado=request.form['estado']
-        )
-
+        # ── Validación de disponibilidad ANTES de tocar la BD ──
         from disponibilidad import validar_disponibilidad
 
-        fecha_cita = datetime.strptime(request.form['fecha_cita'], '%Y-%m-%d')
         tipo_cita = request.form['tipo_cita']
         hora_cita_str = request.form.get('hora_cita')
         area = (
@@ -587,9 +549,42 @@ def nueva_cita():
         )
         if not ok:
             flash(motivo, "error")
-            return render_template('form_cita.html', cita=None)
+            return render_template(
+                'form_cita.html',
+                cita=None,
+                valores_previos=request.form
+            )
 
-    # ... continúa con la creación de `cita` como ya lo tienes
+        # ── Si pasó la validación, recién ahí se toca la BD ──
+        paciente = Paciente.query.filter_by(documento=request.form['documento']).first()
+        if not paciente:
+            paciente = Paciente(
+                nombre=request.form['nombre'],
+                tipo_documento=request.form['tipo_documento'],
+                documento=request.form['documento'],
+                fecha_nacimiento=datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d') if request.form.get('fecha_nacimiento') else None,
+                telefono=request.form['telefono'],
+                correo=request.form.get('correo', ''),
+            )
+            db.session.add(paciente)
+            db.session.commit()
+
+        cita = Cita(
+            paciente_id=paciente.id,
+            tipo_cita=tipo_cita,
+            direccion_domicilio=request.form.get('direccion_domicilio', ''),
+            cobertura=request.form.get('cobertura', ''),
+            aseguradora=request.form.get('aseguradora', ''),
+            tipo_examen=request.form.get('tipo_examen', ''),
+            tipo_muestra=request.form.get('tipo_muestra', ''),
+            agenda_tipo=request.form.get('agenda_tipo', ''),
+            area=area,
+            orden_medica=nombre_archivo,
+            fecha_cita=fecha_cita,
+            hora_cita=request.form['hora_cita'],
+            numero_whatsapp=request.form['telefono'],
+            estado=request.form['estado']
+        )
         db.session.add(cita)
         db.session.commit()
 
@@ -600,20 +595,19 @@ def nueva_cita():
             cita_id=cita.id,
             detalle=f'Creó cita manual para {cita.paciente.documento} - {cita.paciente.nombre}'
         )
-
         db.session.add(log)
         db.session.commit()
+
         if cita.estado == 'confirmada' and not cita.outlook_event_id:
             try:
                 cita.outlook_event_id = crear_evento_outlook(cita)
                 db.session.commit()
             except Exception as e:
-                print(f"[Outlook] Error en cita manual: {e}")        
+                print(f"[Outlook] Error en cita manual: {e}")
 
         return redirect(url_for('asesor.panel'))
 
     return render_template('form_cita.html', cita=None)
-
 
 @asesor_bp.route('/asesor/editar/<int:cita_id>', methods=['GET', 'POST'])
 @login_requerido
