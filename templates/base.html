@@ -1,0 +1,3560 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}CIB — Panel Administrador{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        /* =========================================================
+           VARIABLES GLOBALES CIB
+        ========================================================= */
+
+        :root {
+            --black: #000000;
+
+            --navy: #223A7F;
+            --navy-deep: #182B63;
+
+            --cyan: #2EA1DB;
+            --cyan-light: #E7F5FC;
+            --cyan-mid: #B8E0F4;
+
+            --gray: #706F6F;
+            --gray-light: #F3F4F6;
+
+            --green: #8CBF45;
+            --green-dark: #6F9F32;
+            --green-soft: #EEF7E2;
+
+            --bg: #F7F9FC;
+            --surface: #FFFFFF;
+
+            --border: #E4EAF2;
+
+            --text: #1E293B;
+            --muted: #6B7280;
+
+            --orange: #D97706;
+            --orange-soft: #FEF3E0;
+
+            --red: #DC2626;
+            --red-soft: #FDECEC;
+
+            --purple: #7C3AED;
+            --purple-soft: #F3E8FF;
+
+            --mico: #4f8ef7;
+            --mico-soft: #E8F0FE;
+
+            --bacte: #16a085;
+            --bacte-soft: #E6F7F4;
+
+            --sidebar-w: 230px;
+
+            --radius: 14px;
+
+            --shadow:
+                0 2px 10px rgba(34, 58, 127, .06),
+                0 1px 3px rgba(34, 58, 127, .04);
+
+            --shadow-md:
+                0 8px 24px rgba(34, 58, 127, .12);
+        }
+
+
+        /* =========================================================
+           RESET
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+            font-family: 'Outfit', sans-serif;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #F7F9FC 0%,
+                    #EEF3F9 100%
+                );
+
+            color: var(--text);
+
+            min-height: 100vh;
+        }
+
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: 'Outfit', sans-serif;
+        }
+
+
+        a {
+            color: inherit;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .sidebar {
+
+            width: var(--sidebar-w);
+
+            background:
+                linear-gradient(
+                    180deg,
+                    var(--navy) 0%,
+                    var(--navy-deep) 100%
+                );
+
+            min-height: 100vh;
+
+            position: fixed;
+
+            left: 0;
+            top: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            border-right:
+                1px solid rgba(255, 255, 255, .06);
+
+            z-index: 1000;
+        }
+
+
+        /* =========================================================
+           LOGO
+        ========================================================= */
+
+        .sidebar-logo {
+
+            padding: 26px 22px 18px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, .06);
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+        }
+
+
+        .logo-mark {
+
+            width: 44px;
+            height: 44px;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--cyan),
+                    #1C7FB2
+                );
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            color: white;
+
+            font-weight: 700;
+
+            font-size: 18px;
+
+            flex-shrink: 0;
+        }
+
+
+        .logo-text strong {
+
+            display: block;
+
+            color: white;
+
+            font-size: 18px;
+
+            font-weight: 700;
+        }
+
+
+        .logo-text small {
+
+            color:
+                rgba(255, 255, 255, .65);
+
+            font-size: 10px;
+
+            line-height: 1.4;
+        }
+
+
+        /* =========================================================
+           TAGLINE
+        ========================================================= */
+
+        .sidebar-tagline {
+
+            padding: 10px 22px 18px;
+
+            color:
+                rgba(255, 255, 255, .35);
+
+            font-size: 10px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, .06);
+        }
+
+
+        /* =========================================================
+           NAVEGACIÓN
+        ========================================================= */
+
+        .nav {
+
+            flex: 1;
+
+            padding: 16px 12px;
+
+            overflow-y: auto;
+        }
+
+
+        .nav-label {
+
+            color:
+                rgba(255, 255, 255, .28);
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .1em;
+
+            font-weight: 600;
+
+            margin: 14px 10px 8px;
+        }
+
+
+        .nav-item {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            color:
+                rgba(255, 255, 255, .72);
+
+            font-size: 13px;
+
+            font-weight: 500;
+
+            transition: .2s;
+
+            margin-bottom: 3px;
+        }
+
+
+        .nav-item:hover {
+
+            background:
+                rgba(46, 161, 219, .14);
+
+            color: white;
+        }
+
+
+        .nav-item.active {
+
+            background:
+                rgba(46, 161, 219, .18);
+
+            color: var(--cyan);
+        }
+
+
+        .nav-icon {
+
+            width: 20px;
+
+            text-align: center;
+
+            flex-shrink: 0;
+        }
+
+
+        /* =========================================================
+           BOTÓN NUEVO ASESOR
+        ========================================================= */
+
+        .nav-cta {
+
+            margin-top: 10px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            background: var(--green);
+
+            color: white;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+            font-size: 13px;
+
+            box-shadow:
+                0 4px 14px rgba(140, 191, 69, .35);
+
+            transition: .2s;
+        }
+
+
+        .nav-cta:hover {
+
+            background: var(--green-dark);
+
+            transform: translateY(-1px);
+        }
+
+
+        /* =========================================================
+           BOTÓN ESPECIALISTA
+        ========================================================= */
+
+        .nav-cta-mico {
+
+            margin-top: 10px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            background: var(--mico-soft);
+
+            color: var(--mico);
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+            font-size: 13px;
+
+            transition: .2s;
+
+            border:
+                1px solid rgba(79, 142, 247, .2);
+        }
+
+
+        .nav-cta-mico:hover {
+
+            background: #d4e4fd;
+
+            transform: translateY(-1px);
+        }
+
+
+        /* =========================================================
+           FOOTER SIDEBAR
+        ========================================================= */
+
+        .sidebar-footer {
+
+            padding: 16px 12px;
+
+            border-top:
+                1px solid rgba(255, 255, 255, .06);
+        }
+
+
+        .admin-info {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .admin-avatar {
+
+            width: 38px;
+            height: 38px;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--cyan),
+                    #1D6F9D
+                );
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            color: white;
+
+            font-weight: 700;
+
+            flex-shrink: 0;
+        }
+
+
+        .admin-name {
+
+            color: white;
+
+            font-size: 13px;
+
+            font-weight: 600;
+        }
+
+
+        .admin-role {
+
+            color:
+                rgba(255, 255, 255, .45);
+
+            font-size: 11px;
+        }
+
+
+        .btn-logout {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            padding: 10px;
+
+            border-radius: 10px;
+
+            background:
+                rgba(255, 255, 255, .08);
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 12px;
+
+            font-weight: 500;
+
+            transition: .2s;
+        }
+
+
+        .btn-logout:hover {
+
+            background:
+                rgba(255, 255, 255, .14);
+        }
+
+
+        /* =========================================================
+           MAIN
+        ========================================================= */
+
+        .main {
+
+            margin-left: var(--sidebar-w);
+
+            min-height: 100vh;
+        }
+
+
+        /* =========================================================
+           TOPBAR
+        ========================================================= */
+
+        .topbar {
+
+            min-height: 70px;
+
+            background: white;
+
+            border-bottom:
+                1px solid var(--border);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 12px 28px;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 20;
+        }
+
+
+        .topbar-left h1 {
+
+            color: var(--navy);
+
+            font-size: 20px;
+
+            font-weight: 700;
+        }
+
+
+        .topbar-left p {
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            margin-top: 2px;
+        }
+
+
+        .topbar-actions {
+
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+        }
+
+
+        /* =========================================================
+           BOTONES TOPBAR
+        ========================================================= */
+
+        .btn-top {
+
+            padding: 10px 14px;
+
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            transition: .2s;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 6px;
+        }
+
+
+        .btn-top:hover {
+
+            transform: translateY(-1px);
+        }
+
+
+        .btn-new {
+
+            background: var(--green);
+
+            color: white;
+        }
+
+
+        .btn-especialista {
+
+            background: var(--mico-soft);
+
+            color: var(--mico);
+        }
+
+
+        .btn-users {
+
+            background: var(--cyan-light);
+
+            color: var(--cyan);
+        }
+
+
+        /* =========================================================
+           CONTENIDO
+        ========================================================= */
+
+        .page {
+
+            padding: 26px;
+        }
+
+
+        /* =========================================================
+           CARDS
+        ========================================================= */
+
+        .card {
+
+            background: white;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            box-shadow: var(--shadow);
+        }
+
+
+        /* =========================================================
+           STATS
+        ========================================================= */
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 16px;
+
+            margin-bottom: 24px;
+        }
+
+
+        .stat-card {
+
+            background: white;
+
+            border-radius: var(--radius);
+
+            border:
+                1px solid var(--border);
+
+            padding: 20px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            position: relative;
+
+            overflow: hidden;
+
+            box-shadow: var(--shadow);
+
+            transition: .2s;
+
+            cursor: pointer;
+        }
+
+
+        .stat-card:hover {
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                var(--shadow-md);
+        }
+
+
+        .stat-card::after {
+
+            content: '';
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 4px;
+        }
+
+
+        .s-total::after {
+
+            background: var(--navy);
+        }
+
+
+        .s-active::after {
+
+            background: var(--green);
+        }
+
+
+        .s-inactive::after {
+
+            background: var(--red);
+        }
+
+
+        .s-esp::after {
+
+            background: var(--mico);
+        }
+
+
+        .stat-icon {
+
+            width: 48px;
+            height: 48px;
+
+            border-radius: 12px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 20px;
+
+            flex-shrink: 0;
+        }
+
+
+        .s-total .stat-icon {
+
+            background: #E9EEFA;
+        }
+
+
+        .s-active .stat-icon {
+
+            background: var(--green-soft);
+        }
+
+
+        .s-inactive .stat-icon {
+
+            background: #ECECEC;
+        }
+
+
+        .s-esp .stat-icon {
+
+            background: var(--mico-soft);
+        }
+
+
+        .stat-info .label {
+
+            font-size: 11px;
+
+            color: var(--muted);
+
+            text-transform: uppercase;
+
+            font-weight: 600;
+
+            letter-spacing: .08em;
+        }
+
+
+        .stat-info .value {
+
+            font-size: 28px;
+
+            font-weight: 700;
+
+            margin-top: 4px;
+        }
+
+
+        .s-total .value {
+
+            color: var(--navy);
+        }
+
+
+        .s-active .value {
+
+            color: var(--green-dark);
+        }
+
+
+        .s-inactive .value {
+
+            color: var(--gray);
+        }
+
+
+        .s-esp .value {
+
+            color: var(--mico);
+        }
+
+
+        /* =========================================================
+           TABLAS
+        ========================================================= */
+
+        .table-box {
+
+            background: white;
+
+            border-radius: var(--radius);
+
+            border:
+                1px solid var(--border);
+
+            overflow: hidden;
+
+            box-shadow: var(--shadow);
+        }
+
+
+        .table-header {
+
+            padding: 20px 22px;
+
+            border-bottom:
+                1px solid var(--border);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            background:
+                linear-gradient(
+                    to right,
+                    #F8FAFF,
+                    #FFFFFF
+                );
+        }
+
+
+        .table-header h2 {
+
+            color: var(--navy);
+
+            font-size: 15px;
+
+            font-weight: 700;
+        }
+
+
+        .table-header p {
+
+            color: var(--muted);
+
+            font-size: 11px;
+
+            margin-top: 2px;
+        }
+
+
+        .table-wrap {
+
+            overflow-x: auto;
+        }
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+
+        thead {
+
+            background: #F8FAFC;
+        }
+
+
+        th {
+
+            padding: 14px;
+
+            text-align: left;
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .08em;
+
+            color: var(--muted);
+
+            border-bottom:
+                1px solid var(--border);
+        }
+
+
+        td {
+
+            padding: 14px;
+
+            border-bottom:
+                1px solid #EEF2F7;
+
+            font-size: 13px;
+
+            vertical-align: middle;
+        }
+
+
+        tbody tr:hover {
+
+            background: #FAFCFF;
+        }
+
+
+        tbody tr:last-child td {
+
+            border-bottom: none;
+        }
+
+
+        /* =========================================================
+           BADGES
+        ========================================================= */
+
+        .badge-count {
+
+            background: var(--cyan-light);
+
+            color: var(--navy);
+
+            padding: 6px 12px;
+
+            border-radius: 30px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+
+        .badge-esp {
+
+            background: var(--mico-soft);
+
+            color: var(--mico);
+
+            padding: 6px 12px;
+
+            border-radius: 30px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+
+        /* =========================================================
+           PILLS
+        ========================================================= */
+
+        .pill {
+
+            display: inline-block;
+
+            padding: 5px 10px;
+
+            border-radius: 30px;
+
+            font-size: 10px;
+
+            font-weight: 700;
+        }
+
+
+        .pill.activo {
+
+            background: var(--green-soft);
+
+            color: var(--green-dark);
+        }
+
+
+        .pill.inactivo {
+
+            background: #ECECEC;
+
+            color: var(--gray);
+        }
+
+
+        /* =========================================================
+           CHIPS
+        ========================================================= */
+
+        .chip-mico {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 4px;
+
+            background: var(--mico-soft);
+
+            color: var(--mico);
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+
+        .chip-bacte {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 4px;
+
+            background: var(--bacte-soft);
+
+            color: var(--bacte);
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+
+        .chip-domi {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 4px;
+
+            background: var(--purple-soft);
+
+            color: var(--purple);
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+
+        /* =========================================================
+           ACCIONES
+        ========================================================= */
+
+        .actions {
+
+            display: flex;
+
+            gap: 6px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .btn {
+
+            padding: 6px 10px;
+
+            border-radius: 8px;
+
+            text-decoration: none;
+
+            font-size: 11px;
+
+            font-weight: 600;
+
+            transition: .15s;
+
+            white-space: nowrap;
+
+            border: none;
+
+            cursor: pointer;
+        }
+
+
+        .btn:hover {
+
+            opacity: .85;
+        }
+
+
+        .btn-edit {
+
+            background: var(--cyan-light);
+
+            color: #0F6F9E;
+        }
+
+
+        .btn-toggle-off {
+
+            background: var(--orange-soft);
+
+            color: var(--orange);
+        }
+
+
+        .btn-toggle-on {
+
+            background: var(--green-soft);
+
+            color: var(--green-dark);
+        }
+
+
+        .btn-delete {
+
+            background: var(--red-soft);
+
+            color: var(--red);
+        }
+
+
+        .btn-historial {
+
+            background: var(--purple-soft);
+
+            color: var(--purple);
+        }
+
+
+        /* =========================================================
+           FORMULARIOS
+        ========================================================= */
+
+        .form-card {
+
+            background: white;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: var(--radius);
+
+            padding: 24px;
+
+            box-shadow: var(--shadow);
+        }
+
+
+        .form-group {
+
+            margin-bottom: 18px;
+        }
+
+
+        .form-label {
+
+            display: block;
+
+            color: var(--navy);
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            margin-bottom: 7px;
+        }
+
+
+        .form-control {
+
+            width: 100%;
+
+            padding: 11px 13px;
+
+            border:
+                1px solid var(--border);
+
+            border-radius: 10px;
+
+            background: white;
+
+            color: var(--text);
+
+            font-size: 13px;
+
+            outline: none;
+
+            transition: .2s;
+        }
+
+
+        .form-control:focus {
+
+            border-color: var(--cyan);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(46, 161, 219, .10);
+        }
+
+
+        textarea.form-control {
+
+            min-height: 100px;
+
+            resize: vertical;
+        }
+
+
+        .form-actions {
+
+            display: flex;
+
+            gap: 10px;
+
+            justify-content: flex-end;
+
+            margin-top: 24px;
+        }
+
+
+        .btn-primary {
+
+            background: var(--navy);
+
+            color: white;
+
+            padding: 11px 18px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        .btn-primary:hover {
+
+            background: var(--navy-deep);
+        }
+
+
+        .btn-success {
+
+            background: var(--green);
+
+            color: white;
+
+            padding: 11px 18px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        .btn-secondary {
+
+            background: var(--gray-light);
+
+            color: var(--gray);
+
+            padding: 11px 18px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           ALERTAS
+        ========================================================= */
+
+        .alert {
+
+            padding: 12px 15px;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+
+            margin-bottom: 16px;
+        }
+
+
+        .alert-success {
+
+            background: var(--green-soft);
+
+            color: var(--green-dark);
+
+            border:
+                1px solid rgba(140, 191, 69, .2);
+        }
+
+
+        .alert-danger {
+
+            background: var(--red-soft);
+
+            color: var(--red);
+
+            border:
+                1px solid rgba(220, 38, 38, .15);
+        }
+
+
+        .alert-warning {
+
+            background: var(--orange-soft);
+
+            color: var(--orange);
+
+            border:
+                1px solid rgba(217, 119, 6, .15);
+        }
+
+
+        .alert-info {
+
+            background: var(--cyan-light);
+
+            color: #0F6F9E;
+
+            border:
+                1px solid rgba(46, 161, 219, .15);
+        }
+
+
+        /* =========================================================
+           FILTRO
+        ========================================================= */
+
+        .filtro-banner {
+
+            display: none;
+
+            margin-bottom: 14px;
+
+            padding: 10px 16px;
+
+            background: var(--cyan-light);
+
+            border-radius: 10px;
+
+            font-size: 13px;
+
+            color: var(--navy);
+
+            font-weight: 600;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+
+        /* =========================================================
+           EMPTY STATE
+        ========================================================= */
+
+        .empty {
+
+            text-align: center;
+
+            padding: 70px 40px;
+
+            color: var(--muted);
+        }
+
+
+        .empty-icon {
+
+            font-size: 44px;
+
+            margin-bottom: 12px;
+        }
+
+
+        /* =========================================================
+           TÍTULO DE SECCIÓN
+        ========================================================= */
+
+        .section-sep {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin: 28px 0 16px;
+        }
+
+
+        .section-sep h3 {
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            color: var(--muted);
+
+            text-transform: uppercase;
+
+            letter-spacing: .08em;
+
+            white-space: nowrap;
+        }
+
+
+        .section-sep::after {
+
+            content: '';
+
+            flex: 1;
+
+            height: 1px;
+
+            background: var(--border);
+        }
+
+
+        /* =========================================================
+           MODALES
+        ========================================================= */
+
+        .modal-overlay {
+
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background:
+                rgba(0, 0, 0, .45);
+
+            z-index: 2000;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+
+        .modal-overlay.open {
+
+            display: flex;
+        }
+
+
+        .modal {
+
+            background: white;
+
+            border-radius: 18px;
+
+            padding: 28px;
+
+            width: 100%;
+
+            max-width: 560px;
+
+            max-height: 90vh;
+
+            overflow-y: auto;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, .20);
+        }
+
+
+        .modal.modal-lg {
+
+            max-width: 900px;
+        }
+
+
+        .modal-header {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 22px;
+        }
+
+
+        .modal-header h2 {
+
+            color: var(--navy);
+
+            font-size: 18px;
+
+            font-weight: 700;
+        }
+
+
+        .modal-header p {
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            margin-top: 3px;
+        }
+
+
+        .modal-close {
+
+            background: var(--gray-light);
+
+            border: none;
+
+            border-radius: 8px;
+
+            padding: 8px 12px;
+
+            cursor: pointer;
+
+            font-size: 13px;
+
+            color: var(--gray);
+        }
+
+
+        .modal-close:hover {
+
+            background: #e8eaed;
+        }
+
+
+        .modal-section {
+
+            background: #F8FAFC;
+
+            border-radius: 12px;
+
+            padding: 18px;
+
+            margin-bottom: 16px;
+        }
+
+
+        .modal-section-title {
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            color: var(--navy);
+
+            margin-bottom: 14px;
+        }
+
+
+        .modal-footer {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 20px;
+        }
+
+
+        .modal-footer .btn-secondary {
+
+            flex: 1;
+        }
+
+
+        .modal-footer .btn-primary {
+
+            flex: 2;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1000px) {
+
+            .stats {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .topbar-actions {
+
+                display: none;
+            }
+        }
+
+
+        @media (max-width: 700px) {
+
+            :root {
+
+                --sidebar-w: 72px;
+            }
+
+
+            .sidebar-logo {
+
+                padding: 16px 14px;
+
+                justify-content: center;
+            }
+
+
+            .logo-text,
+            .sidebar-tagline,
+            .nav-label,
+            .menu-text,
+            .admin-info > div:not(.admin-avatar) {
+
+                display: none;
+            }
+
+
+            .nav {
+
+                padding: 12px 8px;
+            }
+
+
+            .nav-item {
+
+                justify-content: center;
+
+                padding: 12px 8px;
+            }
+
+
+            .nav-cta,
+            .nav-cta-mico {
+
+                padding: 12px 8px;
+
+                justify-content: center;
+            }
+
+
+            .sidebar-footer {
+
+                padding: 12px 8px;
+            }
+
+
+            .admin-info {
+
+                justify-content: center;
+            }
+
+
+            .btn-logout {
+
+                padding: 10px 8px;
+            }
+
+
+            .main {
+
+                margin-left: 72px;
+            }
+
+
+            .topbar {
+
+                padding: 12px 16px;
+            }
+
+
+            .topbar-left h1 {
+
+                font-size: 17px;
+            }
+
+
+            .topbar-left p {
+
+                font-size: 11px;
+            }
+
+
+            .page {
+
+                padding: 14px;
+            }
+
+
+            .stats {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .table-header {
+
+                align-items: flex-start;
+
+                gap: 12px;
+            }
+
+
+            .form-card {
+
+                padding: 18px;
+            }
+        }
+
+
+        @media (max-width: 450px) {
+
+            .main {
+
+                margin-left: 0;
+            }
+
+
+            .sidebar {
+
+                width: 0;
+
+                transform: translateX(-100%);
+
+                transition: .25s;
+            }
+
+
+            .sidebar.mobile-open {
+
+                width: 230px;
+
+                transform: translateX(0);
+            }
+
+
+            .mobile-menu-btn {
+
+                display: flex !important;
+            }
+        }
+
+
+        .mobile-menu-btn {
+
+            display: none;
+
+            align-items: center;
+
+            justify-content: center;
+
+            width: 38px;
+
+            height: 38px;
+
+            border: none;
+
+            border-radius: 9px;
+
+            background: var(--cyan-light);
+
+            color: var(--navy);
+
+            cursor: pointer;
+
+            font-size: 18px;
+
+            margin-right: 10px;
+        }
+
+    </style>
+
+    {% block extra_css %}{% endblock %}
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside class="sidebar" id="sidebar">
+
+
+    <!-- LOGO -->
+
+    <div class="sidebar-logo">
+
+        <svg class="logo-mark"
+             viewBox="0 0 42 42"
+             fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+
+            <rect
+                width="42"
+                height="42"
+                rx="9"
+                fill="#0d2459"
+            />
+
+            <text
+                x="21"
+                y="27"
+                font-family="Arial, Helvetica, sans-serif"
+                font-size="15"
+                font-weight="700"
+                fill="white"
+                text-anchor="middle"
+                letter-spacing="0.5">
+                CIB
+            </text>
+
+        </svg>
+
+
+        <div class="logo-text">
+
+            <strong>CIB</strong>
+
+            <small>
+                Corporación para<br>
+                Investigaciones Biológicas
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <!-- DESCRIPCIÓN -->
+
+    <div class="sidebar-tagline">
+
+        Administración y control de accesos
+
+    </div>
+
+
+    <!-- MENÚ -->
+
+    <nav class="nav">
+
+
+        <!-- =========================
+             ADMINISTRACIÓN
+        ========================== -->
+
+        <div class="nav-label">
+            Administración
+        </div>
+
+
+        <a href="/admin"
+           class="nav-item {% if request.path == '/admin' %}active{% endif %}">
+
+            <span class="nav-icon">👥</span>
+
+            <span class="menu-text">
+                Asesores
+            </span>
+
+        </a>
+
+
+        <a href="/admin/admins"
+           class="nav-item {% if request.path.startswith('/admin/admins') %}active{% endif %}">
+
+            <span class="nav-icon">💼</span>
+
+            <span class="menu-text">
+                Administradores
+            </span>
+
+        </a>
+
+
+        <a href="#especialistas"
+           class="nav-item">
+
+            <span class="nav-icon">🔬</span>
+
+            <span class="menu-text">
+                Especialistas
+            </span>
+
+        </a>
+
+
+        <!-- =========================
+             ACCIONES
+        ========================== -->
+
+        <div class="nav-label">
+            Acciones
+        </div>
+
+
+        <a href="/admin/nuevo"
+           class="nav-cta">
+
+            <span>＋</span>
+
+            <span class="menu-text">
+                Nuevo asesor
+            </span>
+
+        </a>
+
+
+        <a href="/admin/nuevo-especialista"
+           class="nav-cta-mico">
+
+            <span>🔬</span>
+
+            <span class="menu-text">
+                Nuevo especialista
+            </span>
+
+        </a>
+
+
+        <a href="/admin/nuevo-admin"
+           class="nav-cta"
+           style="margin-top:10px;">
+
+            <span>＋</span>
+
+            <span class="menu-text">
+                Nuevo administrador
+            </span>
+
+        </a>
+
+
+        <!-- =========================
+             CONFIGURACIÓN
+        ========================== -->
+
+        <div class="nav-label">
+            Configuración
+        </div>
+
+
+        <a href="#"
+           class="nav-item"
+           onclick="abrirHorario(); return false;">
+
+            <span class="nav-icon">
+                ⚙️
+            </span>
+
+            <span class="menu-text">
+                Horario
+            </span>
+
+        </a>
+
+
+        <a href="#"
+           class="nav-item"
+           onclick="abrirExamenes(); return false;">
+
+            <span class="nav-icon">
+                🧪
+            </span>
+
+            <span class="menu-text">
+                Exámenes
+            </span>
+
+        </a>
+
+
+        <!-- Bloque para agregar elementos desde otras páginas -->
+
+        {% block sidebar_extra %}
+        {% endblock %}
+
+
+    </nav>
+
+
+    <!-- =========================
+         USUARIO
+    ========================== -->
+
+    <div class="sidebar-footer">
+
+
+        <div class="admin-info">
+
+
+            <div class="admin-avatar">
+
+                {{ (admin_nombre[0] if admin_nombre else 'A')|upper }}
+
+            </div>
+
+
+            <div>
+
+                <div class="admin-name">
+
+                    {{ admin_nombre|default('Administrador') }}
+
+                </div>
+
+
+                <div class="admin-role">
+
+                    Administrador
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <a href="/admin/logout"
+           class="btn-logout">
+
+            <span>
+                →
+            </span>
+
+            <span class="menu-text">
+                Cerrar sesión
+            </span>
+
+        </a>
+
+
+    </div>
+
+
+</aside>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="main">
+
+
+    <!-- =========================
+         TOPBAR
+    ========================== -->
+
+    <header class="topbar">
+
+
+        <div style="display:flex;align-items:center;">
+
+
+            <button
+                class="mobile-menu-btn"
+                onclick="toggleSidebar()"
+                aria-label="Abrir menú">
+
+                ☰
+
+            </button>
+
+
+            <div class="topbar-left">
+
+                <h1>
+
+                    {% block header_title %}
+                        Panel Administrador
+                    {% endblock %}
+
+                </h1>
+
+
+                <p>
+
+                    {% block header_subtitle %}
+                        Gestión de accesos y usuarios — CIB Diagnóstico
+                    {% endblock %}
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ACCIONES TOPBAR -->
+
+        <div class="topbar-actions">
+
+            {% block topbar_actions %}
+
+                <a href="/admin/nuevo"
+                   class="btn-top btn-new">
+
+                    ＋ Nuevo asesor
+
+                </a>
+
+
+                <a href="/admin/nuevo-especialista"
+                   class="btn-top btn-especialista">
+
+                    🔬 Nuevo especialista
+
+                </a>
+
+
+                <a href="/admin/nuevo-admin"
+                   class="btn-top btn-users">
+
+                    ＋ Nuevo admin
+
+                </a>
+
+            {% endblock %}
+
+        </div>
+
+
+    </header>
+
+
+    <!-- =====================================================
+         CONTENIDO DE CADA PÁGINA
+    ====================================================== -->
+
+    <section class="page">
+
+        {% block flash_messages %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div class="alert
+                            {% if category == 'success' %}
+                                alert-success
+                            {% elif category == 'danger' or category == 'error' %}
+                                alert-danger
+                            {% elif category == 'warning' %}
+                                alert-warning
+                            {% else %}
+                                alert-info
+                            {% endif %}">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+        {% endblock %}
+
+
+        {% block content %}
+
+        {% endblock %}
+
+
+    </section>
+
+
+</main>
+
+
+<!-- =========================================================
+     MODAL HORARIO
+========================================================= -->
+
+<div id="modal-horario"
+     class="modal-overlay"
+     onclick="cerrarModalDesdeFondo(event, 'modal-horario')">
+
+
+    <div class="modal"
+         onclick="event.stopPropagation()">
+
+
+        <div class="modal-header">
+
+
+            <div>
+
+                <h2>
+                    ⚙️ Configurar horario
+                </h2>
+
+                <p>
+                    Cambios aplican inmediatamente al bot
+                </p>
+
+            </div>
+
+
+            <button
+                class="modal-close"
+                onclick="cerrarHorario()">
+
+                ✕
+
+            </button>
+
+
+        </div>
+
+
+        <!-- HORARIO -->
+
+        <div class="modal-section">
+
+            <p class="modal-section-title">
+                🕐 Horario de atención
+            </p>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Hora inicio
+                </label>
+
+                <div style="display:flex;align-items:center;gap:12px;">
+
+                    <input
+                        type="range"
+                        id="sl-inicio"
+                        min="0"
+                        max="23"
+                        value="{{ horario_inicio|default(7) }}"
+                        step="1"
+                        style="flex:1;"
+                        oninput="syncHora('inicio', this.value)">
+
+
+                    <span
+                        id="lbl-inicio"
+                        style="
+                            font-size:13px;
+                            font-weight:600;
+                            color:var(--navy);
+                            min-width:64px;
+                            text-align:right;
+                        ">
+
+                        {{ horario_inicio|default(7) }}:00
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group"
+                 style="margin-bottom:0;">
+
+                <label class="form-label">
+                    Hora fin
+                </label>
+
+                <div style="display:flex;align-items:center;gap:12px;">
+
+                    <input
+                        type="range"
+                        id="sl-fin"
+                        min="0"
+                        max="23"
+                        value="{{ horario_fin|default(17) }}"
+                        step="1"
+                        style="flex:1;"
+                        oninput="syncHora('fin', this.value)">
+
+
+                    <span
+                        id="lbl-fin"
+                        style="
+                            font-size:13px;
+                            font-weight:600;
+                            color:var(--navy);
+                            min-width:64px;
+                            text-align:right;
+                        ">
+
+                        {{ horario_fin|default(17) }}:00
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- DÍAS ACTIVOS -->
+
+        <div class="modal-section">
+
+            <p class="modal-section-title">
+                📅 Días de atención
+            </p>
+
+
+            <div style="
+                display:flex;
+                gap:8px;
+                flex-wrap:wrap;
+            ">
+
+
+                {% set nombres_dias =
+                    ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
+                %}
+
+
+                {% for i in range(7) %}
+
+                    <label
+                        id="lbl-dia-{{ i }}"
+                        onclick="toggleDia({{ i }})"
+                        style="
+                            display:flex;
+                            flex-direction:column;
+                            align-items:center;
+                            gap:6px;
+                            cursor:pointer;
+                            padding:10px 14px;
+                            border-radius:10px;
+                            border:2px solid
+                                {% if dias_activos is defined and i in dias_activos %}
+                                    var(--green)
+                                {% else %}
+                                    var(--border)
+                                {% endif %};
+                            transition:.2s;
+                            font-size:12px;
+                            font-weight:600;
+                            color:var(--navy);
+                            background:white;
+                        ">
+
+
+                        {{ nombres_dias[i] }}
+
+
+                        <input
+                            type="checkbox"
+                            id="dia-{{ i }}"
+                            {% if dias_activos is defined and i in dias_activos %}
+                                checked
+                            {% endif %}
+                            style="display:none;">
+
+
+                        <span
+                            id="dot-{{ i }}"
+                            style="
+                                width:8px;
+                                height:8px;
+                                border-radius:50%;
+                                background:
+                                {% if dias_activos is defined and i in dias_activos %}
+                                    var(--green)
+                                {% else %}
+                                    #CBD5E1
+                                {% endif %};
+                            ">
+                        </span>
+
+
+                    </label>
+
+                {% endfor %}
+
+
+            </div>
+
+        </div>
+
+
+        <!-- DÍAS BLOQUEADOS -->
+
+        <div class="modal-section">
+
+            <p class="modal-section-title">
+                🚫 Días bloqueados
+            </p>
+
+
+            <div
+                id="lista-bloqueados"
+                style="
+                    display:flex;
+                    flex-direction:column;
+                    gap:8px;
+                    margin-bottom:12px;
+                ">
+
+
+                {% if dias_bloqueados is defined %}
+
+                    {% for d in dias_bloqueados %}
+
+                        <div
+                            class="dia-bloqueado-item"
+                            style="
+                                display:flex;
+                                align-items:center;
+                                gap:8px;
+                                background:white;
+                                padding:10px 12px;
+                                border-radius:10px;
+                                border:1px solid var(--border);
+                            ">
+
+
+                            <input
+                                type="date"
+                                value="{{ d.fecha.isoformat() }}"
+                                style="
+                                    border:none;
+                                    font-family:'Outfit',sans-serif;
+                                    font-size:13px;
+                                    color:var(--navy);
+                                    outline:none;
+                                    flex:1;
+                                ">
+
+
+                            <input
+                                type="text"
+                                placeholder="Motivo (opcional)"
+                                value="{{ d.motivo or '' }}"
+                                style="
+                                    border:none;
+                                    font-family:'Outfit',sans-serif;
+                                    font-size:12px;
+                                    color:var(--muted);
+                                    outline:none;
+                                    flex:2;
+                                ">
+
+
+                            <button
+                                onclick="this.closest('.dia-bloqueado-item').remove()"
+                                style="
+                                    background:var(--red-soft);
+                                    color:var(--red);
+                                    border:none;
+                                    border-radius:8px;
+                                    padding:5px 9px;
+                                    cursor:pointer;
+                                    font-size:12px;
+                                ">
+
+                                ✕
+
+                            </button>
+
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+
+            </div>
+
+
+            <button
+                onclick="agregarDiaBloqueado()"
+                style="
+                    width:100%;
+                    padding:10px;
+                    border-radius:10px;
+                    border:2px dashed var(--border);
+                    background:white;
+                    color:var(--muted);
+                    font-family:'Outfit',sans-serif;
+                    font-size:13px;
+                    font-weight:600;
+                    cursor:pointer;
+                ">
+
+                + Agregar día bloqueado
+
+            </button>
+
+
+        </div>
+
+
+        <!-- BOTONES -->
+
+        <div class="modal-footer">
+
+            <button
+                class="btn-secondary"
+                onclick="cerrarHorario()">
+
+                Cancelar
+
+            </button>
+
+
+            <button
+                class="btn-primary"
+                onclick="guardarHorario()">
+
+                Guardar cambios
+
+            </button>
+
+        </div>
+
+
+        <p
+            id="msg-horario"
+            style="
+                text-align:center;
+                font-size:12px;
+                margin-top:12px;
+                min-height:18px;
+            ">
+        </p>
+
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL EXÁMENES
+========================================================= -->
+
+<div id="modal-examenes"
+     class="modal-overlay"
+     onclick="cerrarModalDesdeFondo(event, 'modal-examenes')">
+
+
+    <div class="modal modal-lg"
+         onclick="event.stopPropagation()">
+
+
+        <div class="modal-header">
+
+
+            <div>
+
+                <h2>
+                    🧪 Configuración de exámenes
+                </h2>
+
+                <p>
+                    Configura días permitidos y anticipación mínima
+                </p>
+
+            </div>
+
+
+            <button
+                class="modal-close"
+                onclick="cerrarExamenes()">
+
+                ✕
+
+            </button>
+
+
+        </div>
+
+
+        {% block examenes_modal_content %}
+
+        {% if configs is defined %}
+
+        <div class="table-wrap">
+
+            <table id="tabla-examenes">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Examen</th>
+
+                        <th>Lun</th>
+
+                        <th>Mar</th>
+
+                        <th>Mié</th>
+
+                        <th>Jue</th>
+
+                        <th>Vie</th>
+
+                        <th>Anticipación</th>
+
+                        <th>Hora inicio</th>
+
+                        <th>Hora fin</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                    {% for cfg in configs %}
+
+                    <tr data-id="{{ cfg.examen_id }}">
+
+
+                        <td>
+
+                            <strong style="color:var(--navy);">
+
+                                {{ cfg.examen_id }}
+
+                            </strong>
+
+                        </td>
+
+
+                        {% for d in range(5) %}
+
+                        <td style="text-align:center;">
+
+                            <input
+                                type="checkbox"
+                                class="dia-check"
+                                value="{{ d }}"
+                                {% if d in cfg.dias_lista() %}
+                                    checked
+                                {% endif %}
+                                style="
+                                    width:18px;
+                                    height:18px;
+                                    cursor:pointer;
+                                ">
+
+                        </td>
+
+                        {% endfor %}
+
+
+                        <td>
+
+                            <input
+                                type="number"
+                                class="anticip-input"
+                                value="{{ cfg.min_anticipacion }}"
+                                min="1"
+                                max="30"
+                                style="
+                                    width:80px;
+                                    padding:8px;
+                                    border-radius:8px;
+                                    border:1px solid var(--border);
+                                ">
+
+                        </td>
+
+
+                        <td>
+
+                            <input
+                                type="time"
+                                class="hora-inicio-input"
+                                value="{{ cfg.hora_inicio }}"
+                                style="
+                                    padding:8px;
+                                    border-radius:8px;
+                                    border:1px solid var(--border);
+                                ">
+
+                        </td>
+
+
+                        <td>
+
+                            <input
+                                type="time"
+                                class="hora-fin-input"
+                                value="{{ cfg.hora_fin }}"
+                                style="
+                                    padding:8px;
+                                    border-radius:8px;
+                                    border:1px solid var(--border);
+                                ">
+
+                        </td>
+
+
+                    </tr>
+
+                    {% endfor %}
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                class="btn-secondary"
+                onclick="cerrarExamenes()">
+
+                Cancelar
+
+            </button>
+
+
+            <button
+                class="btn-primary"
+                onclick="guardarExamenes()">
+
+                💾 Guardar cambios
+
+            </button>
+
+        </div>
+
+
+        <p
+            id="msg-examenes"
+            style="
+                text-align:center;
+                font-size:12px;
+                margin-top:12px;
+                min-height:18px;
+            ">
+        </p>
+
+        {% else %}
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    🧪
+                </div>
+
+                <p>
+                    Configuración de exámenes no disponible.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+        {% endblock %}
+
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT GLOBAL
+========================================================= -->
+
+<script>
+
+
+    /* =========================================================
+       SIDEBAR MOBILE
+    ========================================================= */
+
+    function toggleSidebar() {
+
+        const sidebar =
+            document.getElementById('sidebar');
+
+        if (!sidebar) return;
+
+        sidebar.classList.toggle('mobile-open');
+    }
+
+
+    /* =========================================================
+       MODAL HORARIO
+    ========================================================= */
+
+    function abrirHorario() {
+
+        const modal =
+            document.getElementById('modal-horario');
+
+        if (modal) {
+
+            modal.style.display = 'flex';
+
+        }
+    }
+
+
+    function cerrarHorario() {
+
+        const modal =
+            document.getElementById('modal-horario');
+
+        if (modal) {
+
+            modal.style.display = 'none';
+
+        }
+    }
+
+
+    /* =========================================================
+       MODAL EXÁMENES
+    ========================================================= */
+
+    function abrirExamenes() {
+
+        const modal =
+            document.getElementById('modal-examenes');
+
+        if (modal) {
+
+            modal.style.display = 'flex';
+
+        }
+    }
+
+
+    function cerrarExamenes() {
+
+        const modal =
+            document.getElementById('modal-examenes');
+
+        if (modal) {
+
+            modal.style.display = 'none';
+
+        }
+    }
+
+
+    /* =========================================================
+       CERRAR MODAL DESDE FONDO
+    ========================================================= */
+
+    function cerrarModalDesdeFondo(event, modalId) {
+
+        if (event.target.id === modalId) {
+
+            const modal =
+                document.getElementById(modalId);
+
+            if (modal) {
+
+                modal.style.display = 'none';
+
+            }
+        }
+    }
+
+
+    /* =========================================================
+       TECLA ESC
+    ========================================================= */
+
+    document.addEventListener(
+        'keydown',
+        function(event) {
+
+            if (event.key === 'Escape') {
+
+                cerrarHorario();
+
+                cerrarExamenes();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       HORARIO
+    ========================================================= */
+
+    function formatHora(h) {
+
+        h = parseInt(h);
+
+        if (h === 0)
+            return '12:00 am';
+
+        if (h < 12)
+            return h + ':00 am';
+
+        if (h === 12)
+            return '12:00 pm';
+
+        return (h - 12) + ':00 pm';
+    }
+
+
+    function syncHora(tipo, val) {
+
+        const label =
+            document.getElementById(
+                'lbl-' + tipo
+            );
+
+        if (label) {
+
+            label.textContent =
+                formatHora(val);
+
+        }
+    }
+
+
+    /* =========================================================
+       DÍAS ACTIVOS
+    ========================================================= */
+
+    function toggleDia(i) {
+
+        const cb =
+            document.getElementById(
+                'dia-' + i
+            );
+
+        const dot =
+            document.getElementById(
+                'dot-' + i
+            );
+
+        const lbl =
+            document.getElementById(
+                'lbl-dia-' + i
+            );
+
+
+        if (!cb) return;
+
+
+        cb.checked =
+            !cb.checked;
+
+
+        if (dot) {
+
+            dot.style.background =
+                cb.checked
+                    ? 'var(--green)'
+                    : '#CBD5E1';
+
+        }
+
+
+        if (lbl) {
+
+            lbl.style.borderColor =
+                cb.checked
+                    ? 'var(--green)'
+                    : 'var(--border)';
+
+        }
+
+    }
+
+
+    /* =========================================================
+       AGREGAR DÍA BLOQUEADO
+    ========================================================= */
+
+    function agregarDiaBloqueado() {
+
+        const lista =
+            document.getElementById(
+                'lista-bloqueados'
+            );
+
+
+        if (!lista) return;
+
+
+        const div =
+            document.createElement('div');
+
+
+        div.className =
+            'dia-bloqueado-item';
+
+
+        div.style.cssText =
+            'display:flex;' +
+            'align-items:center;' +
+            'gap:8px;' +
+            'background:white;' +
+            'padding:10px 12px;' +
+            'border-radius:10px;' +
+            'border:1px solid var(--border);';
+
+
+        div.innerHTML = `
+
+            <input
+                type="date"
+                style="
+                    border:none;
+                    font-family:'Outfit',sans-serif;
+                    font-size:13px;
+                    color:var(--navy);
+                    outline:none;
+                    flex:1;
+                ">
+
+            <input
+                type="text"
+                placeholder="Motivo (opcional)"
+                style="
+                    border:none;
+                    font-family:'Outfit',sans-serif;
+                    font-size:12px;
+                    color:var(--muted);
+                    outline:none;
+                    flex:2;
+                ">
+
+            <button
+                onclick="this.closest('.dia-bloqueado-item').remove()"
+                style="
+                    background:var(--red-soft);
+                    color:var(--red);
+                    border:none;
+                    border-radius:8px;
+                    padding:5px 9px;
+                    cursor:pointer;
+                    font-size:12px;
+                ">
+
+                ✕
+
+            </button>
+
+        `;
+
+
+        lista.appendChild(div);
+
+    }
+
+
+    /* =========================================================
+       GUARDAR HORARIO
+    ========================================================= */
+
+    async function guardarHorario() {
+
+        const inicioElement =
+            document.getElementById('sl-inicio');
+
+        const finElement =
+            document.getElementById('sl-fin');
+
+        const msg =
+            document.getElementById('msg-horario');
+
+
+        if (!inicioElement || !finElement)
+            return;
+
+
+        const inicio =
+            parseInt(inicioElement.value);
+
+
+        const fin =
+            parseInt(finElement.value);
+
+
+        /* VALIDACIÓN */
+
+        if (fin <= inicio) {
+
+            if (msg) {
+
+                msg.textContent =
+                    '⚠️ La hora de fin debe ser mayor a la de inicio';
+
+            }
+
+            return;
+
+        }
+
+
+        /* DÍAS ACTIVOS */
+
+        const diasActivos = [];
+
+
+        for (let i = 0; i < 7; i++) {
+
+            const checkbox =
+                document.getElementById(
+                    'dia-' + i
+                );
+
+
+            if (
+                checkbox &&
+                checkbox.checked
+            ) {
+
+                diasActivos.push(i);
+
+            }
+
+        }
+
+
+        if (diasActivos.length === 0) {
+
+            if (msg) {
+
+                msg.textContent =
+                    '⚠️ Selecciona al menos un día de atención';
+
+            }
+
+            return;
+
+        }
+
+
+        /* DÍAS BLOQUEADOS */
+
+        const diasBloqueados = [];
+
+
+        document
+            .querySelectorAll(
+                '.dia-bloqueado-item'
+            )
+            .forEach(item => {
+
+
+                const inputs =
+                    item.querySelectorAll(
+                        'input'
+                    );
+
+
+                const fecha =
+                    inputs[0]
+                        ? inputs[0].value
+                        : '';
+
+
+                const motivo =
+                    inputs[1]
+                        ? inputs[1].value
+                        : '';
+
+
+                if (fecha) {
+
+                    diasBloqueados.push({
+                        fecha: fecha,
+                        motivo: motivo
+                    });
+
+                }
+
+            });
+
+
+        if (msg) {
+
+            msg.textContent =
+                'Guardando...';
+
+        }
+
+
+        try {
+
+            const res =
+                await fetch(
+                    '/admin/horario',
+                    {
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type':
+                                'application/json'
+                        },
+
+                        body:
+                            JSON.stringify({
+                                horario_inicio:
+                                    inicio,
+
+                                horario_fin:
+                                    fin,
+
+                                dias_activos:
+                                    diasActivos,
+
+                                dias_bloqueados:
+                                    diasBloqueados
+                            })
+                    }
+                );
+
+
+            const data =
+                await res.json();
+
+
+            if (data.ok) {
+
+                if (msg) {
+
+                    msg.textContent =
+                        '✅ Guardado correctamente';
+
+                }
+
+
+                setTimeout(
+                    cerrarHorario,
+                    1200
+                );
+
+
+            } else {
+
+                if (msg) {
+
+                    msg.textContent =
+                        '❌ Error al guardar: ' +
+                        (
+                            data.error ||
+                            'intenta de nuevo'
+                        );
+
+                }
+
+            }
+
+
+        } catch (e) {
+
+            if (msg) {
+
+                msg.textContent =
+                    '❌ Error del servidor';
+
+            }
+
+            console.error(e);
+
+        }
+
+    }
+
+
+    /* =========================================================
+       GUARDAR EXÁMENES
+    ========================================================= */
+
+    async function guardarExamenes() {
+
+        const rows =
+            document.querySelectorAll(
+                '#tabla-examenes tr[data-id]'
+            );
+
+
+        const msg =
+            document.getElementById(
+                'msg-examenes'
+            );
+
+
+        if (!rows.length) {
+
+            if (msg) {
+
+                msg.textContent =
+                    '⚠️ No hay exámenes para guardar';
+
+            }
+
+            return;
+
+        }
+
+
+        const examenes =
+            [...rows].map(row => ({
+
+                examen_id:
+                    row.dataset.id,
+
+
+                dias:
+                    [
+                        ...row.querySelectorAll(
+                            '.dia-check:checked'
+                        )
+                    ].map(
+                        c => parseInt(c.value)
+                    ),
+
+
+                min_anticipacion:
+                    parseInt(
+                        row.querySelector(
+                            '.anticip-input'
+                        ).value
+                    ),
+
+
+                hora_inicio:
+                    row.querySelector(
+                        '.hora-inicio-input'
+                    ).value ||
+                    '07:30',
+
+
+                hora_fin:
+                    row.querySelector(
+                        '.hora-fin-input'
+                    ).value ||
+                    '15:30'
+
+            }));
+
+
+        if (msg) {
+
+            msg.textContent =
+                'Guardando...';
+
+        }
+
+
+        try {
+
+            const r =
+                await fetch(
+                    '/admin/examenes/guardar',
+                    {
+
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type':
+                                'application/json'
+                        },
+
+                        body:
+                            JSON.stringify({
+                                examenes:
+                                    examenes
+                            })
+                    }
+                );
+
+
+            const data =
+                await r.json();
+
+
+            if (data.ok) {
+
+                if (msg) {
+
+                    msg.textContent =
+                        '✅ Guardado correctamente';
+
+                }
+
+
+                setTimeout(
+                    cerrarExamenes,
+                    1200
+                );
+
+
+            } else {
+
+                if (msg) {
+
+                    msg.textContent =
+                        '❌ Error al guardar';
+
+                }
+
+            }
+
+
+        } catch (e) {
+
+            if (msg) {
+
+                msg.textContent =
+                    '❌ Error del servidor';
+
+            }
+
+            console.error(e);
+
+        }
+
+    }
+
+
+</script>
+
+
+{% block extra_js %}
+{% endblock %}
+
+
+</body>
+
+</html>

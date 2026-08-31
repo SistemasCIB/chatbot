@@ -87,7 +87,7 @@ def seed_examen_config():
                 hora_fin=cfg["h_fin"]
             ))
 
-class Log(db.Model):
+class Log(db.Model): 
     id = db.Column(db.Integer, primary_key=True)
     fecha_y_hora = db.Column(db.DateTime, default=datetime.utcnow)
     texto = db.Column(db.TEXT)
@@ -201,3 +201,50 @@ class Mensaje(db.Model):
     texto = db.Column(db.TEXT, nullable=False)
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
     leido_asesor = db.Column(db.Boolean, default=False)  
+
+#nuevos modelos
+
+class HorarioAsesor(db.Model):
+    """Dominio 2: horario de agenda MANUAL, por agenda_tipo y día de semana.
+    No lo consulta el bot."""
+    __tablename__ = 'horario_asesor'
+
+    id = db.Column(db.Integer, primary_key=True)
+    agenda_tipo = db.Column(db.String(50), nullable=False)   # 'micologia' | 'bacteriologia' | 'domicilio'
+    dia_semana = db.Column(db.Integer, nullable=False)       # 0=lunes ... 6=domingo
+    activo = db.Column(db.Boolean, default=True)             # False = no se agenda manualmente ese día
+    hora_inicio = db.Column(db.String(5), nullable=True)     # '10:00' — null si activo=False
+    hora_fin = db.Column(db.String(5), nullable=True)        # '14:00'
+
+    __table_args__ = (
+        db.UniqueConstraint('agenda_tipo', 'dia_semana', name='uq_horario_asesor_tipo_dia'),
+    )
+
+
+class DiasPermitidosTipoCita(db.Model):
+    """Dominio 3: días de semana permitidos por tipo de cita.
+    Compartido: lo respeta el bot y la agenda manual."""
+    __tablename__ = 'dias_permitidos_tipo_cita'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tipo_cita = db.Column(db.String(20), nullable=False, unique=True)  # 'domicilio' | 'presencial'
+    dias_semana = db.Column(db.String(20), nullable=False)             # ej '3' o '0,1,2,3,4'
+
+    def dias_lista(self):
+        return [int(d) for d in self.dias_semana.split(',') if d.strip() != '']
+
+
+class BloqueoAgendaFecha(db.Model):
+    """Dominio 4: bloqueo/cupo por fecha puntual + tipo de cita.
+    Compartido: lo respeta el bot y la agenda manual."""
+    __tablename__ = 'bloqueo_agenda_fecha'
+
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, nullable=False)
+    tipo_bloqueo = db.Column(db.String(20), nullable=False)   # 'dia_completo' | 'rango_horas' | 'cupo_maximo'
+    tipo_cita = db.Column(db.String(20), nullable=True)       # 'domicilio' | 'presencial' | None = ambos
+    hora_inicio = db.Column(db.String(5), nullable=True)      # solo si tipo_bloqueo == 'rango_horas'
+    hora_fin = db.Column(db.String(5), nullable=True)
+    max_citas_dia = db.Column(db.Integer, nullable=True)      # solo si tipo_bloqueo == 'cupo_maximo'
+    motivo = db.Column(db.String(255), nullable=False)
+    creado_en = db.Column(db.DateTime, default=datetime.utcnow)

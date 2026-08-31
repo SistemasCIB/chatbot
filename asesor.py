@@ -1,6 +1,7 @@
 from functools import wraps
 
 from flask import Blueprint, flash, render_template, request, redirect, url_for, session, jsonify
+from disponibilidad import validar_disponibilidad
 from models import DiasBloqueados, db, Cita, Asesor, Auditoria, ChatActivo, Paciente, Mensaje, agregar_mensajes_log
 from datetime import date, datetime, timedelta
 from mensajes import enviar_texto
@@ -8,7 +9,6 @@ from config import HORARIO_INICIO, HORARIO_FIN,  get_config_horario
 import io, csv, os
 from flask import Response
 from werkzeug.utils import secure_filename
-from recaptcha import verificar_recaptcha
 from services.outlook import crear_evento_outlook, eliminar_evento_outlook, listar_eventos_outlook
 from recaptcha import verificar_recaptcha
 
@@ -567,6 +567,29 @@ def nueva_cita():
             numero_whatsapp=request.form['telefono'],
             estado=request.form['estado']
         )
+
+        from disponibilidad import validar_disponibilidad
+
+        fecha_cita = datetime.strptime(request.form['fecha_cita'], '%Y-%m-%d')
+        tipo_cita = request.form['tipo_cita']
+        hora_cita_str = request.form.get('hora_cita')
+        area = (
+            "Bacteriología" if request.form.get('tipo_examen') in ['IGRAs', 'Tuberculina PPD']
+            else 'Micología'
+        )
+
+        hora_obj = None
+        if tipo_cita == "presencial" and hora_cita_str:
+            hora_obj = datetime.strptime(hora_cita_str, "%H:%M").time()
+
+        ok, motivo = validar_disponibilidad(
+            fecha_cita.date(), hora_obj, tipo_cita, area=area, origen="manual"
+        )
+        if not ok:
+            flash(motivo, "error")
+            return render_template('form_cita.html', cita=None)
+
+    # ... continúa con la creación de `cita` como ya lo tienes
         db.session.add(cita)
         db.session.commit()
 
@@ -658,6 +681,31 @@ def editar_cita(cita_id):
             cita.orden_medica = nombre_archivo
             cita.orden_tipo_archivo = archivo.content_type  # ← opcional pero recomendado
 
+        fecha_nueva = datetime.strptime(request.form['fecha_cita'], '%Y-%m-%d').date()
+        hora_nueva_str = request.form.get('hora_cita')
+        cambio_agenda = (
+            fecha_nueva != cita.fecha_cita.date()
+            or hora_nueva_str != (cita.hora_cita or '')
+        )
+
+        if cambio_agenda:
+            tipo_cita = request.form['tipo_cita']
+            area_nueva = (
+                "Bacteriología" if request.form.get('tipo_examen') in ['IGRAs', 'Tuberculina PPD']
+                else 'Micología'
+            )
+            hora_obj = None
+            if tipo_cita == "presencial" and hora_nueva_str:
+                hora_obj = datetime.strptime(hora_nueva_str, "%H:%M").time()
+
+            ok, motivo = validar_disponibilidad(
+                fecha_nueva, hora_obj, tipo_cita, area=area_nueva, origen="manual"
+            )
+            if not ok:
+                flash(motivo, "error")
+                return render_template('form_cita.html', cita=cita)
+
+# ... continúa con la actualización de `cita` como ya lo tienes
         db.session.commit()
 
 
@@ -1217,3 +1265,5 @@ def bandeja():
     )
 
     return render_template('bandeja.html', bandeja=bandeja, asesor_nombre=session.get('asesor_nombre'))
+
+

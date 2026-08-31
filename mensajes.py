@@ -185,7 +185,7 @@ def enviar_bienvenida(numero):
                         }
                     }
                 ]
-            }
+            } 
         }
     }
     enviar_request(data, numero=numero)
@@ -337,83 +337,76 @@ def enviar_requisitos(numero, tipo, tipo_muestra=None):
 
 def mostrar_fechas_disponibles(numero, sesiones):
     from datetime import datetime, timedelta
-    from models import Cita, ExamenConfig
+    from models import Cita, ExamenConfig, DiasBloqueados
     from festivos import es_festivo
-
+    from disponibilidad import validar_disponibilidad
+ 
     DIAS_ES = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
-
-    sesion   = sesiones[numero]
-    tipo     = sesion["tipo_cita"]
+ 
+    sesion    = sesiones[numero]
+    tipo      = sesion["tipo_cita"]
     examen_id = sesion.get("examen_id") or _examen_a_id(sesion.get("tipo_examen", ""))
-    hoy      = datetime.now().date()
-
-    # Cargar config del examen (o valores por defecto)
+    hoy       = datetime.now().date()
+ 
+    # Config del examen (Dominio 1, exclusivo bot)
     ecfg = ExamenConfig.query.filter_by(examen_id=examen_id).first()
     if ecfg:
         dias_permitidos  = ecfg.dias_lista()
         min_anticipacion = ecfg.min_anticipacion
     else:
-        dias_permitidos  = [0, 1, 2, 3, 4]   # lunes-vie
+        dias_permitidos  = [0, 1, 2, 3, 4]
         min_anticipacion = 2
-
-    # Días bloqueados por admin (como conjunto de fechas)
-    from models import DiasBloqueados
-    bloqueados_admin = {
-        r.fecha for r in DiasBloqueados.query.all()
-    }
-
-    dias             = []
-    fechas_guardar   = {}
-
+ 
+    # Días bloqueados simples (Dominio 1, exclusivo bot)
+    bloqueados_admin = {r.fecha for r in DiasBloqueados.query.all()}
+ 
+    dias           = []
+    fechas_guardar = {}
+ 
     # ── PRESENCIAL ────────────────────────────────────────
     if tipo == "presencial":
         area = sesion.get("area", "Micología")
         dia  = hoy + timedelta(days=min_anticipacion)
-
-        #  después de calcular dia:
-        if dia.weekday() == 5:          # sábado → lunes
+ 
+        if dia.weekday() == 5:
             dia += timedelta(days=2)
-        elif dia.weekday() == 6:        # domingo → lunes
+        elif dia.weekday() == 6:
             dia += timedelta(days=1)
-
-        if hoy.weekday() == 4:          # hoy es viernes → mínimo miércoles
-            while dia.weekday() < 2:    # saltar lunes(0) y martes(1)
+ 
+        if hoy.weekday() == 4:
+            while dia.weekday() < 2:
                 dia += timedelta(days=1)
-
+ 
         while len(dias) < 3:
             wd = dia.weekday()
-
-            # 1) Día de la semana permitido para este examen
+ 
             if wd not in dias_permitidos:
                 dia += timedelta(days=1)
                 continue
-
-            # 2) No es fin de semana (por si el admin habilitó sábado en otro examen)
             if wd >= 5:
                 dia += timedelta(days=1)
                 continue
-
-            # 3) No es festivo
             if es_festivo(dia):
                 dia += timedelta(days=1)
                 continue
-
-            # 4) No está bloqueado por admin
             if dia in bloqueados_admin:
                 dia += timedelta(days=1)
                 continue
-
-            # 5) Validación especial tuberculina/PPD:
-            #    el día de lectura (dia + 3 días hábiles laborables) no debe
-            #    caer en festivo, fin de semana ni día bloqueado.
+ 
             if examen_id == "examen_ppd":
                 lectura = _dia_lectura_ppd(dia, bloqueados_admin)
                 if lectura is None:
                     dia += timedelta(days=1)
                     continue
-
-            # 6) Cupos
-            es_viernes  = (wd == 4)
+ 
+            # Dominios 3 y 4 (compartidos bot + agenda manual)
+            ok, _motivo = validar_disponibilidad(dia, None, "presencial", area=area, origen="bot")
+            if not ok:
+                dia += timedelta(days=1)
+                continue
+ 
+            # Cupo propio del examen (Dominio 1, ExamenConfig.max_por_dia) — se mantiene igual
+            es_viernes = (wd == 4)
             if ecfg and ecfg.max_por_dia > 0:
                 cupo_maximo = ecfg.max_por_dia
             else:
@@ -424,49 +417,43 @@ def mostrar_fechas_disponibles(numero, sesiones):
                 Cita.tipo_cita == "presencial",
                 Cita.area == area
             ).count()
-
+ 
             if ocupadas < cupo_maximo:
                 texto = f"{DIAS_ES[wd]} {dia.strftime('%d/%m/%Y')}"
                 dias.append(texto)
                 fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
-
+ 
             dia += timedelta(days=1)
-
+ 
     # ── DOMICILIO ─────────────────────────────────────────
     else:
         inicio = hoy + timedelta(days=8)
         fin    = hoy + timedelta(days=30)
         dia    = inicio
-
+ 
         while dia <= fin and len(dias) < 3:
             wd = dia.weekday()
-
-            if wd != 2:          # solo miércoles
-                dia += timedelta(days=1)
-                continue
-
+ 
             if es_festivo(dia) or dia in bloqueados_admin:
                 dia += timedelta(days=1)
                 continue
-
-            cupo_maximo_domicilio = CUPOS_ESPECIALES_DOMICILIO.get(dia, 6)
-
-            ocupadas = Cita.query.filter(
-                db.func.date(Cita.fecha_cita) == dia,
-                Cita.estado.in_(["pendiente", "confirmada"]),
-                Cita.tipo_cita == "domicilio"
-            ).count()
-
-            if ocupadas < cupo_maximo_domicilio:
-                texto = f"{DIAS_ES[wd]} {dia.strftime('%d/%m/%Y')}"
-                dias.append(texto)
-                fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
-
+ 
+            # Dominio 3 (días de semana permitidos para domicilio — ya no es hardcode)
+            # + Dominio 4 (bloqueo/cupo por fecha puntual) — reemplaza CUPOS_ESPECIALES_DOMICILIO
+            ok, _motivo = validar_disponibilidad(dia, None, "domicilio", origen="bot")
+            if not ok:
+                dia += timedelta(days=1)
+                continue
+ 
+            texto = f"{DIAS_ES[wd]} {dia.strftime('%d/%m/%Y')}"
+            dias.append(texto)
+            fechas_guardar[f"fecha_{len(dias)}"] = dia.strftime("%d/%m/%Y")
+ 
             dia += timedelta(days=1)
-
+ 
     # ── Botones WhatsApp ──────────────────────────────────
     sesiones[numero]["fechas"] = fechas_guardar
-
+ 
     if not dias:
         enviar_texto(
             numero,
@@ -474,12 +461,12 @@ def mostrar_fechas_disponibles(numero, sesiones):
             "Por favor contáctanos directamente."
         )
         return
-
+ 
     botones = [
         {"type": "reply", "reply": {"id": f"fecha_{i+1}", "title": t[:20]}}
         for i, t in enumerate(dias)
     ]
-
+ 
     data = {
         "messaging_product": "whatsapp",
         "recipient_type": "individual",
@@ -491,7 +478,7 @@ def mostrar_fechas_disponibles(numero, sesiones):
             "action": {"buttons": botones[:3]}
         }
     }
-    enviar_request(data, numero=numero) 
+    enviar_request(data, numero=numero)
 
 
 # ── Helpers privados ──────────────────────────────────────
@@ -524,40 +511,37 @@ def _dia_lectura_ppd(fecha_aplicacion, bloqueados_admin) -> date | None:
 def mostrar_horas_disponibles(numero, sesiones):
     from models import Cita, ExamenConfig
     from datetime import datetime
-
+    from disponibilidad import validar_disponibilidad
+ 
     fecha = sesiones[numero].get("fecha_cita")
-
+ 
     agregar_mensajes_log(
         f"DEBUG mostrar_horas_disponibles | fecha_cita={repr(fecha)}"
     )
-
+ 
     fecha_dt = datetime.strptime(fecha, "%d/%m/%Y")
-
+ 
     es_viernes = (fecha_dt.weekday() == 4)
     area = sesiones[numero].get("area", "Micología")
     examen_id = sesiones[numero].get("examen_id") or _examen_a_id(
         sesiones[numero].get("tipo_examen", "")
     )
-    
-    # Cargar config del examen
+ 
     ecfg = ExamenConfig.query.filter_by(examen_id=examen_id).first()
     h_ini = ecfg.hora_inicio if ecfg else "07:30"
     h_fin = ecfg.hora_fin    if ecfg else "15:30"
-
-    # Generar todas las horas en intervalos de 30 min dentro del rango
+ 
     todas = []
     t = datetime.strptime(h_ini, "%H:%M")
     tope = datetime.strptime(h_fin, "%H:%M")
     while t <= tope:
         todas.append(t.strftime("%H:%M"))
         t = t.replace(minute=t.minute + 30) if t.minute == 0 else t.replace(hour=t.hour + 1, minute=0)
-
-    # Viernes: solo hasta 11:30 si el rango lo permite
+ 
     if es_viernes:
         tope_viernes = datetime.strptime("11:30", "%H:%M")
         todas = [h for h in todas if datetime.strptime(h, "%H:%M") <= tope_viernes]
-
-    # Horas ocupadas para esta fecha y área
+ 
     ocupadas = db.session.query(Cita.hora_cita).filter(
         db.func.date(Cita.fecha_cita) == fecha_dt.date(),
         Cita.tipo_cita == "presencial",
@@ -565,10 +549,20 @@ def mostrar_horas_disponibles(numero, sesiones):
         Cita.estado.in_(["pendiente", "confirmada"])
     ).all()
     ocupadas = [h[0] for h in ocupadas]
-
-    libres = [h for h in todas if h not in ocupadas]
-    # ... resto igual
-
+ 
+    # Dominio 4: descarta horas dentro de un rango_horas bloqueado ese día
+    libres = [
+        h for h in todas
+        if h not in ocupadas
+        and validar_disponibilidad(
+            fecha_dt.date(),
+            datetime.strptime(h, "%H:%M").time(),
+            "presencial",
+            area=area,
+            origen="bot"
+        )[0]
+    ]
+ 
     if not libres:
         enviar_texto(
             numero,
@@ -576,30 +570,13 @@ def mostrar_horas_disponibles(numero, sesiones):
         )
         mostrar_fechas_disponibles(numero, sesiones)
         return
-
-    # -----------------------------------
-    # Guardar opciones
-    # -----------------------------------
-    sesiones[numero]["horas"] = {
-        f"hora_{i+1}": hora for i, hora in enumerate(libres)
-    }
-
-    rows = []
-    for i, hora in enumerate(libres):
-        rows.append({
-            "id": f"hora_{i+1}",
-            "title": hora,
-            "description": ""
-        })
-
-    # Max 10 filas por sección
-# Guardar opciones
+ 
     sesiones[numero]["horas"] = {
         f"hora_{i+1}": hora for i, hora in enumerate(libres)
     }
     rows_am = []
     rows_pm = []
-
+       
     for i, hora in enumerate(libres):
         hora_dt = datetime.strptime(hora, "%H:%M")
         entry = {"id": f"hora_{i+1}", "title": hora, "description": ""}
@@ -607,8 +584,7 @@ def mostrar_horas_disponibles(numero, sesiones):
             rows_am.append(entry)
         else:
             rows_pm.append(entry)
-
-    # Primer mensaje: AM
+ 
     if rows_am:
         data = {
             "messaging_product": "whatsapp",
@@ -624,9 +600,8 @@ def mostrar_horas_disponibles(numero, sesiones):
                 }
             }
         }
-        enviar_request(data, numero=numero) 
-
-    # Segundo mensaje: PM
+        enviar_request(data, numero=numero)
+ 
     if rows_pm:
         data2 = {
             "messaging_product": "whatsapp",

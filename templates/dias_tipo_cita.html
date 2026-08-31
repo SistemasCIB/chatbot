@@ -1,0 +1,122 @@
+{% extends "admin_base.html" %}
+{% block title %}Días permitidos por tipo de cita{% endblock %}
+
+{% block content %}
+<div class="dtc-wrap">
+  <header class="dtc-head">
+    <h1>Días permitidos por tipo de cita</h1>
+    <p>Esta regla la respetan el bot y la agenda manual. Si un día no está marcado, ese tipo de cita no se ofrece ni se puede agendar manualmente ese día.</p>
+  </header>
+
+  <div id="dtc-panels"></div>
+
+  <div class="dtc-bar">
+    <span id="dtc-status" class="dtc-status"></span>
+    <button type="button" class="dtc-save" id="dtc-save-btn">Guardar cambios</button>
+  </div>
+</div>
+
+<style>
+  .dtc-wrap { max-width: 780px; margin: 0 auto; color: #1C2B27; font-family: 'Inter', system-ui, sans-serif; }
+  .dtc-head h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 .35rem; }
+  .dtc-head p { color: #5B6B67; font-size: .92rem; margin: 0 0 1.75rem; max-width: 64ch; }
+
+  .dtc-panel { background: #fff; border: 1px solid #DCE3E0; border-radius: 10px; padding: 1.25rem 1.5rem 1.4rem; margin-bottom: 1.1rem; }
+  .dtc-panel h2 { font-size: 1.02rem; font-weight: 600; margin: 0 0 .9rem; display: flex; align-items: center; gap: .55rem; }
+  .dtc-panel h2 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dtc-panel .dtc-hint { font-size: .8rem; color: #8B968F; margin: -.4rem 0 .9rem; }
+
+  .dtc-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .dtc-pill { border: 1px solid #DCE3E0; background: #FAFBFA; border-radius: 20px; padding: .42rem 1rem; font-size: .85rem; cursor: pointer; user-select: none; transition: all .12s ease; color: #5B6B67; }
+  .dtc-pill.is-on { color: #fff; border-color: transparent; }
+  .dtc-pill[data-tipo="domicilio"].is-on { background: #6E4E9E; }
+  .dtc-pill[data-tipo="presencial"].is-on { background: #3D6EA6; }
+
+  .dtc-bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 1rem; padding: .9rem 0; }
+  .dtc-status { font-size: .85rem; color: #2F6F5E; }
+  .dtc-save { background: #1C2B27; color: #fff; border: none; border-radius: 7px; padding: .6rem 1.3rem; font-size: .9rem; font-weight: 500; cursor: pointer; }
+  .dtc-save:hover { background: #2F6F5E; }
+  .dtc-save:disabled { opacity: .5; cursor: default; }
+</style>
+
+<script>
+(function () {
+  const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  const TIPOS = [
+    { tipo: 'domicilio', label: 'Domicilio', color: '#6E4E9E' },
+    { tipo: 'presencial', label: 'Presencial', color: '#3D6EA6' },
+  ];
+
+  // reglasData viene del backend: lista de filas de DiasPermitidosTipoCita.
+  // Ejemplo: {tipo_cita: 'domicilio', dias_semana: '2'}
+  // Si un tipo_cita no tiene fila, se trata como "todos los días permitidos".
+  const reglasData = {{ reglas | tojson }};
+  const byTipo = {};
+  reglasData.forEach(r => { byTipo[r.tipo_cita] = r.dias_semana.split(',').filter(d => d !== '').map(Number); });
+
+  const panelsEl = document.getElementById('dtc-panels');
+
+  TIPOS.forEach(t => {
+    const activos = byTipo[t.tipo] !== undefined ? byTipo[t.tipo] : [0, 1, 2, 3, 4, 5, 6];
+
+    const panel = document.createElement('div');
+    panel.className = 'dtc-panel';
+    panel.dataset.tipo = t.tipo;
+
+    const h2 = document.createElement('h2');
+    h2.innerHTML = `<span class="dot" style="background:${t.color}"></span> ${t.label}`;
+    panel.appendChild(h2);
+
+    const hint = document.createElement('p');
+    hint.className = 'dtc-hint';
+    hint.textContent = byTipo[t.tipo] === undefined ? 'Sin restricción configurada — se ofrece todos los días.' : 'Solo se ofrece los días marcados.';
+    panel.appendChild(hint);
+
+    const pills = document.createElement('div');
+    pills.className = 'dtc-pills';
+
+    DIAS.forEach((nombre, dia) => {
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'dtc-pill' + (activos.includes(dia) ? ' is-on' : '');
+      pill.dataset.tipo = t.tipo;
+      pill.dataset.dia = dia;
+      pill.textContent = nombre;
+      pill.addEventListener('click', () => pill.classList.toggle('is-on'));
+      pills.appendChild(pill);
+    });
+
+    panel.appendChild(pills);
+    panelsEl.appendChild(panel);
+  });
+
+  document.getElementById('dtc-save-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('dtc-save-btn');
+    const status = document.getElementById('dtc-status');
+
+    const reglas = TIPOS.map(t => {
+      const dias = Array.from(document.querySelectorAll(`.dtc-pill[data-tipo="${t.tipo}"].is-on`))
+        .map(el => parseInt(el.dataset.dia, 10));
+      return { tipo_cita: t.tipo, dias };
+    });
+
+    btn.disabled = true;
+    status.textContent = 'Guardando...';
+    try {
+      const res = await fetch('/admin/dias-tipo-cita/guardar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reglas }),
+      });
+      const data = await res.json();
+      status.textContent = data.ok ? 'Cambios guardados.' : 'No se pudo guardar.';
+    } catch (err) {
+      status.textContent = 'Error de conexión.';
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "admin_base.html" %}
+{% block title %}Bloqueos de agenda{% endblock %}
+
+{% block content %}
+<div class="blq-wrap">
+  <header class="blq-head">
+    <h1>Bloqueos y cupos por fecha</h1>
+    <p>Aplican a una fecha puntual. Los respetan el bot y la agenda manual. Elige siempre si el bloqueo es para domicilio, presencial o ambos.</p>
+  </header>
+
+  <div class="blq-panel">
+    <h2>Nuevo bloqueo</h2>
+    <form id="blq-form" class="blq-form">
+      <div class="blq-field">
+        <label>Fecha</label>
+        <input type="date" name="fecha" required>
+      </div>
+
+      <div class="blq-field">
+        <label>Tipo de bloqueo</label>
+        <select name="tipo_bloqueo" id="blq-tipo-bloqueo" required>
+          <option value="dia_completo">Día completo</option>
+          <option value="rango_horas">Rango de horas</option>
+          <option value="cupo_maximo">Cupo máximo</option>
+        </select>
+      </div>
+
+      <div class="blq-field">
+        <label>Aplica a</label>
+        <select name="tipo_cita">
+          <option value="">Ambos (domicilio y presencial)</option>
+          <option value="domicilio">Solo domicilio</option>
+          <option value="presencial">Solo presencial</option>
+        </select>
+      </div>
+
+      <div class="blq-field blq-only-rango" hidden>
+        <label>Hora inicio</label>
+        <input type="time" name="hora_inicio">
+      </div>
+      <div class="blq-field blq-only-rango" hidden>
+        <label>Hora fin</label>
+        <input type="time" name="hora_fin">
+      </div>
+
+      <div class="blq-field blq-only-cupo" hidden>
+        <label>Máximo de citas ese día</label>
+        <input type="number" name="max_citas_dia" min="0" step="1">
+      </div>
+
+      <div class="blq-field blq-field-wide">
+        <label>Motivo</label>
+        <input type="text" name="motivo" placeholder="Ej. asesor de vacaciones, jornada institucional..." required>
+      </div>
+
+      <button type="submit" class="blq-submit">Crear bloqueo</button>
+    </form>
+  </div>
+
+  <div class="blq-panel">
+    <h2>Bloqueos existentes</h2>
+    <div id="blq-list" class="blq-list">
+      {% for b in bloqueos %}
+      <div class="blq-row blq-row--{{ b.tipo_bloqueo }}" data-id="{{ b.id }}">
+        <div class="blq-row-main">
+          <span class="blq-fecha">{{ b.fecha.strftime('%d/%m/%Y') }}</span>
+          <span class="blq-tag blq-tag--{{ b.tipo_bloqueo }}">
+            {{ {'dia_completo': 'Día completo', 'rango_horas': 'Rango de horas', 'cupo_maximo': 'Cupo máximo'}[b.tipo_bloqueo] }}
+          </span>
+          <span class="blq-tag blq-tag--tipo">
+            {{ {'domicilio': 'Domicilio', 'presencial': 'Presencial'}.get(b.tipo_cita, 'Ambos') }}
+          </span>
+          {% if b.tipo_bloqueo == 'rango_horas' %}
+            <span class="blq-detalle">{{ b.hora_inicio }}–{{ b.hora_fin }}</span>
+          {% elif b.tipo_bloqueo == 'cupo_maximo' %}
+            <span class="blq-detalle">máx. {{ b.max_citas_dia }}</span>
+          {% endif %}
+        </div>
+        <p class="blq-motivo">{{ b.motivo }}</p>
+        <button type="button" class="blq-del" data-id="{{ b.id }}">Eliminar</button>
+      </div>
+      {% else %}
+      <p class="blq-empty">Todavía no hay bloqueos creados.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .blq-wrap { max-width: 900px; margin: 0 auto; color: #1C2B27; font-family: 'Inter', system-ui, sans-serif; }
+  .blq-head h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 .35rem; }
+  .blq-head p { color: #5B6B67; font-size: .92rem; margin: 0 0 1.75rem; max-width: 66ch; }
+
+  .blq-panel { background: #fff; border: 1px solid #DCE3E0; border-radius: 10px; padding: 1.25rem 1.5rem 1.5rem; margin-bottom: 1.25rem; }
+  .blq-panel h2 { font-size: 1.02rem; font-weight: 600; margin: 0 0 1rem; }
+
+  .blq-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: .9rem 1rem; align-items: end; }
+  .blq-field { display: flex; flex-direction: column; gap: .3rem; }
+  .blq-field-wide { grid-column: 1 / -1; }
+  .blq-field label { font-size: .78rem; color: #5B6B67; }
+  .blq-field input, .blq-field select {
+    border: 1px solid #DCE3E0; border-radius: 6px; padding: .5rem .6rem; font-size: .88rem; color: #1C2B27; background: #FAFBFA;
+  }
+  .blq-submit { grid-column: 1 / -1; justify-self: start; background: #1C2B27; color: #fff; border: none; border-radius: 7px; padding: .6rem 1.3rem; font-size: .9rem; font-weight: 500; cursor: pointer; }
+  .blq-submit:hover { background: #2F6F5E; }
+  @media (max-width: 760px) { .blq-form { grid-template-columns: 1fr 1fr; } }
+
+  .blq-list { display: flex; flex-direction: column; gap: .6rem; }
+  .blq-row { border: 1px solid #E4E9E7; border-left-width: 4px; border-radius: 8px; padding: .8rem 1rem; position: relative; }
+  .blq-row--dia_completo { border-left-color: #B0522D; }
+  .blq-row--rango_horas { border-left-color: #C9962F; }
+  .blq-row--cupo_maximo { border-left-color: #3D6EA6; }
+
+  .blq-row-main { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+  .blq-fecha { font-weight: 600; font-size: .9rem; }
+  .blq-tag { font-size: .74rem; padding: .18rem .55rem; border-radius: 12px; background: #EEF2F0; color: #5B6B67; }
+  .blq-tag--dia_completo { background: #F6E7E1; color: #8A3D1E; }
+  .blq-tag--rango_horas { background: #FAF0D9; color: #8A6A16; }
+  .blq-tag--cupo_maximo { background: #E4ECF5; color: #2A4F79; }
+  .blq-detalle { font-size: .8rem; color: #5B6B67; }
+  .blq-motivo { margin: .4rem 0 0; font-size: .85rem; color: #3A4844; }
+  .blq-del { position: absolute; top: .75rem; right: .9rem; border: none; background: none; color: #B0522D; font-size: .78rem; cursor: pointer; }
+  .blq-del:hover { text-decoration: underline; }
+  .blq-empty { color: #8B968F; font-size: .88rem; }
+</style>
+
+<script>
+(function () {
+  const tipoBloqueoSel = document.getElementById('blq-tipo-bloqueo');
+  const rangoFields = document.querySelectorAll('.blq-only-rango');
+  const cupoFields = document.querySelectorAll('.blq-only-cupo');
+
+  function syncCampos() {
+    const v = tipoBloqueoSel.value;
+    rangoFields.forEach(f => f.hidden = v !== 'rango_horas');
+    cupoFields.forEach(f => f.hidden = v !== 'cupo_maximo');
+  }
+  tipoBloqueoSel.addEventListener('change', syncCampos);
+  syncCampos();
+
+  document.getElementById('blq-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const fd = new FormData(form);
+    const payload = {
+      fecha: fd.get('fecha'),
+      tipo_bloqueo: fd.get('tipo_bloqueo'),
+      tipo_cita: fd.get('tipo_cita') || null,
+      hora_inicio: fd.get('hora_inicio') || null,
+      hora_fin: fd.get('hora_fin') || null,
+      max_citas_dia: fd.get('max_citas_dia') ? parseInt(fd.get('max_citas_dia'), 10) : null,
+      motivo: fd.get('motivo'),
+    };
+
+    if (payload.tipo_bloqueo === 'rango_horas' && (!payload.hora_inicio || !payload.hora_fin)) {
+      alert('Indica hora inicio y hora fin para un bloqueo de rango de horas.');
+      return;
+    }
+    if (payload.tipo_bloqueo === 'cupo_maximo' && !payload.max_citas_dia && payload.max_citas_dia !== 0) {
+      alert('Indica el cupo máximo de citas.');
+      return;
+    }
+
+    const res = await fetch('/admin/bloqueo-fecha/crear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      window.location.reload();
+    } else {
+      alert('No se pudo crear el bloqueo.');
+    }
+  });
+
+  document.getElementById('blq-list').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.blq-del');
+    if (!btn) return;
+    if (!confirm('¿Eliminar este bloqueo?')) return;
+
+    const res = await fetch(`/admin/bloqueo-fecha/${btn.dataset.id}/eliminar`, { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      btn.closest('.blq-row').remove();
+    } else {
+      alert('No se pudo eliminar.');
+    }
+  });
+})();
+</script>
+{% endblock %}

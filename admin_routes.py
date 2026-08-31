@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, session
 from config import get_config_horario
 from dotenv import load_dotenv
-from models import Cita, ConfigHorario, DiasBloqueados, Paciente, db, Asesor, Auditoria, ExamenConfig, seed_examen_config
+from models import BloqueoAgendaFecha, Cita, ConfigHorario, DiasBloqueados, DiasPermitidosTipoCita, HorarioAsesor, Paciente, db, Asesor, Auditoria, ExamenConfig, seed_examen_config
 from functools import wraps
 from recaptcha import verificar_recaptcha
 load_dotenv(".env")
@@ -371,5 +371,92 @@ def guardar_config_examenes():
         cfg.max_por_dia      = max(0, int(item.get('max_por_dia', 0)))
         cfg.hora_inicio      = item.get('hora_inicio', '07:30')  # ← nuevo
         cfg.hora_fin         = item.get('hora_fin', '15:30')     # ← nue
+    db.session.commit()
+    return jsonify({'ok': True})
+
+#nuevos endpoints para administrar la disponibilidad de citas
+
+@admin_bp.route('/admin/horario-asesor', methods=['GET'])
+@admin_requerido
+def config_horario_asesor():
+    horarios = HorarioAsesor.query.all()
+    horarios_json = [
+        {'agenda_tipo': h.agenda_tipo, 'dia_semana': h.dia_semana,
+         'activo': h.activo, 'hora_inicio': h.hora_inicio, 'hora_fin': h.hora_fin}
+        for h in horarios
+    ]
+    return render_template('admin_horario_asesor.html', horarios=horarios_json)
+
+
+@admin_bp.route('/admin/dias-tipo-cita', methods=['GET'])
+@admin_requerido
+def config_dias_tipo_cita():
+    reglas = DiasPermitidosTipoCita.query.all()
+    reglas_json = [{'tipo_cita': r.tipo_cita, 'dias_semana': r.dias_semana} for r in reglas]
+    return render_template('admin_dias_tipo_cita.html', reglas=reglas_json)
+
+
+@admin_bp.route('/admin/horario-asesor/guardar', methods=['POST'])
+@admin_requerido
+def guardar_horario_asesor():
+    data = request.get_json(silent=True) or {}
+    for item in data.get('horarios', []):
+        h = HorarioAsesor.query.filter_by(
+            agenda_tipo=item['agenda_tipo'], dia_semana=int(item['dia_semana'])
+        ).first()
+        if not h:
+            h = HorarioAsesor(agenda_tipo=item['agenda_tipo'], dia_semana=int(item['dia_semana']))
+            db.session.add(h)
+        h.activo = bool(item.get('activo', True))
+        h.hora_inicio = item.get('hora_inicio')
+        h.hora_fin = item.get('hora_fin')
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@admin_bp.route('/admin/dias-tipo-cita/guardar', methods=['POST'])
+@admin_requerido
+def guardar_dias_tipo_cita():
+    data = request.get_json(silent=True) or {}
+    for item in data.get('reglas', []):
+        r = DiasPermitidosTipoCita.query.filter_by(tipo_cita=item['tipo_cita']).first()
+        if not r:
+            r = DiasPermitidosTipoCita(tipo_cita=item['tipo_cita'])
+            db.session.add(r)
+        dias = sorted(set(int(d) for d in item.get('dias', [])))
+        r.dias_semana = ','.join(str(d) for d in dias)
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@admin_bp.route('/admin/bloqueo-fecha', methods=['GET'])
+@admin_requerido
+def listar_bloqueos_fecha():
+    bloqueos = BloqueoAgendaFecha.query.order_by(BloqueoAgendaFecha.fecha.desc()).all()
+    return render_template('admin_bloqueo_fecha.html', bloqueos=bloqueos)
+
+
+@admin_bp.route('/admin/bloqueo-fecha/crear', methods=['POST'])
+@admin_requerido
+def crear_bloqueo_fecha():
+    data = request.get_json(silent=True) or {}
+    b = BloqueoAgendaFecha(
+        fecha=date.fromisoformat(data['fecha']),
+        tipo_bloqueo=data['tipo_bloqueo'],
+        tipo_cita=data.get('tipo_cita') or None,
+        hora_inicio=data.get('hora_inicio'),
+        hora_fin=data.get('hora_fin'),
+        max_citas_dia=data.get('max_citas_dia'),
+        motivo=data['motivo'],
+    )
+    db.session.add(b)
+    db.session.commit()
+    return jsonify({'ok': True, 'id': b.id})
+
+
+@admin_bp.route('/admin/bloqueo-fecha/<int:bloqueo_id>/eliminar', methods=['POST'])
+@admin_requerido
+def eliminar_bloqueo_fecha(bloqueo_id):
+    BloqueoAgendaFecha.query.filter_by(id=bloqueo_id).delete()
     db.session.commit()
     return jsonify({'ok': True})
