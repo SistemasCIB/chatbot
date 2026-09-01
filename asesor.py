@@ -887,9 +887,9 @@ def eventos_calendario():
     # =====================================================
 
     COLOR_AGENDA = {
-        'domicilio':     '#9b59b6',   # morado
-        'micologia':     '#8bc34a',   # verde
-        'bacteriologia': '#4fc3f7',   # azul
+        'domicilio':     "#b38fc2",   # morado
+        'micologia':     "#9fc476",   # verde
+        'bacteriologia': "#b2def3",   # azul
     }
 
     COLOR_ESTADO = {
