@@ -311,7 +311,7 @@ Gestión de administradores del sistema
                 </td>
 
                 <td>
-                    {{ a.creado_en.strftime('%d/%m/%Y') }}
+                    {{ a.creado_en.strftime('%d/%m/%Y') if a.creado_en else '-' }}
                 </td>
 
                 <td>

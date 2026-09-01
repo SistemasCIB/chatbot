@@ -1,1315 +1,768 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CIB — Panel Administrador</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-    --black:#000000;
-    --navy:#223A7F;
-    --navy-deep:#182B63;
-    --cyan:#2EA1DB;
-    --cyan-light:#E7F5FC;
-    --cyan-mid:#B8E0F4;
-    --gray:#706F6F;
-    --gray-light:#F3F4F6;
-    --green:#8CBF45;
-    --green-dark:#6F9F32;
-    --green-soft:#EEF7E2;
-    --bg:#F7F9FC;
-    --surface:#FFFFFF;
-    --border:#E4EAF2;
-    --text:#1E293B;
-    --muted:#6B7280;
-    --orange:#D97706;
-    --orange-soft:#FEF3E0;
-    --red:#DC2626;
-    --red-soft:#FDECEC;
-    --purple:#7C3AED;
-    --purple-soft:#F3E8FF;
-    --mico:#4f8ef7;
-    --mico-soft:#E8F0FE;
-    --bacte:#16a085;
-    --bacte-soft:#E6F7F4;
-    --sidebar-w:230px;
-    --radius:14px;
-    --shadow: 0 2px 10px rgba(34,58,127,.06), 0 1px 3px rgba(34,58,127,.04);
-    --shadow-md: 0 8px 24px rgba(34,58,127,.12);
-}
+```html
+{% extends "admin_base.html" %}
 
-*{ margin:0; padding:0; box-sizing:border-box; }
+{% block title %}
+CIB — Panel Administrador
+{% endblock %}
 
-body{
-    font-family:'Outfit',sans-serif;
-    background:linear-gradient(180deg,#F7F9FC 0%,#EEF3F9 100%);
-    color:var(--text);
-    min-height:100vh;
-    display:flex;
-}
 
-/* ══ SIDEBAR ══ */
-.sidebar{
-    width:var(--sidebar-w);
-    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep) 100%);
-    min-height:100vh;
-    position:fixed;
-    left:0; top:0;
-    display:flex;
-    flex-direction:column;
-    border-right:1px solid rgba(255,255,255,.06);
-}
+{% block header_title %}
+Panel Administrador
+{% endblock %}
 
-.sidebar-logo{
-    padding:26px 22px 18px;
-    border-bottom:1px solid rgba(255,255,255,.06);
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
 
-.logo-mark{
-    width:44px; height:44px;
-    border-radius:12px;
-    background:linear-gradient(135deg,var(--cyan),#1C7FB2);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-weight:700;
-    font-size:18px;
-    flex-shrink:0;
-}
+{% block header_subtitle %}
+Gestión de accesos y usuarios — CIB Diagnóstico
+{% endblock %}
 
-.logo-text strong{ display:block; color:white; font-size:18px; font-weight:700; }
-.logo-text small{ color:rgba(255,255,255,.65); font-size:10px; line-height:1.4; }
 
-.sidebar-tagline{
-    padding:10px 22px 18px;
-    color:rgba(255,255,255,.35);
-    font-size:10px;
-    border-bottom:1px solid rgba(255,255,255,.06);
-}
+{% block topbar_actions %}
 
-.nav{ flex:1; padding:16px 12px; }
+<a href="/admin/nuevo" class="btn-top btn-new">
+    ＋ Nuevo asesor
+</a>
 
-.nav-label{
-    color:rgba(255,255,255,.28);
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.1em;
-    font-weight:600;
-    margin:14px 10px 8px;
-}
+<a href="/admin/nuevo-especialista" class="btn-top btn-especialista">
+    🔬 Nuevo especialista
+</a>
 
-.nav-item{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:12px 14px;
-    border-radius:10px;
-    text-decoration:none;
-    color:rgba(255,255,255,.72);
-    font-size:13px;
-    font-weight:500;
-    transition:.2s;
-}
-.nav-item:hover{ background:rgba(46,161,219,.14); color:white; }
-.nav-item.active{ background:rgba(46,161,219,.18); color:var(--cyan); }
+<a href="/admin/nuevo-admin" class="btn-top btn-users">
+    ＋ Nuevo admin
+</a>
 
-.nav-cta{
-    margin-top:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    background:var(--green);
-    color:white;
-    padding:12px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:700;
-    font-size:13px;
-    box-shadow:0 4px 14px rgba(140,191,69,.35);
-    transition:.2s;
-}
-.nav-cta:hover{ background:var(--green-dark); }
+{% endblock %}
 
-.nav-cta-mico{
-    margin-top:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    background:var(--mico-soft);
-    color:var(--mico);
-    padding:12px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:700;
-    font-size:13px;
-    transition:.2s;
-    border:1px solid rgba(79,142,247,.2);
-}
-.nav-cta-mico:hover{ background:#d4e4fd; }
 
-.sidebar-footer{
-    padding:16px 12px;
-    border-top:1px solid rgba(255,255,255,.06);
-}
+{% block content %}
 
-.admin-info{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+<!-- ══════════════════════════════════════════════════════════════
+     FILTRO ACTIVO
+══════════════════════════════════════════════════════════════ -->
 
-.admin-avatar{
-    width:38px; height:38px;
-    border-radius:50%;
-    background:linear-gradient(135deg,var(--cyan),#1D6F9D);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-weight:700;
-    flex-shrink:0;
-}
+<div id="filtro-activo"
+     class="filtro-banner">
 
-.admin-name{ color:white; font-size:13px; font-weight:600; }
-.admin-role{ color:rgba(255,255,255,.45); font-size:11px; }
+    <span id="filtro-texto">
+        Filtrando: activos
+    </span>
 
-.btn-logout{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    padding:10px;
-    border-radius:10px;
-    background:rgba(255,255,255,.08);
-    color:white;
-    text-decoration:none;
-    font-size:12px;
-    font-weight:500;
-    transition:.2s;
-}
-.btn-logout:hover{ background:rgba(255,255,255,.14); }
+    <a href="#"
+       onclick="filtrarEstado('todos');return false;"
+       style="color:var(--cyan);font-size:12px;text-decoration:none;">
 
-/* ══ MAIN ══ */
-.main{ margin-left:var(--sidebar-w); flex:1; }
+        ✕ Ver todos
 
-.topbar{
-    height:70px;
-    background:white;
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0 28px;
-    position:sticky;
-    top:0;
-    z-index:20;
-}
+    </a>
 
-.topbar-left h1{ color:var(--navy); font-size:20px; font-weight:700; }
-.topbar-left p{ color:var(--muted); font-size:12px; margin-top:2px; }
-
-.topbar-actions{ display:flex; gap:10px; }
-
-.btn-top{
-    padding:10px 14px;
-    border-radius:10px;
-    text-decoration:none;
-    font-size:12px;
-    font-weight:600;
-    transition:.2s;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-}
-.btn-top:hover{ transform:translateY(-1px); }
-.btn-new{ background:var(--green); color:white; }
-.btn-especialista{ background:var(--mico-soft); color:var(--mico); }
-.btn-users{ background:var(--cyan-light); color:var(--cyan); }
-
-.page{ padding:26px; }
-
-/* ══ STATS ══ */
-.stats{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
-    margin-bottom:24px;
-}
-
-.stat-card{
-    background:white;
-    border-radius:var(--radius);
-    border:1px solid var(--border);
-    padding:20px;
-    display:flex;
-    align-items:center;
-    gap:14px;
-    position:relative;
-    overflow:hidden;
-    box-shadow:var(--shadow);
-    transition:.2s;
-    cursor:pointer;
-}
-.stat-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
-.stat-card::after{
-    content:'';
-    position:absolute;
-    top:0; left:0; right:0;
-    height:4px;
-}
-.s-total::after{ background:var(--navy); }
-.s-active::after{ background:var(--green); }
-.s-inactive::after{ background:var(--red); }
-.s-esp::after{ background:var(--mico); }
-
-.stat-icon{
-    width:48px; height:48px;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:20px;
-    flex-shrink:0;
-}
-.s-total .stat-icon{ background:#E9EEFA; }
-.s-active .stat-icon{ background:var(--green-soft); }
-.s-inactive .stat-icon{ background:#ECECEC; }
-.s-esp .stat-icon{ background:var(--mico-soft); }
-
-.stat-info .label{
-    font-size:11px;
-    color:var(--muted);
-    text-transform:uppercase;
-    font-weight:600;
-    letter-spacing:.08em;
-}
-.stat-info .value{ font-size:28px; font-weight:700; margin-top:4px; }
-.s-total .value{ color:var(--navy); }
-.s-active .value{ color:var(--green-dark); }
-.s-inactive .value{ color:var(--gray); }
-.s-esp .value{ color:var(--mico); }
-
-/* ══ TABLE ══ */
-.table-box{
-    background:white;
-    border-radius:var(--radius);
-    border:1px solid var(--border);
-    overflow:hidden;
-    box-shadow:var(--shadow);
-}
-
-.table-header{
-    padding:20px 22px;
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    background:linear-gradient(to right,#F8FAFF,#FFFFFF);
-}
-.table-header h2{ color:var(--navy); font-size:15px; font-weight:700; }
-.table-header p{ color:var(--muted); font-size:11px; margin-top:2px; }
-
-.badge-count{
-    background:var(--cyan-light);
-    color:var(--navy);
-    padding:6px 12px;
-    border-radius:30px;
-    font-size:11px;
-    font-weight:700;
-}
-
-.badge-esp{
-    background:var(--mico-soft);
-    color:var(--mico);
-    padding:6px 12px;
-    border-radius:30px;
-    font-size:11px;
-    font-weight:700;
-}
-
-.table-wrap{ overflow-x:auto; }
-
-table{ width:100%; border-collapse:collapse; }
-thead{ background:#F8FAFC; }
-th{
-    padding:14px;
-    text-align:left;
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:var(--muted);
-    border-bottom:1px solid var(--border);
-}
-td{
-    padding:14px;
-    border-bottom:1px solid #EEF2F7;
-    font-size:13px;
-    vertical-align:middle;
-}
-tbody tr:hover{ background:#FAFCFF; }
-tbody tr:last-child td{ border-bottom:none; }
-
-/* ══ PILLS ══ */
-.pill{
-    display:inline-block;
-    padding:5px 10px;
-    border-radius:30px;
-    font-size:10px;
-    font-weight:700;
-}
-.pill.activo{ background:var(--green-soft); color:var(--green-dark); }
-.pill.inactivo{ background:#ECECEC; color:var(--gray); }
-
-.chip-mico{
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-    background:var(--mico-soft);
-    color:var(--mico);
-    padding:5px 10px;
-    border-radius:20px;
-    font-size:11px;
-    font-weight:700;
-}
-.chip-bacte{
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-    background:var(--bacte-soft);
-    color:var(--bacte);
-    padding:5px 10px;
-    border-radius:20px;
-    font-size:11px;
-    font-weight:700;
-}
-
-.chip-domi{
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-    background:#F3E8FF;
-    color:#7C3AED;
-    padding:5px 10px;
-    border-radius:20px;
-    font-size:11px;
-    font-weight:700;
-}
-
-/* ══ ACTIONS ══ */
-.actions{ display:flex; gap:6px; flex-wrap:wrap; }
-
-.btn{
-    padding:6px 10px;
-    border-radius:8px;
-    text-decoration:none;
-    font-size:11px;
-    font-weight:600;
-    transition:.15s;
-    white-space:nowrap;
-}
-.btn:hover{ opacity:.85; }
-.btn-edit{ background:var(--cyan-light); color:#0F6F9E; }
-.btn-toggle-off{ background:var(--orange-soft); color:var(--orange); }
-.btn-toggle-on{ background:var(--green-soft); color:var(--green-dark); }
-.btn-delete{ background:var(--red-soft); color:var(--red); }
-.btn-historial{ background:var(--purple-soft); color:var(--purple); }
-
-/* ══ FILTRO BANNER ══ */
-.filtro-banner{
-    display:none;
-    margin-bottom:14px;
-    padding:10px 16px;
-    background:var(--cyan-light);
-    border-radius:10px;
-    font-size:13px;
-    color:var(--navy);
-    font-weight:600;
-    align-items:center;
-    justify-content:space-between;
-}
-
-/* ══ EMPTY ══ */
-.empty{
-    text-align:center;
-    padding:70px 40px;
-    color:var(--muted);
-}
-.empty-icon{ font-size:44px; margin-bottom:12px; }
-
-/* ══ SECTION TITLE ══ */
-.section-sep{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin:28px 0 16px;
-}
-.section-sep h3{
-    font-size:13px;
-    font-weight:700;
-    color:var(--muted);
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    white-space:nowrap;
-}
-.section-sep::after{
-    content:'';
-    flex:1;
-    height:1px;
-    background:var(--border);
-}
-</style>
-</head>
-
-<body>
-
-<!-- ══ SIDEBAR ══ -->
-<aside class="sidebar">
-
-    <div class="sidebar-logo">
-        <svg class="logo-mark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="42" height="42" rx="9" fill="#0d2459"/>
-            <text x="21" y="27" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="white" text-anchor="middle" letter-spacing="0.5">CIB</text>
-        </svg>
-        <div class="logo-text">
-            <strong>CIB</strong>
-            <small>Corporación para<br>Investigaciones Biológicas</small>
-        </div>
-    </div>
-
-    <div class="sidebar-tagline">
-        Administración y control de accesos
-    </div>
-
-    <nav class="nav">
-
-        <div class="nav-label">Administración</div>
-
-        <a href="/admin" class="nav-item active">👥 Asesores</a>
-        <a href="/admin/admins" class="nav-item">💼 Administradores</a>
-        <a href="#especialistas" class="nav-item">🔬 Especialistas</a>
-
-        <div class="nav-label">Acciones</div>
-
-        <a href="/admin/nuevo" class="nav-cta">＋ Nuevo asesor</a>
-        <a href="/admin/nuevo-especialista" class="nav-cta-mico">🔬 Nuevo especialista</a>
-        <a href="/admin/nuevo-admin" class="nav-cta" style="margin-top:10px;">＋ Nuevo administrador</a>
-
-    </nav>
-    <div class="nav-label">Configuración</div>
-
-        <a href="#"
-           class="nav-item"
-           onclick="abrirHorario();return false;">
-
-            <span>⚙️</span>
-            Horario
-
-        </a>
-        <a href="#"
-        class="nav-item"
-        onclick="abrirExamenes();return false;">
-
-            <span>🧪</span>
-            Exámenes
-
-        </a>
-
-        <a href="/admin/horario-asesor"
-        class="nav-item {% if request.path == '/admin/horario-asesor' %}active{% endif %}">
-
-            <span class="nav-icon">
-                🗓️
-            </span>
-
-            <span class="menu-text">
-                Horario agenda manual
-            </span>
-
-        </a>
-
-
-        <a href="/admin/dias-tipo-cita"
-        class="nav-item {% if request.path == '/admin/dias-tipo-cita' %}active{% endif %}">
-
-            <span class="nav-icon">
-                📆
-            </span>
-
-            <span class="menu-text">
-                Días por tipo de cita
-            </span>
-
-        </a>
-
-
-        <a href="/admin/bloqueo-fecha"
-        class="nav-item {% if request.path == '/admin/bloqueo-fecha' %}active{% endif %}">
-
-            <span class="nav-icon">
-                🚫
-            </span>
-
-            <span class="menu-text">
-                Bloqueos por fecha
-            </span>
-
-        </a>
-
-    <div class="sidebar-footer">
-        <div class="admin-info">
-            <div class="admin-avatar">A</div>
-            <div>
-                <div class="admin-name">{{ admin_nombre }}</div>
-                <div class="admin-role">Administrador</div>
-            </div>
-        </div>
-        <a href="/admin/logout" class="btn-logout">
-            <span>→</span> Cerrar sesión
-        </a>
-    </div>
-
-</aside>
-
-<!-- ══ MAIN ══ -->
-<div class="main">
-
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="topbar-left">
-            <h1>Panel Administrador</h1>
-            <p>Gestión de accesos y usuarios — CIB Diagnóstico</p>
-        </div>
-        <div class="topbar-actions">
-            <a href="/admin/nuevo" class="btn-top btn-new">＋ Nuevo asesor</a>
-            <a href="/admin/nuevo-especialista" class="btn-top btn-especialista">🔬 Nuevo especialista</a>
-            <a href="/admin/nuevo-admin" class="btn-top btn-users">＋ Nuevo admin</a>
-        </div>
-    </div>
-
-    <!-- PAGE -->
-    <div class="page">
-
-        <!-- ══ STATS ══ -->
-        <div id="filtro-activo" class="filtro-banner">
-            <span id="filtro-texto">Filtrando: activos</span>
-            <a href="#" onclick="filtrarEstado('todos');return false;"
-               style="color:var(--cyan);font-size:12px;text-decoration:none;">✕ Ver todos</a>
-        </div>
-
-        <div class="stats">
-            <div class="stat-card s-total" onclick="filtrarEstado('todos')">
-                <div class="stat-icon">👥</div>
-                <div class="stat-info">
-                    <div class="label">Total asesores</div>
-                    <div class="value">{{ asesores|length }}</div>
-                </div>
-            </div>
-            <div class="stat-card s-active" onclick="filtrarEstado('activo')">
-                <div class="stat-icon">✅</div>
-                <div class="stat-info">
-                    <div class="label">Activos</div>
-                    <div class="value">{{ asesores|selectattr('activo','equalto',True)|list|length }}</div>
-                </div>
-            </div>
-            <div class="stat-card s-inactive" onclick="filtrarEstado('inactivo')">
-                <div class="stat-icon">🚫</div>
-                <div class="stat-info">
-                    <div class="label">Inactivos</div>
-                    <div class="value">{{ asesores|selectattr('activo','equalto',False)|list|length }}</div>
-                </div>
-            </div>
-            <div class="stat-card s-esp" style="cursor:default">
-                <div class="stat-icon">🔬</div>
-                <div class="stat-info">
-                    <div class="label">Especialistas</div>
-                    <div class="value">{{ especialistas|length }}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ══ TABLA ASESORES ══ -->
-        <div class="table-box">
-
-            <div class="table-header">
-                <div>
-                    <h2>Asesores registrados</h2>
-                    <p>Gestión y administración de usuarios</p>
-                </div>
-                <span class="badge-count" id="badge-asesores">{{ asesores|length }} registros</span>
-            </div>
-
-            {% if asesores %}
-            <div class="table-wrap">
-                <table id="tabla-asesores">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Nombre</th>
-                            <th>Usuario</th>
-                            <th>Estado</th>
-                            <th>Registrado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for a in asesores %}
-                    <tr data-estado="{{ 'activo' if a.activo else 'inactivo' }}">
-
-                        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
-                            {{ a.id }}
-                        </td>
-
-                        <td>
-                            <strong style="color:var(--navy)">{{ a.nombre }}</strong>
-                        </td>
-
-                        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
-                            {{ a.usuario }}
-                        </td>
-
-                        <td>
-                            <span class="pill {{ 'activo' if a.activo else 'inactivo' }}">
-                                {{ 'Activo' if a.activo else 'Inactivo' }}
-                            </span>
-                        </td>
-
-                        <td style="font-size:11px;color:var(--muted)">
-                            {{ a.creado_en.strftime('%d/%m/%Y') if a.creado_en else '—' }}
-                        </td>
-
-                        <td>
-                            <div class="actions">
-                                <a href="/admin/editar/{{ a.id }}" class="btn btn-edit">Editar</a>
-                                <a href="/admin/historial/{{ a.id }}" class="btn btn-historial">Historial</a>
-                                <a href="/admin/toggle/{{ a.id }}"
-                                   class="btn {{ 'btn-toggle-off' if a.activo else 'btn-toggle-on' }}">
-                                    {{ 'Desactivar' if a.activo else 'Activar' }}
-                                </a>
-                                <a href="/admin/eliminar/{{ a.id }}"
-                                   class="btn btn-delete"
-                                   onclick="return confirm('¿Eliminar al asesor {{ a.nombre }}?')">
-                                    Eliminar
-                                </a>
-                            </div>
-                        </td>
-
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="empty">
-                <div class="empty-icon">👤</div>
-                <p>No hay asesores registrados aún.</p>
-            </div>
-            {% endif %}
-
-        </div>
-
-        <!-- ══ TABLA ESPECIALISTAS ══ -->
-        <div class="section-sep" id="especialistas">
-            <h3>Especialistas</h3>
-        </div>
-
-        <div class="table-box">
-
-            <div class="table-header">
-                <div>
-                    <h2>Micología y Bacteriología</h2>
-                    <p>Usuarios especializados — acceden con el mismo login de asesores</p>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="background:var(--mico-soft);color:var(--mico);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
-                        🔬 Micología: {{ especialistas|selectattr('rol','equalto','micologia')|list|length }}
-                    </span>
-                    <span style="background:var(--bacte-soft);color:var(--bacte);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
-                        🧫 Bacteriología: {{ especialistas|selectattr('rol','equalto','bacteriologia')|list|length }}
-                    </span>
-                    <span style="background:#F3E8FF;color:#7C3AED;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;">
-                        🏠 Domicilio: {{ especialistas|selectattr('rol','equalto','domicilio')|list|length }}
-                    </span>
-                </div>
-            </div>
-
-            {% if especialistas %}
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Nombre</th>
-                            <th>Usuario</th>
-                            <th>Área</th>
-                            <th>Estado</th>
-                            <th>Registrado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for e in especialistas %}
-                    <tr>
-
-                        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
-                            {{ e.id }}
-                        </td>
-
-                        <td>
-                            <strong style="color:var(--navy)">{{ e.nombre }}</strong>
-                        </td>
-
-                        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
-                            {{ e.usuario }}
-                        </td>
-
-                        <td>
-                            {% if e.rol == 'micologia' %}
-                                <span class="chip-mico">🔬 Micología</span>
-                            {% elif e.rol == 'bacteriologia' %}
-                                <span class="chip-bacte">🧫 Bacteriología</span>
-                            {% else %}
-                                <span class="chip-domi">🏠 Domicilio</span>
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            <span class="pill {{ 'activo' if e.activo else 'inactivo' }}">
-                                {{ 'Activo' if e.activo else 'Inactivo' }}
-                            </span>
-                        </td>
-
-                        <td style="font-size:11px;color:var(--muted)">
-                            {{ e.creado_en.strftime('%d/%m/%Y') if e.creado_en else '—' }}
-                        </td>
-
-                        <td>
-                            <div class="actions">
-                                <a href="/admin/editar/{{ e.id }}" class="btn btn-edit">Editar</a>
-                                <a href="/admin/toggle/{{ e.id }}"
-                                   class="btn {{ 'btn-toggle-off' if e.activo else 'btn-toggle-on' }}">
-                                    {{ 'Desactivar' if e.activo else 'Activar' }}
-                                </a>
-                                <a href="/admin/eliminar/{{ e.id }}"
-                                   class="btn btn-delete"
-                                   onclick="return confirm('¿Eliminar a {{ e.nombre }}?')">
-                                    Eliminar
-                                </a>
-                            </div>
-                        </td>
-
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="empty">
-                <div class="empty-icon">🔬</div>
-                <p>No hay especialistas registrados aún.</p>
-                <a href="/admin/nuevo-especialista"
-                   style="display:inline-block;margin-top:14px;padding:10px 20px;background:var(--mico-soft);color:var(--mico);border-radius:10px;text-decoration:none;font-weight:600;font-size:13px;">
-                    ＋ Crear primer especialista
-                </a>
-            </div>
-            {% endif %}
-
-        </div>
-
-    </div><!-- /page -->
-</div><!-- /main -->
-
-<!-- MODAL HORARIO -->
-<div id="modal-horario"
-     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
-            z-index:200;align-items:center;justify-content:center;">
-
-  <div style="background:white;border-radius:18px;padding:28px;width:560px;
-              max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-
-    <!-- Cabecera -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-      <div>
-        <h2 style="color:var(--navy);font-size:17px;font-weight:700;">⚙️ Configurar horario</h2>
-        <p style="color:var(--muted);font-size:12px;margin-top:3px;">Cambios aplican inmediatamente al bot</p>
-      </div>
-      <button onclick="cerrarHorario()"
-              style="background:var(--gray-light);border:none;border-radius:8px;
-                     padding:8px 12px;cursor:pointer;font-size:13px;color:var(--gray);">✕</button>
-    </div>
-
-    <!-- Horas -->
-    <div style="background:#F8FAFC;border-radius:12px;padding:18px;margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:14px;">🕐 Horario de atención</p>
-
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <label style="font-size:12px;color:var(--muted);min-width:70px;">Hora inicio</label>
-        <input type="range" id="sl-inicio" min="0" max="23"
-               value="{{ horario_inicio }}" step="1" style="flex:1;"
-               oninput="syncHora('inicio', this.value)">
-        <span id="lbl-inicio"
-              style="font-size:13px;font-weight:600;color:var(--navy);min-width:64px;text-align:right;">
-          {{ horario_inicio }}:00
-        </span>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:12px;">
-        <label style="font-size:12px;color:var(--muted);min-width:70px;">Hora fin</label>
-        <input type="range" id="sl-fin" min="0" max="23"
-               value="{{ horario_fin }}" step="1" style="flex:1;"
-               oninput="syncHora('fin', this.value)">
-        <span id="lbl-fin"
-              style="font-size:13px;font-weight:600;color:var(--navy);min-width:64px;text-align:right;">
-          {{ horario_fin }}:00
-        </span>
-      </div>
-    </div>
-    
-    <!-- Días activos -->
-    <div style="background:#F8FAFC;border-radius:12px;padding:18px;margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:14px;">📅 Días de atención</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        {% set nombres_dias = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}
-        {% for i in range(7) %}
-        <label style="display:flex;flex-direction:column;align-items:center;gap:6px;
-                      cursor:pointer;padding:10px 14px;border-radius:10px;
-                      border:2px solid var(--border);transition:.2s;font-size:12px;
-                      font-weight:600;color:var(--navy);background:white;"
-               id="lbl-dia-{{ i }}"
-               onclick="toggleDia({{ i }})">
-          {{ nombres_dias[i] }}
-          <input type="checkbox" id="dia-{{ i }}"
-                 {% if i in dias_activos %}checked{% endif %}
-                 style="display:none;">
-          <span id="dot-{{ i }}"
-                style="width:8px;height:8px;border-radius:50%;
-                       background:{% if i in dias_activos %}var(--green){% else %}#CBD5E1{% endif %};">
-          </span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Días bloqueados -->
-    <div style="background:#F8FAFC;border-radius:12px;padding:18px;margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;">🚫 Días bloqueados</p>
-
-      <div id="lista-bloqueados" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-        {% for d in dias_bloqueados %}
-        <div class="dia-bloqueado-item"
-             style="display:flex;align-items:center;gap:8px;background:white;
-                    padding:10px 12px;border-radius:10px;border:1px solid var(--border);">
-          <input type="date" value="{{ d.fecha.isoformat() }}"
-                 style="border:none;font-family:'Outfit',sans-serif;font-size:13px;
-                        color:var(--navy);outline:none;flex:1;">
-          <input type="text" placeholder="Motivo (opcional)" value="{{ d.motivo }}"
-                 style="border:none;font-family:'Outfit',sans-serif;font-size:12px;
-                        color:var(--muted);outline:none;flex:2;">
-          <button onclick="this.closest('.dia-bloqueado-item').remove()"
-                  style="background:var(--red-soft);color:var(--red);border:none;
-                         border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12px;">✕</button>
-        </div>
-        {% endfor %}
-      </div>
-
-      <button onclick="agregarDiaBloqueado()"
-              style="width:100%;padding:10px;border-radius:10px;border:2px dashed var(--border);
-                     background:white;color:var(--muted);font-family:'Outfit',sans-serif;
-                     font-size:13px;font-weight:600;cursor:pointer;">
-        + Agregar día bloqueado
-      </button>
-    </div>
-
-    <!-- Botones -->
-    <div style="display:flex;gap:10px;">
-      <button onclick="cerrarHorario()"
-              style="flex:1;padding:12px;border-radius:10px;cursor:pointer;
-                     font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
-                     background:var(--gray-light);color:var(--gray);border:none;">
-        Cancelar
-      </button>
-      <button onclick="guardarHorario()"
-              style="flex:2;padding:12px;border-radius:10px;cursor:pointer;
-                     font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
-                     background:var(--navy);color:white;border:none;">
-        Guardar cambios
-      </button>
-    </div>
-
-    <p id="msg-horario" style="text-align:center;font-size:12px;margin-top:12px;min-height:18px;"></p>
-  </div>
 </div>
 
-<!-- MODAL EXÁMENES -->
-<div id="modal-examenes"
-     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
-            z-index:300;align-items:center;justify-content:center;">
 
-  <div style="background:white;border-radius:18px;padding:28px;width:900px;
-              max-height:90vh;overflow-y:auto;
-              box-shadow:0 20px 60px rgba(0,0,0,.2);">
+<!-- ══════════════════════════════════════════════════════════════
+     ESTADÍSTICAS
+══════════════════════════════════════════════════════════════ -->
 
-    <!-- CABECERA -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+<div class="stats">
 
-      <div>
-        <h2 style="color:var(--navy);font-size:18px;font-weight:700;">
-          🧪 Configuración de exámenes
-        </h2>       
+    <div class="stat-card s-total"
+         onclick="filtrarEstado('todos')">
 
-        <p style="color:var(--muted);font-size:12px;margin-top:3px;">
-          Configura días permitidos y anticipación mínima
-        </p>
-      </div>
+        <div class="stat-icon">
+            👥
+        </div>
 
-      <button onclick="cerrarExamenes()"
-              style="background:var(--gray-light);
-                     border:none;
-                     border-radius:8px;
-                     padding:8px 12px;
-                     cursor:pointer;
-                     font-size:13px;
-                     color:var(--gray);">
-        ✕
-      </button>
+        <div class="stat-info">
+
+            <div class="label">
+                Total asesores
+            </div>
+
+            <div class="value">
+                {{ asesores|length }}
+            </div>
+
+        </div>
 
     </div>
 
-    <!-- TABLA -->
+
+    <div class="stat-card s-active"
+         onclick="filtrarEstado('activo')">
+
+        <div class="stat-icon">
+            ✅
+        </div>
+
+        <div class="stat-info">
+
+            <div class="label">
+                Activos
+            </div>
+
+            <div class="value">
+                {{ asesores|selectattr('activo','equalto',True)|list|length }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card s-inactive"
+         onclick="filtrarEstado('inactivo')">
+
+        <div class="stat-icon">
+            🚫
+        </div>
+
+        <div class="stat-info">
+
+            <div class="label">
+                Inactivos
+            </div>
+
+            <div class="value">
+                {{ asesores|selectattr('activo','equalto',False)|list|length }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card s-esp"
+         style="cursor:default">
+
+        <div class="stat-icon">
+            🔬
+        </div>
+
+        <div class="stat-info">
+
+            <div class="label">
+                Especialistas
+            </div>
+
+            <div class="value">
+                {{ especialistas|length }}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     TABLA ASESORES
+══════════════════════════════════════════════════════════════ -->
+
+<div class="table-box">
+
+    <div class="table-header">
+
+        <div>
+
+            <h2>
+                Asesores registrados
+            </h2>
+
+            <p>
+                Gestión y administración de usuarios
+            </p>
+
+        </div>
+
+        <span class="badge-count"
+              id="badge-asesores">
+
+            {{ asesores|length }} registros
+
+        </span>
+
+    </div>
+
+
+    {% if asesores %}
+
     <div class="table-wrap">
 
-      <table id="tabla-examenes">
+        <table id="tabla-asesores">
 
-        <thead>
-          <tr>
-            <th>Examen</th>
-            <th>Lun</th>
-            <th>Mar</th>
-            <th>Mié</th>
-            <th>Jue</th>
-            <th>Vie</th>
-            <th>Antici  pación</th>
-             <!-- ← nuevo -->
-            <th>Hora inicio</th>    <!-- ← nuevo -->
-            <th>Hora fin</th>    <!-- ← nuevo -->           
-          </tr>
-        </thead>
+            <thead>
 
-        <tbody>
+                <tr>
 
-          {% for cfg in configs %}
-          <tr data-id="{{ cfg.examen_id }}">
+                    <th>
+                        #
+                    </th>
 
-            <td>
-              <strong style="color:var(--navy)">
-                {{ cfg.examen_id }}
-              </strong>
-            </td>
+                    <th>
+                        Nombre
+                    </th>
 
-            {% for d in range(5) %}
-            <td style="text-align:center;">
+                    <th>
+                        Usuario
+                    </th>
 
-              <input type="checkbox"
-                     class="dia-check"
-                     value="{{ d }}"
-                     {% if d in cfg.dias_lista() %}checked{% endif %}
-                     style="width:18px;height:18px;cursor:pointer;">
+                    <th>
+                        Estado
+                    </th>
 
-            </td>
+                    <th>
+                        Registrado
+                    </th>
+
+                    <th>
+                        Acciones
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for a in asesores %}
+
+            <tr data-estado="{{ 'activo' if a.activo else 'inactivo' }}">
+
+                <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">
+
+                    {{ a.id }}
+
+                </td>
+
+
+                <td>
+
+                    <strong style="color:var(--navy)">
+
+                        {{ a.nombre }}
+
+                    </strong>
+
+                </td>
+
+
+                <td style="font-family:'JetBrains Mono',monospace;font-size:12px">
+
+                    {{ a.usuario }}
+
+                </td>
+
+
+                <td>
+
+                    <span class="pill {{ 'activo' if a.activo else 'inactivo' }}">
+
+                        {{ 'Activo' if a.activo else 'Inactivo' }}
+
+                    </span>
+
+                </td>
+
+
+                <td style="font-size:11px;color:var(--muted)">
+
+                    {{ a.creado_en.strftime('%d/%m/%Y') if a.creado_en else '—' }}
+
+                </td>
+
+
+                <td>
+
+                    <div class="actions">
+
+                        <a href="/admin/editar/{{ a.id }}"
+                           class="btn btn-edit">
+
+                            Editar
+
+                        </a>
+
+
+                        <a href="/admin/historial/{{ a.id }}"
+                           class="btn btn-historial">
+
+                            Historial
+
+                        </a>
+
+
+                        <a href="/admin/toggle/{{ a.id }}"
+                           class="btn {{ 'btn-toggle-off' if a.activo else 'btn-toggle-on' }}">
+
+                            {{ 'Desactivar' if a.activo else 'Activar' }}
+
+                        </a>
+
+
+                        <a href="/admin/eliminar/{{ a.id }}"
+                           class="btn btn-delete"
+                           onclick="return confirm('¿Eliminar al asesor {{ a.nombre }}?')">
+
+                            Eliminar
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
             {% endfor %}
 
-            <td>
+            </tbody>
 
-              <input type="number"
-                     class="anticip-input"
-                     value="{{ cfg.min_anticipacion }}"
-                     min="1"
-                     max="30"
-
-                     style="
-                       width:80px;
-                       padding:8px;
-                       border-radius:8px;
-                       border:1px solid var(--border);
-                       font-family:'Outfit',sans-serif;
-                     ">
-
-            </td>
-
-            <td>
-                <input type="time" class="hora-inicio-input"
-                        value="{{ cfg.hora_inicio }}"
-                        style="padding:8px;border-radius:8px;
-                                border:1px solid var(--border);font-family:'Outfit',sans-serif;">
-            </td>
-            <td>
-                <input type="time" class="hora-fin-input"
-                        value="{{ cfg.hora_fin }}"
-                        style="padding:8px;border-radius:8px;
-                                border:1px solid var(--border);font-family:'Outfit',sans-serif;">
-            </td>
-          </tr>
-          {% endfor %}
-
-        </tbody>
-
-      </table>
+        </table>
 
     </div>
 
-    <!-- BOTONES -->
-    <div style="display:flex;gap:10px;margin-top:20px;">
 
-      <button onclick="cerrarExamenes()"
-              style="flex:1;
-                     padding:12px;
-                     border-radius:10px;
-                     cursor:pointer;
-                     font-family:'Outfit',sans-serif;
-                     font-size:13px;
-                     font-weight:600;
-                     background:var(--gray-light);
-                     color:var(--gray);
-                     border:none;">
+    {% else %}
 
-        Cancelar
+    <div class="empty">
 
-      </button>
+        <div class="empty-icon">
+            👤
+        </div>
 
-      <button onclick="guardarExamenes()"
-              style="flex:2;
-                     padding:12px;
-                     border-radius:10px;
-                     cursor:pointer;
-                     font-family:'Outfit',sans-serif;
-                     font-size:14px;
-                     font-weight:700;
-                     background:var(--navy);
-                     color:white;
-                     border:none;">
-
-        💾 Guardar cambios
-
-      </button>
+        <p>
+            No hay asesores registrados aún.
+        </p>
 
     </div>
 
-    <p id="msg-examenes"
-       style="text-align:center;
-              font-size:12px;
-              margin-top:12px;
-              min-height:18px;">
-    </p>
+    {% endif %}
 
-  </div>
 </div>
 
-<script>
-function abrirHorario()  { document.getElementById('modal-horario').style.display = 'flex'; }
-function cerrarHorario() { document.getElementById('modal-horario').style.display = 'none'; }
 
-function formatHora(h) {
-    h = parseInt(h);
-    if (h === 0)  return '12:00 am';
-    if (h < 12)   return h + ':00 am';
-    if (h === 12) return '12:00 pm';
-    return (h - 12) + ':00 pm';
-}
+<!-- ══════════════════════════════════════════════════════════════
+     SECCIÓN ESPECIALISTAS
+══════════════════════════════════════════════════════════════ -->
 
-function syncHora(tipo, val) {
-    document.getElementById('lbl-' + tipo).textContent = formatHora(val);
-}
+<div class="section-sep"
+     id="especialistas">
 
-function toggleDia(i) {
-    const cb  = document.getElementById('dia-' + i);
-    const dot = document.getElementById('dot-' + i);
-    const lbl = document.getElementById('lbl-dia-' + i);
-    cb.checked = !cb.checked;
-    dot.style.background  = cb.checked ? 'var(--green)' : '#CBD5E1';
-    lbl.style.borderColor = cb.checked ? 'var(--green)' : 'var(--border)';
-}
+    <h3>
+        Especialistas
+    </h3>
 
-function agregarDiaBloqueado() {
-    const lista = document.getElementById('lista-bloqueados');
-    const div   = document.createElement('div');
-    div.className = 'dia-bloqueado-item';
-    div.style.cssText = 'display:flex;align-items:center;gap:8px;background:white;' +
-                        'padding:10px 12px;border-radius:10px;border:1px solid var(--border);';
-    div.innerHTML = `
-        <input type="date"
-               style="border:none;font-family:'Outfit',sans-serif;font-size:13px;
-                      color:var(--navy);outline:none;flex:1;">
-        <input type="text" placeholder="Motivo (opcional)"
-               style="border:none;font-family:'Outfit',sans-serif;font-size:12px;
-                      color:var(--muted);outline:none;flex:2;">
-        <button onclick="this.closest('.dia-bloqueado-item').remove()"
-                style="background:var(--red-soft);color:var(--red);border:none;
-                       border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12px;">✕</button>`;
-    lista.appendChild(div);
-}
-
-async function guardarHorario() {
-    const inicio = parseInt(document.getElementById('sl-inicio').value);
-    const fin    = parseInt(document.getElementById('sl-fin').value);
-    const msg    = document.getElementById('msg-horario');
-
-    // Validación básica
-    if (fin <= inicio) {
-        msg.textContent = '⚠️ La hora de fin debe ser mayor a la de inicio';
-        return;
-    }
-
-    // Días activos seleccionados
-    const diasActivos = [];
-    for (let i = 0; i < 7; i++) {
-        if (document.getElementById('dia-' + i).checked) diasActivos.push(i);
-    }
-    if (diasActivos.length === 0) {
-        msg.textContent = '⚠️ Selecciona al menos un día de atención';
-        return;
-    }
-
-    // Días bloqueados
-    const diasBloqueados = [];
-    document.querySelectorAll('.dia-bloqueado-item').forEach(item => {
-        const inputs = item.querySelectorAll('input');
-        const fecha  = inputs[0].value;
-        const motivo = inputs[1].value;
-        if (fecha) diasBloqueados.push({ fecha, motivo });
-    });
-
-    msg.textContent = 'Guardando...';
-
-    try {
-        const res = await fetch('/admin/horario', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                horario_inicio:  inicio,
-                horario_fin:     fin,
-                dias_activos:    diasActivos,
-                dias_bloqueados: diasBloqueados
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.ok) {
-            msg.textContent = '✅ Guardado correctamente';
-            setTimeout(cerrarHorario, 1200);
-        } else {
-            msg.textContent = '❌ Error al guardar: ' + (data.error || 'intenta de nuevo');
-        }
-    } catch (e) {
-        msg.textContent = '❌ Error del servidor';
-    }
-}
-</script>
 </div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     TABLA ESPECIALISTAS
+══════════════════════════════════════════════════════════════ -->
+
+<div class="table-box">
+
+    <div class="table-header">
+
+        <div>
+
+            <h2>
+                Micología y Bacteriología
+            </h2>
+
+            <p>
+                Usuarios especializados — acceden con el mismo login de asesores
+            </p>
+
+        </div>
+
+
+        <div style="display:flex;align-items:center;gap:8px;">
+
+            <span style="background:var(--mico-soft);
+                         color:var(--mico);
+                         padding:4px 10px;
+                         border-radius:20px;
+                         font-size:11px;
+                         font-weight:700;">
+
+                🔬 Micología:
+                {{ especialistas|selectattr('rol','equalto','micologia')|list|length }}
+
+            </span>
+
+
+            <span style="background:var(--bacte-soft);
+                         color:var(--bacte);
+                         padding:4px 10px;
+                         border-radius:20px;
+                         font-size:11px;
+                         font-weight:700;">
+
+                🧫 Bacteriología:
+                {{ especialistas|selectattr('rol','equalto','bacteriologia')|list|length }}
+
+            </span>
+
+
+            <span style="background:#F3E8FF;
+                         color:#7C3AED;
+                         padding:4px 10px;
+                         border-radius:20px;
+                         font-size:11px;
+                         font-weight:700;">
+
+                🏠 Domicilio:
+                {{ especialistas|selectattr('rol','equalto','domicilio')|list|length }}
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    {% if especialistas %}
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        #
+                    </th>
+
+                    <th>
+                        Nombre
+                    </th>
+
+                    <th>
+                        Usuario
+                    </th>
+
+                    <th>
+                        Área
+                    </th>
+
+                    <th>
+                        Estado
+                    </th>
+
+                    <th>
+                        Registrado
+                    </th>
+
+                    <th>
+                        Acciones
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for e in especialistas %}
+
+            <tr>
+
+                <td style="font-family:'JetBrains Mono',monospace;
+                           font-size:11px;
+                           color:var(--muted)">
+
+                    {{ e.id }}
+
+                </td>
+
+
+                <td>
+
+                    <strong style="color:var(--navy)">
+
+                        {{ e.nombre }}
+
+                    </strong>
+
+                </td>
+
+
+                <td style="font-family:'JetBrains Mono',monospace;
+                           font-size:12px">
+
+                    {{ e.usuario }}
+
+                </td>
+
+
+                <td>
+
+                    {% if e.rol == 'micologia' %}
+
+                        <span class="chip-mico">
+                            🔬 Micología
+                        </span>
+
+                    {% elif e.rol == 'bacteriologia' %}
+
+                        <span class="chip-bacte">
+                            🧫 Bacteriología
+                        </span>
+
+                    {% else %}
+
+                        <span class="chip-domi">
+                            🏠 Domicilio
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+
+                <td>
+
+                    <span class="pill {{ 'activo' if e.activo else 'inactivo' }}">
+
+                        {{ 'Activo' if e.activo else 'Inactivo' }}
+
+                    </span>
+
+                </td>
+
+
+                <td style="font-size:11px;color:var(--muted)">
+
+                    {{ e.creado_en.strftime('%d/%m/%Y') if e.creado_en else '—' }}
+
+                </td>
+
+
+                <td>
+
+                    <div class="actions">
+
+                        <a href="/admin/editar/{{ e.id }}"
+                           class="btn btn-edit">
+
+                            Editar
+
+                        </a>
+
+
+                        <a href="/admin/toggle/{{ e.id }}"
+                           class="btn {{ 'btn-toggle-off' if e.activo else 'btn-toggle-on' }}">
+
+                            {{ 'Desactivar' if e.activo else 'Activar' }}
+
+                        </a>
+
+
+                        <a href="/admin/eliminar/{{ e.id }}"
+                           class="btn btn-delete"
+                           onclick="return confirm('¿Eliminar a {{ e.nombre }}?')">
+
+                            Eliminar
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% else %}
+
+    <div class="empty">
+
+        <div class="empty-icon">
+            🔬
+        </div>
+
+        <p>
+            No hay especialistas registrados aún.
+        </p>
+
+
+        <a href="/admin/nuevo-especialista"
+           style="display:inline-block;
+                  margin-top:14px;
+                  padding:10px 20px;
+                  background:var(--mico-soft);
+                  color:var(--mico);
+                  border-radius:10px;
+                  text-decoration:none;
+                  font-weight:600;
+                  font-size:13px;">
+
+            ＋ Crear primer especialista
+
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
 <script>
+
 function filtrarEstado(estado) {
-    const filas   = document.querySelectorAll('#tabla-asesores tbody tr');
-    const banner  = document.getElementById('filtro-activo');
-    const texto   = document.getElementById('filtro-texto');
-    const badge   = document.getElementById('badge-asesores');
-    const cards   = document.querySelectorAll('.stat-card');
-    const mapa    = { activo:'s-active', inactivo:'s-inactive' };
+
+    const filas =
+        document.querySelectorAll(
+            '#tabla-asesores tbody tr'
+        );
+
+    const banner =
+        document.getElementById(
+            'filtro-activo'
+        );
+
+    const texto =
+        document.getElementById(
+            'filtro-texto'
+        );
+
+    const badge =
+        document.getElementById(
+            'badge-asesores'
+        );
+
+    const cards =
+        document.querySelectorAll(
+            '.stat-card'
+        );
+
+    const mapa = {
+        activo: 's-active',
+        inactivo: 's-inactive'
+    };
+
 
     if (estado === 'todos') {
-        cards.forEach(c => { c.style.opacity='1'; c.style.outline='none'; });
+
+        cards.forEach(c => {
+
+            c.style.opacity = '1';
+            c.style.outline = 'none';
+
+        });
+
+
         banner.style.display = 'none';
-        filas.forEach(f => f.style.display = '');
-        badge.textContent = filas.length + ' registros';
-    } else {
-        cards.forEach(c => { c.style.opacity='0.45'; c.style.outline='none'; });
-        const activa = document.querySelector('.' + mapa[estado]);
-        if (activa) { activa.style.opacity='1'; activa.style.outline='2px solid var(--cyan)'; }
-        document.querySelector('.s-total').style.opacity = '0.7';
 
-        const nombres = { activo:'Activos', inactivo:'Inactivos' };
-        texto.textContent = 'Filtrando: ' + nombres[estado];
-        banner.style.display = 'flex';
 
-        let count = 0;
         filas.forEach(fila => {
-            const estadoFila = fila.dataset.estado || '';
-            if (estadoFila === estado) { fila.style.display=''; count++; }
-            else fila.style.display = 'none';
+
+            fila.style.display = '';
+
         });
-        badge.textContent = count + ' registros';
+
+
+        badge.textContent =
+            filas.length + ' registros';
+
     }
-}
-</script>
-<script>
 
-function abrirExamenes() {
-    document.getElementById('modal-examenes').style.display = 'flex';
-}
 
-function cerrarExamenes() {
-    document.getElementById('modal-examenes').style.display = 'none';
-}
+    else {
 
-async function guardarExamenes() {
+        cards.forEach(c => {
 
-    const rows = document.querySelectorAll('#tabla-examenes tr[data-id]');
-    const msg  = document.getElementById('msg-examenes');
-
-    const examenes = [...rows].map(row => ({
-
-        examen_id: row.dataset.id,
-
-        dias: [...row.querySelectorAll('.dia-check:checked')]
-            .map(c => parseInt(c.value)),
-
-        min_anticipacion:
-            parseInt(row.querySelector('.anticip-input').value),
-        
-        hora_inicio:      row.querySelector('.hora-inicio-input').value || '07:30',  // ← nuevo
-        hora_fin:         row.querySelector('.hora-fin-input').value    || '15:30',  // ← nuevo
-    }));
-
-    msg.textContent = 'Guardando...';
-
-    try {
-
-        const r = await fetch('/admin/examenes/guardar', {
-
-            method: 'POST',
-
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify({ examenes })
+            c.style.opacity = '0.45';
+            c.style.outline = 'none';
 
         });
 
-        const data = await r.json();
 
-        if (data.ok) {
+        const activa =
+            document.querySelector(
+                '.' + mapa[estado]
+            );
 
-            msg.textContent = '✅ Guardado correctamente';
 
-            setTimeout(() => {
-                cerrarExamenes();
-            }, 1200);
+        if (activa) {
 
-        } else {
+            activa.style.opacity = '1';
 
-            msg.textContent = '❌ Error al guardar';
+            activa.style.outline =
+                '2px solid var(--cyan)';
 
         }
 
-    } catch (e) {
 
-        msg.textContent = '❌ Error del servidor';
+        document.querySelector(
+            '.s-total'
+        ).style.opacity = '0.7';
+
+
+        const nombres = {
+            activo: 'Activos',
+            inactivo: 'Inactivos'
+        };
+
+
+        texto.textContent =
+            'Filtrando: ' +
+            nombres[estado];
+
+
+        banner.style.display = 'flex';
+
+
+        let count = 0;
+
+
+        filas.forEach(fila => {
+
+            const estadoFila =
+                fila.dataset.estado || '';
+
+
+            if (estadoFila === estado) {
+
+                fila.style.display = '';
+
+                count++;
+
+            }
+
+            else {
+
+                fila.style.display = 'none';
+
+            }
+
+        });
+
+
+        badge.textContent =
+            count + ' registros';
 
     }
+
 }
 
 </script>
-</body>
-</html>
+
+{% endblock %}
+```
