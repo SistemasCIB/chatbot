@@ -189,19 +189,36 @@ select{
 
     <div class="legend">
 
-        <div class="legend-item">
-            <div class="color-box" style="background:#f39c12;"></div>
-            <span>Pendiente</span>
+        <div class="legend-group">
+            <strong>Agenda:</strong>
+            <div class="legend-item">
+                <div class="color-box" style="background:#9b59b6;"></div>
+                <span>Domicilio</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background:#8bc34a;"></div>
+                <span>Micología</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background:#4fc3f7;"></div>
+                <span>Bacteriología</span>
+            </div>
         </div>
 
-        <div class="legend-item">
-            <div class="color-box" style="background:#27ae60;"></div>
-            <span>Confirmada</span>
-        </div>
-
-        <div class="legend-item">
-            <div class="color-box" style="background:#e74c3c;"></div>
-            <span>Cancelada / Rechazada</span>
+        <div class="legend-group">
+            <strong>Estado:</strong>
+            <div class="legend-item">
+                <div class="color-box" style="background:#f1c40f; border-radius:50%;"></div>
+                <span>Pendiente</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background:#145a32; border-radius:50%;"></div>
+                <span>Confirmada</span>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background:#e74c3c; border-radius:50%;"></div>
+                <span>Cancelada / Rechazada</span>
+            </div>
         </div>
 
     </div>
@@ -249,7 +266,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
             day: 'Día'
         },
+        /* =======================================
+           NUEVO: fondo (agenda) + punto (estado)
+        ======================================= */
 
+        eventContent: function(arg) {
+
+            const dotColor = arg.event.extendedProps.estado_color || '#f1c40f';
+
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'flex-start';
+            wrapper.style.justifyContent = 'space-between';
+            wrapper.style.gap = '6px';
+            wrapper.style.width = '100%';
+            wrapper.style.fontSize = '12px';
+            wrapper.style.fontWeight = '600';
+
+            const titulo = document.createElement('span');
+            titulo.style.overflow = 'hidden';
+            titulo.style.textOverflow = 'ellipsis';
+            titulo.style.whiteSpace = 'nowrap';
+            titulo.textContent = arg.event.title;
+
+            const punto = document.createElement('span');
+            punto.style.width = '10px';
+            punto.style.height = '10px';
+            punto.style.minWidth = '10px';
+            punto.style.borderRadius = '50%';
+            punto.style.background = dotColor;
+            punto.style.marginTop = '2px';
+            punto.style.border = '1px solid rgba(255,255,255,0.6)';
+
+            wrapper.appendChild(titulo);
+            wrapper.appendChild(punto);
+
+            return { domNodes: [wrapper] };
+        },
         /* =======================================
            CAMBIO NUEVO
         ======================================= */

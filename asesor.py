@@ -859,8 +859,6 @@ def eventos_calendario():
     rol_actual   = session.get('asesor_rol', 'asesor')
     agenda_filtro = request.args.get('agenda', '')
 
-    # Si el rol es micologia o bacteriologia, forzar su agenda
-    # sin importar lo que venga por query param
     if rol_actual == 'micologia':
         agenda_filtro = 'micologia'
     elif rol_actual == 'bacteriologia':
@@ -884,21 +882,31 @@ def eventos_calendario():
 
     eventos = []
 
+    # =====================================================
+    # COLORES FIJOS SEGÚN LEYENDA
+    # =====================================================
+
+    COLOR_AGENDA = {
+        'domicilio':     '#9b59b6',   # morado
+        'micologia':     '#8bc34a',   # verde
+        'bacteriologia': '#4fc3f7',   # azul
+    }
+
+    COLOR_ESTADO = {
+        'confirmada':  '#145a32',   # verde oscuro
+        'pendiente':   '#f1c40f',   # amarillo
+        'cancelada':   '#e74c3c',   # rojo
+        'rechazada':   '#e74c3c',   # rojo
+    }
+
+    def color_estado(estado):
+        return COLOR_ESTADO.get(estado, '#f1c40f')  # pendiente por defecto
+
     for cita in citas:
 
-        color = '#f39c12'
-
-        if cita.estado == 'confirmada':
-            color = '#27ae60'
-
-        elif cita.estado in (
-            'rechazada',
-            'cancelada'
-        ):
-            color = '#e74c3c'
+        estado_color = color_estado(cita.estado)
 
         # =====================================================
-        # CAMBIO:
         # DOMICILIOS SIN HORA
         # =====================================================
 
@@ -916,10 +924,12 @@ def eventos_calendario():
 
                 'allDay': True,
 
-                'color': '#9b59b6',
+                'color': COLOR_AGENDA['domicilio'],
+                'textColor': '#1a1a2e',
 
                 'extendedProps': {
                     'estado': cita.estado,
+                    'estado_color': estado_color,
                     'telefono': cita.numero_whatsapp,
                     'paciente': cita.paciente.nombre,
                     'documento': cita.paciente.documento,
@@ -930,7 +940,7 @@ def eventos_calendario():
                     'agenda': cita.agenda_tipo or 'domicilio',
                     'area': cita.area or '',
                     'direccion': cita.direccion_domicilio,
-                    'correo': cita.paciente.correo or'',
+                    'correo': cita.paciente.correo or '',
                     'tipo': 'domicilio'
                 }
             })
@@ -961,17 +971,15 @@ def eventos_calendario():
             continue
 
         # =====================================================
-        # COLOR POR ÁREA
+        # COLOR POR ÁREA (FONDO = TIPO DE AGENDA)
         # =====================================================
 
         if cita.area == "Micología":
-            color_area = "#4f8ef7"
-
+            color_area = COLOR_AGENDA['micologia']
         elif cita.area == "Bacteriología":
-            color_area = "#16a085"
-
+            color_area = COLOR_AGENDA['bacteriologia']
         else:
-            color_area = color
+            color_area = COLOR_AGENDA.get(cita.agenda_tipo, '#95a5a6')
 
         eventos.append({
 
@@ -985,9 +993,11 @@ def eventos_calendario():
             'end': fin.isoformat(),
 
             'color': color_area,
+            'textColor': '#1a1a2e',
 
             'extendedProps': {
                 'estado': cita.estado,
+                'estado_color': estado_color,
                 'telefono': cita.numero_whatsapp,
                 'paciente': cita.paciente.nombre,
                 'documento': cita.paciente.documento,
@@ -998,7 +1008,7 @@ def eventos_calendario():
                 'agenda': cita.agenda_tipo or cita.area or '',
                 'area': cita.area or '',
                 'correo': cita.paciente.correo or '',
-                'direccion': cita.direccion_domicilio or '',   # ← AGREGAR
+                'direccion': cita.direccion_domicilio or '',
                 'tipo': 'presencial'
             }
         })
