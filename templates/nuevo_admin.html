@@ -4,21 +4,16 @@
 CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
 {% endblock %}
 
-
 {% block header_title %}
 {{ 'Editar administrador' if admin else 'Nuevo administrador' }}
 {% endblock %}
-
 
 {% block header_subtitle %}
 {{ 'Editar datos del administrador' if admin else 'Crear nuevo administrador' }}
 {% endblock %}
 
-
 {% block extra_css %}
-
 <style>
-
     .admin-form-container {
         max-width: 520px;
         margin: 0 auto;
@@ -131,7 +126,6 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
     }
 
     @media (max-width: 600px) {
-
         .admin-form-container {
             max-width: 100%;
         }
@@ -149,13 +143,9 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
             width: 100%;
             text-align: center;
         }
-
     }
-
 </style>
-
 {% endblock %}
-
 
 {% block content %}
 
@@ -167,22 +157,17 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
             {{ 'Editar datos del administrador' if admin else 'Crear nuevo administrador' }}
         </div>
 
-
         <form method="POST">
 
             <div class="form-card-body">
 
                 {% if error %}
-
                 <div class="error">
                     {{ error }}
                 </div>
-
                 {% endif %}
 
-
                 <div class="field">
-
                     <label>
                         Nombre completo
                     </label>
@@ -193,12 +178,9 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
                         value="{{ admin.nombre if admin else '' }}"
                         required
                     >
-
                 </div>
 
-
                 <div class="field">
-
                     <label>
                         Usuario
                     </label>
@@ -209,12 +191,9 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
                         value="{{ admin.usuario if admin else '' }}"
                         required
                     >
-
                 </div>
 
-
                 <div class="field">
-
                     <label>
                         Correo
                     </label>
@@ -224,12 +203,9 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
                         name="correo"
                         value="{{ admin.correo if admin else '' }}"
                     >
-
                 </div>
 
-
                 <div class="field">
-
                     <label>
                         Contraseña
                     </label>
@@ -241,27 +217,25 @@ CIB — {{ 'Editar' if admin else 'Nuevo' }} Administrador
                     >
 
                     {% if admin %}
-
                     <small>
                         Deja vacío para mantener la contraseña actual.
                     </small>
-
                     {% endif %}
-
                 </div>
-
 
                 <div class="form-actions">
 
                     <a
                         href="/admin"
-                        class="btn-cancelar">
+                        class="btn-cancelar"
+                    >
                         Cancelar
                     </a>
 
                     <button
                         type="submit"
-                        class="btn-guardar">
+                        class="btn-guardar"
+                    >
                         {{ 'Guardar cambios' if admin else 'Crear administrador' }}
                     </button>
 
