@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 import os
 
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, session
@@ -440,19 +440,74 @@ def listar_bloqueos_fecha():
 @admin_requerido
 def crear_bloqueo_fecha():
     data = request.get_json(silent=True) or {}
+
+    tipo_bloqueo = data.get('tipo_bloqueo')
+    if tipo_bloqueo not in ('dia_completo', 'rango_horas', 'cupo_maximo'):
+        return jsonify({'ok': False, 'error': 'tipo_bloqueo inválido'}), 400
+
+    if not data.get('fecha'):
+        return jsonify({'ok': False, 'error': 'fecha es requerida'}), 400
+
+    if not data.get('motivo'):
+        return jsonify({'ok': False, 'error': 'motivo es requerido'}), 400
+
+    tipo_cita = data.get('tipo_cita') or None
+    if tipo_cita is not None and tipo_cita not in ('domicilio', 'presencial'):
+        return jsonify({'ok': False, 'error': 'tipo_cita inválido'}), 400
+
+    hora_inicio = data.get('hora_inicio')
+    hora_fin = data.get('hora_fin')
+    max_citas_dia = data.get('max_citas_dia')
+
+    if tipo_bloqueo == 'rango_horas':
+        if not hora_inicio or not hora_fin:
+            return jsonify({'ok': False, 'error': 'hora_inicio y hora_fin son requeridas para rango_horas'}), 400
+        try:
+            h_ini = datetime.strptime(hora_inicio, "%H:%M").time()
+            h_fin = datetime.strptime(hora_fin, "%H:%M").time()
+        except ValueError:
+            return jsonify({'ok': False, 'error': 'formato de hora inválido, use HH:MM'}), 400
+        if h_ini >= h_fin:
+            return jsonify({'ok': False, 'error': 'hora_inicio debe ser menor que hora_fin'}), 400
+        # no aplican a este tipo, se descartan aunque vengan en el payload
+        max_citas_dia = None
+
+    elif tipo_bloqueo == 'cupo_maximo':
+        if max_citas_dia is None:
+            return jsonify({'ok': False, 'error': 'max_citas_dia es requerido para cupo_maximo'}), 400
+        try:
+            max_citas_dia = int(max_citas_dia)
+        except (TypeError, ValueError):
+            return jsonify({'ok': False, 'error': 'max_citas_dia debe ser un número entero'}), 400
+        if max_citas_dia < 0:
+            return jsonify({'ok': False, 'error': 'max_citas_dia no puede ser negativo'}), 400
+        # no aplican a este tipo, se descartan aunque vengan en el payload
+        hora_inicio = None
+        hora_fin = None
+
+    else:  # dia_completo
+        # no aplican a este tipo, se descartan aunque vengan en el payload
+        hora_inicio = None
+        hora_fin = None
+        max_citas_dia = None
+
+    try:
+        fecha_obj = date.fromisoformat(data['fecha'])
+    except ValueError:
+        return jsonify({'ok': False, 'error': 'formato de fecha inválido, use YYYY-MM-DD'}), 400
+
     b = BloqueoAgendaFecha(
-        fecha=date.fromisoformat(data['fecha']),
-        tipo_bloqueo=data['tipo_bloqueo'],
-        tipo_cita=data.get('tipo_cita') or None,
-        hora_inicio=data.get('hora_inicio'),
-        hora_fin=data.get('hora_fin'),
-        max_citas_dia=data.get('max_citas_dia'),
+        fecha=fecha_obj,
+        tipo_bloqueo=tipo_bloqueo,
+        tipo_cita=tipo_cita,
+        hora_inicio=hora_inicio,
+        hora_fin=hora_fin,
+        max_citas_dia=max_citas_dia,
         motivo=data['motivo'],
     )
     db.session.add(b)
     db.session.commit()
     return jsonify({'ok': True, 'id': b.id})
-
 
 @admin_bp.route('/admin/bloqueo-fecha/<int:bloqueo_id>/eliminar', methods=['POST'])
 @admin_requerido

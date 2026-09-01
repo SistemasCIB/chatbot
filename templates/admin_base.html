@@ -2080,7 +2080,46 @@
 
         </a>
 
+        <a href="/admin/horario-asesor"
+        class="nav-item {% if request.path == '/admin/horario-asesor' %}active{% endif %}">
 
+            <span class="nav-icon">
+                🗓️
+            </span>
+
+            <span class="menu-text">
+                Horario agenda manual
+            </span>
+
+        </a>
+
+
+        <a href="/admin/dias-tipo-cita"
+        class="nav-item {% if request.path == '/admin/dias-tipo-cita' %}active{% endif %}">
+
+            <span class="nav-icon">
+                📆
+            </span>
+
+            <span class="menu-text">
+                Días por tipo de cita
+            </span>
+
+        </a>
+
+
+        <a href="/admin/bloqueo-fecha"
+        class="nav-item {% if request.path == '/admin/bloqueo-fecha' %}active{% endif %}">
+
+            <span class="nav-icon">
+                🚫
+            </span>
+
+            <span class="menu-text">
+                Bloqueos por fecha
+            </span>
+
+        </a>
         <!-- Bloque para agregar elementos desde otras páginas -->
 
         {% block sidebar_extra %}

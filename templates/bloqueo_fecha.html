@@ -139,39 +139,53 @@
   syncCampos();
 
   document.getElementById('blq-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const fd = new FormData(form);
-    const payload = {
-      fecha: fd.get('fecha'),
-      tipo_bloqueo: fd.get('tipo_bloqueo'),
-      tipo_cita: fd.get('tipo_cita') || null,
-      hora_inicio: fd.get('hora_inicio') || null,
-      hora_fin: fd.get('hora_fin') || null,
-      max_citas_dia: fd.get('max_citas_dia') ? parseInt(fd.get('max_citas_dia'), 10) : null,
-      motivo: fd.get('motivo'),
-    };
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+      const payload = {
+        fecha: fd.get('fecha'),
+        tipo_bloqueo: fd.get('tipo_bloqueo'),
+        tipo_cita: fd.get('tipo_cita') || null,
+        hora_inicio: fd.get('hora_inicio') || null,
+        hora_fin: fd.get('hora_fin') || null,
+        max_citas_dia: fd.get('max_citas_dia') ? parseInt(fd.get('max_citas_dia'), 10) : null,
+        motivo: fd.get('motivo'),
+      };
 
-    if (payload.tipo_bloqueo === 'rango_horas' && (!payload.hora_inicio || !payload.hora_fin)) {
-      alert('Indica hora inicio y hora fin para un bloqueo de rango de horas.');
-      return;
-    }
-    if (payload.tipo_bloqueo === 'cupo_maximo' && !payload.max_citas_dia && payload.max_citas_dia !== 0) {
-      alert('Indica el cupo máximo de citas.');
-      return;
-    }
+      if (payload.tipo_bloqueo === 'rango_horas' && (!payload.hora_inicio || !payload.hora_fin)) {
+        alert('Indica hora inicio y hora fin para un bloqueo de rango de horas.');
+        return;
+      }
+      if (payload.tipo_bloqueo === 'cupo_maximo' && !payload.max_citas_dia && payload.max_citas_dia !== 0) {
+        alert('Indica el cupo máximo de citas.');
+        return;
+      }
 
-    const res = await fetch('/admin/bloqueo-fecha/crear', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      window.location.reload();
-    } else {
-      alert('No se pudo crear el bloqueo.');
-    }
+      const res = await fetch('/admin/bloqueo-fecha/crear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'No se pudo crear el bloqueo.');
+      }
+  });
+
+  document.getElementById('blq-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('.blq-del');
+      if (!btn) return;
+      if (!confirm('¿Eliminar este bloqueo?')) return;
+
+      const res = await fetch(`/admin/bloqueo-fecha/${btn.dataset.id}/eliminar`, { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        btn.closest('.blq-row').remove();
+      } else {
+        alert('No se pudo eliminar.');
+      }
   });
 
   document.getElementById('blq-list').addEventListener('click', async (e) => {
