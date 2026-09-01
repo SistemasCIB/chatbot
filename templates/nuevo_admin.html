@@ -8,99 +8,96 @@ CIB - {{ 'Editar' if admin else 'Nuevo' }} Administrador
 
 <div class="content">
 
+    <div class="form-card">
 
-<div class="form-card">
-
-    <div class="form-card-header">
-        {{ 'Editar datos del administrador' if admin else 'Crear nuevo administrador' }}
-    </div>
-
-    <form method="POST">
-
-        <div class="form-card-body">
-
-            {% if error %}
-            <div class="error">
-                {{ error }}
-            </div>
-            {% endif %}
-
-            <div class="field">
-
-                <label>Nombre completo</label>
-
-                <input
-                    type="text"
-                    name="nombre"
-                    value="{{ admin.nombre if admin else '' }}"
-                    required
-                >
-
-            </div>
-
-            <div class="field">
-
-                <label>Usuario</label>
-
-                <input
-                    type="text"
-                    name="usuario"
-                    value="{{ admin.usuario if admin else '' }}"
-                    required
-                >
-
-            </div>
-
-            <div class="field">
-
-                <label>Correo</label>
-
-                <input
-                    type="email"
-                    name="correo"
-                    value="{{ admin.correo if admin else '' }}"
-                >
-
-            </div>
-
-            <div class="field">
-
-                <label>Contraseña</label>
-
-                <input
-                    type="password"
-                    name="password"
-                    {{ '' if admin else 'required' }}
-                >
-
-                {% if admin %}
-                <small>
-                    Deja vacío para mantener la contraseña actual.
-                </small>
-                {% endif %}
-
-            </div>
-
-            <div class="form-actions">
-
-                <a href="/admin" class="btn-cancelar">
-                    Cancelar
-                </a>
-
-                <button type="submit" class="btn-guardar">
-                    {{ 'Guardar cambios' if admin else 'Crear administrador' }}
-                </button>
-
-            </div>
-
+        <div class="form-card-header">
+            {{ 'Editar datos del administrador' if admin else 'Crear nuevo administrador' }}
         </div>
 
-    </form>
+        <form method="POST">
 
-</div>
+            <div class="form-card-body">
 
+                {% if error %}
+                <div class="error">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="field">
+
+                    <label>Nombre completo</label>
+
+                    <input
+                        type="text"
+                        name="nombre"
+                        value="{{ admin.nombre if admin else '' }}"
+                        required
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label>Usuario</label>
+
+                    <input
+                        type="text"
+                        name="usuario"
+                        value="{{ admin.usuario if admin else '' }}"
+                        required
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label>Correo</label>
+
+                    <input
+                        type="email"
+                        name="correo"
+                        value="{{ admin.correo if admin else '' }}"
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label>Contraseña</label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        {% if not admin %}required{% endif %}
+                    >
+
+                    {% if admin %}
+                    <small>
+                        Deja vacío para mantener la contraseña actual.
+                    </small>
+                    {% endif %}
+
+                </div>
+
+                <div class="form-actions">
+
+                    <a href="/admin" class="btn-cancelar">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn-guardar">
+                        {{ 'Guardar cambios' if admin else 'Crear administrador' }}
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
 
 </div>
 
 {% endblock %}
-{% endraw %}

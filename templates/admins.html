@@ -18,9 +18,11 @@ Gestión de administradores del sistema
 
     .admin-stats {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
         margin-bottom: 24px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .admin-stat-card {
@@ -32,11 +34,14 @@ Gestión de administradores del sistema
         align-items: center;
         gap: 14px;
         box-shadow: var(--shadow);
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     .admin-stat-icon {
         width: 48px;
         height: 48px;
+        min-width: 48px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -65,6 +70,8 @@ Gestión de administradores del sistema
         border: 1px solid var(--border);
         overflow: hidden;
         box-shadow: var(--shadow);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .admin-table-header {
@@ -79,6 +86,7 @@ Gestión de administradores del sistema
         color: var(--navy);
         font-size: 15px;
         font-weight: 700;
+        margin: 0;
     }
 
     .admin-badge-count {
@@ -164,7 +172,15 @@ Gestión de administradores del sistema
         color: var(--green-dark);
     }
 
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
+
+        .admin-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+    @media (max-width: 600px) {
 
         .admin-stats {
             grid-template-columns: 1fr;
@@ -184,171 +200,165 @@ Gestión de administradores del sistema
 
 {% endblock %}
 
+
 {% block content %}
 
 <div class="admin-stats">
 
-```
-<div class="admin-stat-card">
+    <div class="admin-stat-card">
 
-    <div class="admin-stat-icon">
-        💼
+        <div class="admin-stat-icon">
+            💼
+        </div>
+
+        <div>
+            <div class="admin-stat-label">
+                Total admins
+            </div>
+
+            <div class="admin-stat-value">
+                {{ admins|length }}
+            </div>
+        </div>
+
     </div>
 
-    <div>
-        <div class="admin-stat-label">
-            Total admins
+
+    <div class="admin-stat-card">
+
+        <div class="admin-stat-icon">
+            ✅
         </div>
 
-        <div class="admin-stat-value">
-            {{ admins|length }}
+        <div>
+            <div class="admin-stat-label">
+                Activos
+            </div>
+
+            <div class="admin-stat-value">
+                {{ admins|selectattr('activo','equalto',True)|list|length }}
+            </div>
         </div>
+
+    </div>
+
+
+    <div class="admin-stat-card">
+
+        <div class="admin-stat-icon">
+            🚫
+        </div>
+
+        <div>
+            <div class="admin-stat-label">
+                Inactivos
+            </div>
+
+            <div class="admin-stat-value">
+                {{ admins|selectattr('activo','equalto',False)|list|length }}
+            </div>
+        </div>
+
     </div>
 
 </div>
 
-
-<div class="admin-stat-card">
-
-    <div class="admin-stat-icon">
-        ✅
-    </div>
-
-    <div>
-        <div class="admin-stat-label">
-            Activos
-        </div>
-
-        <div class="admin-stat-value">
-            {{ admins|selectattr('activo','equalto',True)|list|length }}
-        </div>
-    </div>
-
-</div>
-
-
-<div class="admin-stat-card">
-
-    <div class="admin-stat-icon">
-        🚫
-    </div>
-
-    <div>
-        <div class="admin-stat-label">
-            Inactivos
-        </div>
-
-        <div class="admin-stat-value">
-            {{ admins|selectattr('activo','equalto',False)|list|length }}
-        </div>
-    </div>
-
-</div>
-```
-
-</div>
 
 <div class="admin-table-box">
 
-```
-<div class="admin-table-header">
+    <div class="admin-table-header">
 
-    <div>
-        <h2>
-            Administradores registrados
-        </h2>
+        <div>
+            <h2>
+                Administradores registrados
+            </h2>
+        </div>
+
+        <span class="admin-badge-count">
+            {{ admins|length }} registros
+        </span>
+
     </div>
 
-    <span class="admin-badge-count">
-        {{ admins|length }} registros
-    </span>
 
-</div>
+    <div style="overflow-x:auto;">
 
+        <table class="admin-table">
 
-<div style="overflow-x:auto;">
+            <thead>
 
-    <table class="admin-table">
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Usuario</th>
+                    <th>Estado</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                </tr>
 
-        <thead>
-
-            <tr>
-                <th>#</th>
-                <th>Nombre</th>
-                <th>Usuario</th>
-                <th>Estado</th>
-                <th>Registro</th>
-                <th>Acciones</th>
-            </tr>
-
-        </thead>
+            </thead>
 
 
-        <tbody>
+            <tbody>
 
-            {% for a in admins %}
+                {% for a in admins %}
 
-            <tr>
+                <tr>
 
-                <td>
-                    {{ a.id }}
-                </td>
+                    <td>
+                        {{ a.id }}
+                    </td>
 
-                <td>
-                    <strong>
-                        {{ a.nombre }}
-                    </strong>
-                </td>
+                    <td>
+                        <strong>
+                            {{ a.nombre }}
+                        </strong>
+                    </td>
 
-                <td>
-                    {{ a.usuario }}
-                </td>
+                    <td>
+                        {{ a.usuario }}
+                    </td>
 
-                <td>
-                    <span class="admin-pill {{ 'activo' if a.activo else 'inactivo' }}">
-                        {{ 'Activo' if a.activo else 'Inactivo' }}
-                    </span>
-                </td>
+                    <td>
+                        <span class="admin-pill {{ 'activo' if a.activo else 'inactivo' }}">
+                            {{ 'Activo' if a.activo else 'Inactivo' }}
+                        </span>
+                    </td>
 
-                <td>
-                    {{ a.creado_en.strftime('%d/%m/%Y') if a.creado_en else '-' }}
-                </td>
+                    <td>
+                        {{ a.creado_en.strftime('%d/%m/%Y') if a.creado_en else '-' }}
+                    </td>
 
-                <td>
+                    <td>
 
-                    <div class="admin-actions">
+                        <div class="admin-actions">
 
-                        <a
-                            href="/admin/editar/{{ a.id }}"
-                            class="admin-btn admin-btn-edit">
-
-                            Editar
-
-                        </a>
+                            <a
+                                href="/admin/editar/{{ a.id }}"
+                                class="admin-btn admin-btn-edit">
+                                Editar
+                            </a>
 
 
-                        <a
-                            href="/admin/toggle/{{ a.id }}"
-                            class="admin-btn {{ 'admin-btn-toggle-off' if a.activo else 'admin-btn-toggle-on' }}">
+                            <a
+                                href="/admin/toggle/{{ a.id }}"
+                                class="admin-btn {{ 'admin-btn-toggle-off' if a.activo else 'admin-btn-toggle-on' }}">
+                                {{ 'Desactivar' if a.activo else 'Activar' }}
+                            </a>
 
-                            {{ 'Desactivar' if a.activo else 'Activar' }}
+                        </div>
 
-                        </a>
+                    </td>
 
-                    </div>
+                </tr>
 
-                </td>
+                {% endfor %}
 
-            </tr>
+            </tbody>
 
-            {% endfor %}
+        </table>
 
-        </tbody>
-
-    </table>
-
-</div>
-```
+    </div>
 
 </div>
 
