@@ -2939,7 +2939,36 @@
 ========================================================= -->
 
 <script>
+    /* =========================================================
+    RECORDAR POSICIÓN DEL MENÚ LATERAL
+    ========================================================= */
 
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const nav = document.querySelector('.nav');
+
+        if (!nav) return;
+
+        // Restaurar la posición guardada
+        const scrollGuardado = sessionStorage.getItem('admin_sidebar_scroll');
+
+        if (scrollGuardado !== null) {
+            nav.scrollTop = parseInt(scrollGuardado, 10);
+        }
+
+        // Guardar la posición antes de cambiar de página
+        nav.querySelectorAll('a').forEach(function (enlace) {
+
+            enlace.addEventListener('click', function () {
+                sessionStorage.setItem(
+                    'admin_sidebar_scroll',
+                    nav.scrollTop
+                );
+            });
+
+        });
+
+    });
 
     /* =========================================================
        SIDEBAR MOBILE
