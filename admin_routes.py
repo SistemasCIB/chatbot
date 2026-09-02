@@ -77,12 +77,19 @@ def panel():
         asesores=asesores,
         especialistas=especialistas,
         admin_nombre=session.get('admin_nombre'),
+    )
+
+@admin_bp.context_processor
+def inject_admin_globals():
+    config = get_config_horario()
+    return dict(
         horario_inicio=config.horario_inicio,
         horario_fin=config.horario_fin,
         dias_activos=[int(d) for d in config.dias_activos.split(',')],
         dias_bloqueados=DiasBloqueados.query.order_by(DiasBloqueados.fecha).all(),
-        configs=ExamenConfig.query.order_by(ExamenConfig.examen_id).all(),  # ← esta línea
+        configs=ExamenConfig.query.order_by(ExamenConfig.examen_id).all(),
     )
+
 # =====================================================
 # CREAR ASESOR
 # =====================================================
