@@ -195,6 +195,8 @@
                         <option value="CC" {% if cita and cita.paciente.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
                         <option value="TI" {% if cita and cita.paciente.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
                         <option value="CE" {% if cita and cita.paciente.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
+                        <option value="PPT"{% if cita and cita.paciente.tipo_documento == 'PPT' %}selected{% endif %}>PPT</option>
+                        <option value="RC" {% if cita and cita.paciente.tipo_documento == 'RC' %}selected{% endif %}>RC</option>
                         <option value="PP" {% if cita and cita.paciente.tipo_documento == 'PP' %}selected{% endif %}>Pasaporte</option>
                     </select>
                 </div>
