@@ -483,18 +483,38 @@ actualizarFormulario();
 const documentoInput = document.getElementById('documento');
 
 if (documentoInput) {
+    // Campos que se autocompletan
+    const camposAutocompletables = ['nombre', 'telefono', 'correo', 'direccion', 'fecha_nacimiento'];
+
+    // Registro de cuáles ha editado el asesor a mano
+    const camposEditadosManualmente = new Set();
+
+    camposAutocompletables.forEach((id) => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                camposEditadosManualmente.add(id);
+            });
+        }
+    });
+
     documentoInput.addEventListener('blur', async () => {
         const documento = documentoInput.value.trim();
         if (!documento) return;
+
         try {
             const response = await fetch(`/asesor/buscar_paciente?documento=${documento}`);
             const data = await response.json();
+
             if (data.nombre) {
-                document.getElementById('nombre').value           = data.nombre           || '';
-                document.getElementById('telefono').value         = data.telefono         || '';
-                document.getElementById('correo').value           = data.correo           || '';
-                document.getElementById('direccion').value        = data.direccion        || '';
-                document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento || '';
+                camposAutocompletables.forEach((id) => {
+                    if (camposEditadosManualmente.has(id)) return; // no pisar lo que el asesor ya cambió
+
+                    const input = document.getElementById(id);
+                    if (input) {
+                        input.value = data[id] || '';
+                    }
+                });
             }
         } catch (error) {
             console.log(error);

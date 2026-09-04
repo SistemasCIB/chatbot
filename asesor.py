@@ -741,7 +741,10 @@ def buscar_paciente():
         return jsonify({
             'nombre': paciente.nombre,
             'tipo_documento': paciente.tipo_documento,
-            'telefono': paciente.telefono
+            'telefono': paciente.telefono,
+            'correo': paciente.correo,
+            'direccion': paciente.direccion,
+            'fecha_nacimiento': paciente.fecha_nacimiento.strftime('%Y-%m-%d') if paciente.fecha_nacimiento else ''
         })
 
     return jsonify({})
