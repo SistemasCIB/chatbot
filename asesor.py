@@ -625,6 +625,12 @@ def editar_cita(cita_id):
         hora_original = cita.hora_cita or ''
         estado_original = cita.estado
 
+        # ── Detectar intento de modificar estado de una cita cancelada ──
+        intento_cambiar_cancelada = (
+            estado_original == 'cancelada'
+            and request.form.get('estado') != 'cancelada'
+        )
+
         # datos del paciente
         paciente.nombre = request.form['nombre']
         paciente.tipo_documento = request.form['tipo_documento']
@@ -644,35 +650,18 @@ def editar_cita(cita_id):
         cita.tipo_muestra = request.form.get('tipo_muestra', '')
         cita.agenda_tipo = request.form.get('agenda_tipo', '')
 
-        # =====================================================
-        # clasificación automática
-        # =====================================================
         cita.area = (
             "Bacteriología"
-            if request.form.get('tipo_examen') in [
-                'IGRAs',
-                'Tuberculina PPD'
-            ]
+            if request.form.get('tipo_examen') in ['IGRAs', 'Tuberculina PPD']
             else 'Micología'
         )
 
-        # Fecha / hora
-        cita.fecha_cita = datetime.strptime(
-            request.form['fecha_cita'],
-            '%Y-%m-%d'
-        )
+        cita.fecha_cita = datetime.strptime(request.form['fecha_cita'], '%Y-%m-%d')
         cita.hora_cita = request.form['hora_cita']
         cita.numero_whatsapp = request.form['telefono']
 
-        # =====================================================
-        # ESTADO — el asesor no puede cancelar ni reactivar una cita cancelada
-        # =====================================================
-        if estado_original == 'cancelada':
-            if request.form.get('estado') != 'cancelada':
-                flash('Esta cita fue cancelada por el paciente y no se puede modificar su estado.', 'error')
-            cita.estado = 'cancelada'  # se ignora cualquier valor recibido del form
-        else:
-            cita.estado = request.form['estado']
+        # ── Estado: se ignora el cambio si la cita ya estaba cancelada ──
+        cita.estado = estado_original if estado_original == 'cancelada' else request.form['estado']
 
         # =========================
         # ARCHIVO ORDEN MÉDICA
@@ -688,7 +677,7 @@ def editar_cita(cita_id):
             cita.orden_tipo_archivo = archivo.content_type
 
         # =========================
-        # VALIDACIÓN — comparar contra los valores ORIGINALES
+        # VALIDACIÓN DE DISPONIBILIDAD
         # =========================
         cambio_agenda = (
             cita.fecha_cita.date() != fecha_original
@@ -719,9 +708,13 @@ def editar_cita(cita_id):
             cita_id=cita.id,
             detalle=f'Editó cita de {paciente.documento} - {paciente.nombre}'
         )
-
         db.session.add(log)
         db.session.commit()
+
+        # ── Si intentó cambiar el estado de una cancelada, avisar SIN redirect ──
+        if intento_cambiar_cancelada:
+            flash('Esta cita fue cancelada por el paciente y no se puede modificar su estado. El resto de los cambios sí se guardó.', 'error')
+            return render_template('form_cita.html', cita=cita)
 
         return redirect(url_for('asesor.panel'))
 
