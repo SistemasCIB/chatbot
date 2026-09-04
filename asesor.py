@@ -614,7 +614,7 @@ def nueva_cita():
 def editar_cita(cita_id):
 
     cita = Cita.query.get_or_404(cita_id)
-    paciente = cita.paciente  # ← clave con tu nuevo modelo
+    paciente = cita.paciente
 
     if request.method == 'POST':
 
@@ -623,6 +623,7 @@ def editar_cita(cita_id):
         area_original = cita.area
         fecha_original = cita.fecha_cita.date()
         hora_original = cita.hora_cita or ''
+        estado_original = cita.estado
 
         # datos del paciente
         paciente.nombre = request.form['nombre']
@@ -661,8 +662,15 @@ def editar_cita(cita_id):
             '%Y-%m-%d'
         )
         cita.hora_cita = request.form['hora_cita']
-        cita.estado = request.form['estado']
         cita.numero_whatsapp = request.form['telefono']
+
+        # =====================================================
+        # ESTADO — el asesor no puede cancelar ni reactivar una cita cancelada
+        # =====================================================
+        if estado_original == 'cancelada':
+            cita.estado = 'cancelada'  # se ignora cualquier valor recibido del form
+        else:
+            cita.estado = request.form['estado']
 
         # =========================
         # ARCHIVO ORDEN MÉDICA
@@ -697,7 +705,7 @@ def editar_cita(cita_id):
             )
             if not ok:
                 flash(motivo, "error")
-                db.session.rollback()  # descarta los cambios en memoria (paciente y cita)
+                db.session.rollback()
                 return render_template('form_cita.html', cita=Cita.query.get(cita_id))
 
         db.session.commit()

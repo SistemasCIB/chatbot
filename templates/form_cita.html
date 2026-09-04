@@ -389,7 +389,9 @@
                         <option value="cumplida"   {% if v_estado == 'cumplida'   %}selected{% endif %}>Cumplida</option>
                         <option value="no_cumplio" {% if v_estado == 'no_cumplio' %}selected{% endif %}>No Cumplida</option>
                         <option value="rechazada"  {% if v_estado == 'rechazada'  %}selected{% endif %}>Rechazada</option>
-                        <option value="cancelada"  {% if v_estado == 'cancelada'  %}selected{% endif %}>Cancelada</option>
+                        {% if v_estado == 'cancelada' %}
+                            <option value="cancelada" selected disabled>Cancelada (por el paciente)</option>
+                        {% endif %}
                     </select>
                 </div>
 
