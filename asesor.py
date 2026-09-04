@@ -668,6 +668,8 @@ def editar_cita(cita_id):
         # ESTADO — el asesor no puede cancelar ni reactivar una cita cancelada
         # =====================================================
         if estado_original == 'cancelada':
+            if request.form.get('estado') != 'cancelada':
+                flash('Esta cita fue cancelada por el paciente y no se puede modificar su estado.', 'error')
             cita.estado = 'cancelada'  # se ignora cualquier valor recibido del form
         else:
             cita.estado = request.form['estado']
