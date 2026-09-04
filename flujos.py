@@ -157,7 +157,7 @@ def manejar_boton(numero, opcion_id):
     # -----------------------------------
     # POLITICA
     # -----------------------------------
-    elif opcion_id == "acepto_datos":
+    elif opcion_id == "acepto_datos": 
         try:
             consentimiento = Consentimiento(
                 numero_whatsapp=numero,
