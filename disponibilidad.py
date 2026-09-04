@@ -70,7 +70,7 @@ def validar_disponibilidad(fecha, hora, tipo_cita, area=None, origen="manual"):
         ).first()
         if h_asesor:
             if not h_asesor.activo:
-                return False, "Ese día no está habilitado para agendar en esta agenda."
+                return False, f"Este día no está habilitado para agendar citas en la agenda de {agenda_tipo}."
             if hora is not None:
                 h_ini, h_fin = _to_time(h_asesor.hora_inicio), _to_time(h_asesor.hora_fin)
                 if h_ini and h_fin and not (h_ini <= hora <= h_fin):
