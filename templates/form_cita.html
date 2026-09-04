@@ -220,13 +220,14 @@
                     <input
                         type="date"
                         name="fecha_nacimiento"
+                        id="fecha_nacimiento"
                         value="{% if cita and cita.paciente.fecha_nacimiento %}{{ cita.paciente.fecha_nacimiento.strftime('%Y-%m-%d') }}{% elif vp %}{{ vp.get('fecha_nacimiento', '') }}{% endif %}"
                     >
                 </div>
 
                 <div class="campo campo-full">
                     <label>Correo</label>
-                    <input type="email" name="correo"
+                    <input type="email" name="correo" id="correo"
                         value="{{ cita.paciente.correo if cita else (vp.get('correo') if vp else '') }}">
                 </div>
 
@@ -487,8 +488,11 @@ if (documentoInput) {
             const response = await fetch(`/asesor/buscar_paciente?documento=${documento}`);
             const data = await response.json();
             if (data.nombre) {
-                document.getElementById('nombre').value   = data.nombre   || '';
-                document.getElementById('telefono').value = data.telefono || '';
+                document.getElementById('nombre').value           = data.nombre           || '';
+                document.getElementById('telefono').value         = data.telefono         || '';
+                document.getElementById('correo').value           = data.correo           || '';
+                document.getElementById('direccion').value        = data.direccion        || '';
+                document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento || '';
             }
         } catch (error) {
             console.log(error);

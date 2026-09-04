@@ -618,6 +618,11 @@ def editar_cita(cita_id):
 
     if request.method == 'POST':
 
+        # ── Capturar valores ORIGINALES antes de sobreescribir nada ──
+        tipo_cita_original = cita.tipo_cita
+        area_original = cita.area
+        fecha_original = cita.fecha_cita.date()
+        hora_original = cita.hora_cita or ''
 
         # datos del paciente
         paciente.nombre = request.form['nombre']
@@ -639,10 +644,8 @@ def editar_cita(cita_id):
         cita.agenda_tipo = request.form.get('agenda_tipo', '')
 
         # =====================================================
-        # CAMBIO:
         # clasificación automática
         # =====================================================
-
         cita.area = (
             "Bacteriología"
             if request.form.get('tipo_examen') in [
@@ -652,12 +655,11 @@ def editar_cita(cita_id):
             else 'Micología'
         )
 
-        # Fecha
+        # Fecha / hora
         cita.fecha_cita = datetime.strptime(
             request.form['fecha_cita'],
             '%Y-%m-%d'
         )
-
         cita.hora_cita = request.form['hora_cita']
         cita.estado = request.form['estado']
         cita.numero_whatsapp = request.form['telefono']
@@ -673,35 +675,32 @@ def editar_cita(cita_id):
             archivo.save(ruta)
 
             cita.orden_medica = nombre_archivo
-            cita.orden_tipo_archivo = archivo.content_type  # ← opcional pero recomendado
+            cita.orden_tipo_archivo = archivo.content_type
 
-        fecha_nueva = datetime.strptime(request.form['fecha_cita'], '%Y-%m-%d').date()
-        hora_nueva_str = request.form.get('hora_cita')
+        # =========================
+        # VALIDACIÓN — comparar contra los valores ORIGINALES
+        # =========================
         cambio_agenda = (
-            fecha_nueva != cita.fecha_cita.date()
-            or hora_nueva_str != (cita.hora_cita or '')
+            cita.fecha_cita.date() != fecha_original
+            or (cita.hora_cita or '') != hora_original
+            or cita.tipo_cita != tipo_cita_original
+            or cita.area != area_original
         )
 
         if cambio_agenda:
-            tipo_cita = request.form['tipo_cita']
-            area_nueva = (
-                "Bacteriología" if request.form.get('tipo_examen') in ['IGRAs', 'Tuberculina PPD']
-                else 'Micología'
-            )
             hora_obj = None
-            if tipo_cita == "presencial" and hora_nueva_str:
-                hora_obj = datetime.strptime(hora_nueva_str, "%H:%M").time()
+            if cita.tipo_cita == "presencial" and cita.hora_cita:
+                hora_obj = datetime.strptime(cita.hora_cita, "%H:%M").time()
 
             ok, motivo = validar_disponibilidad(
-                fecha_nueva, hora_obj, tipo_cita, area=area_nueva, origen="manual"
+                cita.fecha_cita.date(), hora_obj, cita.tipo_cita, area=cita.area, origen="manual"
             )
             if not ok:
                 flash(motivo, "error")
-                return render_template('form_cita.html', cita=cita)
+                db.session.rollback()  # descarta los cambios en memoria (paciente y cita)
+                return render_template('form_cita.html', cita=Cita.query.get(cita_id))
 
-# ... continúa con la actualización de `cita` como ya lo tienes
         db.session.commit()
-
 
         log = Auditoria(
             asesor_id=session['asesor_id'],
